@@ -1,0 +1,51 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: clubhouse-postgres
+    environment:
+      POSTGRES_USER: clubhouse
+      POSTGRES_PASSWORD: clubhouse
+      POSTGRES_DB: clubhouse
+    ports:
+      - "54329:5432"
+    volumes:
+      - clubhouse-pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U clubhouse -d clubhouse"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  # Optional S3-compatible store for testing the S3 adapter locally: `docker compose --profile s3 up -d`.
+  # Without it the API uses the local-disk storage adapter (STORAGE_DRIVER=local).
+  minio:
+    profiles: ["s3"]
+    image: minio/minio:latest
+    container_name: clubhouse-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: minio12345
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - clubhouse-minio:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  minio-init:
+    profiles: ["s3"]
+    image: minio/mc:latest
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 minio minio12345 &&
+      mc mb --ignore-existing local/clubhouse-media &&
+      echo bucket ready"
+volumes:
+  clubhouse-pg:
+  clubhouse-minio:

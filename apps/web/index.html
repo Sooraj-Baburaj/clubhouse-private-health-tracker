@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en" data-palette="day">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
+    <meta name="theme-color" content="#f7f7f1" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Clubhouse" />
+    <meta name="description" content="Log food and moves with your crew." />
+    <link rel="icon" href="/icons/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon-180.png" />
+    <title>Clubhouse</title>
+    <script>
+      try {
+        var p = JSON.parse(localStorage.getItem('ch:appPrefs') || '{}');
+        var dark = p.theme === 'dark' || ((p.theme || 'system') === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
+        document.documentElement.dataset.palette = dark ? 'night' : p.palette && p.palette !== 'night' ? p.palette : 'day';
+      } catch (e) {}
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

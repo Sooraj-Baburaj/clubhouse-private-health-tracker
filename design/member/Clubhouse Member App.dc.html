@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style data-omelette-injected>html,body{background:transparent}</style><script data-omelette-injected>(()=>{{const n=new URLSearchParams(location.search).get("theme");if(n==="light"||n==="dark"){document.documentElement.dataset.theme=n}}{if(new URLSearchParams(location.search).get("_omthumb")==="1"){const n=(f)=>{const g=f.focus;if(!g)return;f.focus=function(h){g.call(this,{...h,preventScroll:true})}};n(HTMLElement.prototype);n(SVGElement.prototype);if(typeof MathMLElement!=="undefined"){n(MathMLElement.prototype)}const d=(f)=>{f.removeAttribute("autofocus");f.inert=true;if(!(f instanceof HTMLElement))f.removeAttribute("tabindex")};const p=(f)=>{if(f.hasAttribute("autofocus"))d(f);for(const g of f.querySelectorAll("[autofocus]")){d(g)}};p(document.documentElement);new MutationObserver((f)=>{for(const g of f){for(const h of g.addedNodes){if(h.nodeType===1)p(h)}}}).observe(document,{childList:true,subtree:true})}}{const n=()=>{try{if(document.querySelector('meta[name="color-scheme"]'))return;const d=getComputedStyle(document.documentElement).getPropertyValue("color-scheme").trim();if(d&&d!=="normal")return;const p=(y)=>{if(!y)return null;const m=getComputedStyle(y).backgroundColor.match(/^rgba?\(\s*(\d+)[,\s]+(\d+)[,\s]+(\d+)(?:[,\s/]+([\d.]+%?))?\s*\)$/);if(!m)return null;const w=m[4]==null?1:parseFloat(m[4])/(m[4].endsWith("%")?100:1);if(w<0.99)return null;return[+m[1],+m[2],+m[3]]};const f=p(document.body)||p(document.documentElement);if(!f)return;const g=(y)=>{const m=y/255;return m<=0.04045?m/12.92:((m+0.055)/1.055)**2.4};const h=0.2126*g(f[0])+0.7152*g(f[1])+0.0722*g(f[2]);document.documentElement.style.setProperty("color-scheme",h<0.4?"dark":"light")}catch{}};if(document.readyState==="complete")n();else window.addEventListener("load",n)}var I=[];var B=false;var K=false;var C=()=>{};if(K===true){try{const n=setTimeout.bind(window);const d=1e4;const p=15;const f=1e4;const g=120000;const h=200;const y=(o)=>{try{let r;if(typeof o==="string")r=o;else if(o instanceof URL)r=o.href;else if(typeof Request!=="undefined"&&o instanceof Request)r=o.url;else return null;if(!r)return null;const l=document.baseURI;const i=new URL(r,l);if(i.protocol!=="http:"&&i.protocol!=="https:")return null;if(i.origin!==new URL(l).origin)return null;return i.origin+i.pathname}catch{return null}};const m=new Map;const w=(o)=>{let r=m.get(o);if(!r){if(m.size>=h){const l=m.keys().next().value;if(l!==undefined)m.delete(l)}r={fails:[],until:0,cooldown:f,hard:false};m.set(o,r)}return r};const R=(o)=>{const r=m.get(o);return r!==undefined&&r.until>Date.now()};const O=(o,r)=>{const l=Date.now();const i=w(o);if(r)i.hard=true;if(i.until>l)return;i.fails.push(l);while(i.fails.length>0&&i.fails[0]<=l-d)i.fails.shift();if(i.fails.length>=p){i.until=l+i.cooldown;if(i.hard)i.cooldown=Math.min(i.cooldown*2,g);i.fails.length=0;try{n(()=>{try{S(true)}catch{}},i.until-l+100)}catch{}console.warn("[omelette] asset circuit breaker: pausing requests to "+o+" for "+Math.round((i.until-l)/1000)+"s after "+p+" failures in "+d/1000+"s")}};const e=(o)=>{m.delete(o)};const t=100;const a=new WeakMap;const u=new Set;let s=null;const S=(o)=>{for(const r of Array.from(u)){try{const l=a.get(r);if(l===undefined){u.delete(r);continue}if(o){const i=y(l);if(i!==null&&R(i))continue}a.delete(r);u.delete(r);if(s!==null)s.call(r,l)}catch{}}};C=()=>{try{m.clear();S(false)}catch{}};document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")C()});const _=window.fetch;if(typeof _==="function"){const o=function(...r){let l=null;try{l=y(r[0])}catch{}if(l!==null&&R(l)){let c;try{if(r[1]&&r[1].signal!==undefined){c=r[1].signal||undefined}else if(typeof Request!=="undefined"&&r[0]instanceof Request){c=r[0].signal||undefined}}catch{c=undefined}return new Promise((k,b)=>{const E=()=>{try{return c.reason!==undefined?c.reason:new DOMException("The operation was aborted.","AbortError")}catch{return new DOMException("The operation was aborted.","AbortError")}};try{if(c&&c.aborted){b(E());return}}catch{}let T=false;const j=()=>{if(T)return;T=true;b(E())};try{if(c)c.addEventListener("abort",j,{once:true})}catch{}n(()=>{if(T)return;T=true;try{if(c)c.removeEventListener("abort",j)}catch{}let L;try{L=new Response(null,{status:429,statusText:"Too Many Requests",headers:{"Retry-After":"10"}})}catch{L={ok:false,status:429}}k(L)},250)})}const i=_.apply(window,r);if(l!==null){const c=l;i.then((k)=>{try{if(k.ok)e(c);else if(k.status===401||k.status===403||k.status===404||k.status===429){O(c,k.status!==404)}}catch{}},()=>{})}return i};window.fetch=o}const v=Object.getOwnPropertyDescriptor(HTMLImageElement.prototype,"src");if(v!==undefined&&v.set!==undefined&&v.get!==undefined){const o=v.set;s=o;Object.defineProperty(HTMLImageElement.prototype,"src",{configurable:true,enumerable:v.enumerable,get:v.get,set(r){const l=`${r}`;try{const i=y(l);if(i!==null&&R(i)){a.set(this,l);if(u.size<t)u.add(this);return}}catch{}try{a.delete(this);u.delete(this)}catch{}o.call(this,l)}})}try{const o=HTMLImageElement.prototype.setAttribute;HTMLImageElement.prototype.setAttribute=function(r,l){if(arguments.length<2){o.apply(this,arguments);return}if(typeof r==="string"&&r.toLowerCase()==="src"){const i=`${l}`;try{const c=y(i);if(c!==null&&R(c)){a.set(this,i);if(u.size<t)u.add(this);return}a.delete(this);u.delete(this)}catch{}o.call(this,r,i);return}o.call(this,r,l)}}catch{}window.addEventListener("error",(o)=>{try{const r=o.target;if(r instanceof HTMLImageElement){const l=y(r.currentSrc||r.src||"");if(l!==null)O(l,true)}}catch{}},true);window.addEventListener("load",(o)=>{try{const r=o.target;if(r instanceof HTMLImageElement){const l=y(r.currentSrc||r.src||"");if(l!==null)e(l);const i=a.get(r);if(i!==undefined){let c=false;try{c=new URL(i,document.baseURI).href===new URL(r.currentSrc||r.src||"",document.baseURI).href}catch{c=false}if(c){a.delete(r);u.delete(r)}}}}catch{}},true)}catch{}}var J=30000;var G=3000;document.addEventListener("DOMContentLoaded",()=>{const n=window.Babel;const d="om-src-id";if(n&&n.registerPlugin&&!(n.availablePlugins&&n.availablePlugins[d])){n.registerPlugin(d,({types:h})=>({visitor:{JSXOpeningElement(y,m){const w=y.node;if(w.name&&w.name.type==="JSXMemberExpression")return;for(let t=0;t<w.attributes.length;t++){const a=w.attributes[t];if(a.type==="JSXAttribute"&&a.name&&a.name.name==="data-om-id")return}const R=m.file&&m.file.opts&&m.file.opts.filename||"?";const O=w.loc&&w.loc.start;const e=`jsx:${R}:${w.start??0}:${O?O.line:0}:${O?O.column+1:0}`;w.attributes.push(h.jsxAttribute(h.jsxIdentifier("data-om-id"),h.stringLiteral(e)))}}}))}const p="om-text-extract";let f=false;if(B&&n&&n.registerPlugin&&!(n.availablePlugins&&n.availablePlugins[p])){const h=window.React;if(h&&h.useSyncExternalStore&&h.createElement){f=true;const y={};const m=new Set;let w=0;window.__omTextO=y;window.__omTextSet=(e)=>{for(const t in e){const a=e[t];if(a==null)delete y[t];else y[t]=a}w++;m.forEach((t)=>t())};const R=(e)=>{m.add(e);return()=>m.delete(e)};const O=()=>w;window.__OmT=function e(t){h.useSyncExternalStore(R,O,O);return h.createElement("span",{"data-om-text":t.i,className:"__om-t"},t.i in y?y[t.i]:t.children)};n.registerPlugin(p,({types:e})=>{const t={style:1,script:1,noscript:1,textarea:1,title:1,option:1,text:1,tspan:1,textPath:1};const a={placeholder:1,alt:1,title:1,label:1,"aria-label":1,"aria-description":1,"aria-placeholder":1};const u=(o,r)=>e.logicalExpression("??",e.memberExpression(e.logicalExpression("||",e.memberExpression(e.identifier("window"),e.identifier("__omTextO")),e.objectExpression([])),e.stringLiteral(o),true),r);const s=(o)=>o.file&&o.file.opts&&o.file.opts.filename||"?";const S=(o)=>o.file&&o.file.code||"";const _=(o,r)=>{const l=(c)=>c&&c.start!=null&&c.end!=null&&(c.type==="StringLiteral"||c.type==="TemplateLiteral"&&c.expressions.length===0)?[c.start,c.end]:null;const i=l(r);if(i)return i;if(r&&r.type==="Identifier"){const c=o.scope.getBinding(r.name);if(c&&c.constant&&c.path.node.type==="VariableDeclarator"){return l(c.path.node.init)}}return null};const v=(o,r,l)=>{const i=o.node;let c=false;const k=(E,T)=>{c=true;return e.jsxElement(e.jsxOpeningElement(e.jsxIdentifier("__OmT"),[e.jsxAttribute(e.jsxIdentifier("i"),e.stringLiteral(E))],false),e.jsxClosingElement(e.jsxIdentifier("__OmT")),[T],false)};const b=i.children.map((E)=>{if(E.type==="JSXText"){if(E.start==null||E.end==null)return E;const T=l.slice(E.start,E.end);const j=T.length-T.trimStart().length;const L=T.length-T.trimEnd().length;if(j+L>=T.length)return E;return k(`txt:${r}:${E.start+j}:${E.end-L}`,E)}if(E.type==="JSXExpressionContainer"){const T=_(o,E.expression);if(T)return k(`str:${r}:${T[0]}:${T[1]}`,E)}return E});if(c)i.children=b};return{visitor:{JSXOpeningElement(o,r){const l=o.node;const i=s(r);const c={};for(let k=0;k<l.attributes.length;k++){const b=l.attributes[k];if(b.type!=="JSXAttribute"||!b.name)continue;const E=b.name.name;if(!a[E])continue;if(!b.value||b.value.type!=="StringLiteral")continue;if(b.value.start==null||b.value.end==null)continue;const T=`txt:${i}:${b.value.start}:${b.value.end}`;c[E]=T;b.value=e.jsxExpressionContainer(u(T,e.stringLiteral(b.value.value)))}if(Object.keys(c).length){l.attributes.push(e.jsxAttribute(e.jsxIdentifier("data-om-text-attrs"),e.stringLiteral(JSON.stringify(c))))}},JSXElement(o,r){const l=o.node.openingElement;const i=l&&l.name&&l.name.name;if(i==="__OmT")return;if(typeof i==="string"&&t[i])return;v(o,s(r),S(r))},JSXFragment(o,r){v(o,s(r),S(r))}}}})}}const g=f?["transform-react-jsx-source",d,p]:["transform-react-jsx-source",d];document.querySelectorAll('script[type="text/babel"],script[type="text/jsx"]').forEach((h,y)=>{const m=h.getAttribute("data-plugins")||"";const w=g.filter((R)=>m.indexOf(R)<0);if(w.length){h.setAttribute("data-plugins",m?`${m},${w.join(",")}`:w.join(","))}if(!h.hasAttribute("data-filename")){h.setAttribute("data-filename",h.getAttribute("src")||`inline-${y}`)}})});var A=window.parent;var U="not editable here — open the project in the Claude Design editor to save";var W=()=>Promise.resolve({persisted:false,noHost:true,reason:U});var H=W;var M="data/storage.json";var z=()=>{try{const n=new URL(document.baseURI);const d=n.pathname.match(/\/projects\/([^/]+)\/serve\//);if(d)return d[1];return n.hostname.split(".")[0]||""}catch{return location.hostname.split(".")[0]||""}};var Z=()=>{try{const n=new URL(document.baseURI);const d=n.pathname.indexOf("/serve/");if(d>=0)return n.origin+n.pathname.slice(0,d+"/serve/".length)+M}catch{}return"./"+M};var x=null;var N=()=>{if(!x){x=fetch(Z(),{cache:"no-store"}).then((n)=>{if(n.ok)return n.text();return n.status===404?"":null}).catch(()=>null).then((n)=>{if(n===null){x=null;return null}const d=new Map;if(!n)return d;let p;try{p=JSON.parse(n)}catch{console.warn("[omelette.storage] "+M+" is not valid JSON; treating the store as unreadable so a save cannot overwrite the "+"hand-edited bytes. Fix the JSON (or delete the file) to re-enable persistence.");x=null;return null}if(p===null||typeof p!=="object"||Array.isArray(p)){console.warn("[omelette.storage] "+M+" doesn't hold a JSON object; treating the store as unreadable so a save cannot "+"overwrite the hand-edited bytes. Make the top level a JSON object to re-enable persistence.");x=null;return null}const f=p;if("data"in f){const g=f.data;if(g===null||typeof g!=="object"||Array.isArray(g)){console.warn("[omelette.storage] "+M+' has a "data" field that is not a JSON object; treating the store as unreadable so a '+'save cannot overwrite the hand-edited bytes. Make "data" a JSON object to re-enable persistence.');x=null;return null}const h=f._meta;const y=h!==null&&typeof h==="object"?h.project:undefined;if(typeof y==="string"&&y!==""&&y!==z())return d;for(const m of Object.keys(g))d.set(m,g[m]);return d}for(const g of Object.keys(f)){if(g!=="_meta")d.set(g,f[g])}return d})}return x};var F=(n)=>H(M,JSON.stringify({_meta:{project:z(),version:1},data:Object.fromEntries(n)},null,2));var D=Promise.resolve();var $=(n)=>{const d=D.then(n);D=d.then(()=>{return},()=>{return});return d};var V=/sk-(?:ant-)?[A-Za-z0-9_-]{16,}|AKIA[0-9A-Z]{16}|gh[pousr]_[A-Za-z0-9]{20,}|xox[a-z]-[A-Za-z0-9][A-Za-z0-9-]{9,}|AIza[0-9A-Za-z_-]{30,}|-----BEGIN [A-Z ]*PRIVATE KEY-----/;var Y=/password|passwd|secret|api[_-]?key|access[_-]?token|auth[_-]?token|credential/i;var Q=(n,d,p)=>{if(V.test(d)||Y.test(n)&&typeof p==="string"&&p.length>=8){console.warn('[omelette.storage] the value for "'+n+'" looks like a credential. The storage file is a plaintext project file — visible to '+"everyone with project access and copied when the project is duplicated. Do not store secrets here.")}};var q={persisted:false,reason:"could not load the existing store — not overwriting it"};var X={persisted:false,reason:"stored value changed since a failed read — re-read this key before saving"};var P=new Set;var ee={get:(n)=>{if(typeof n!=="string"){return Promise.reject(new TypeError("storage.get: key must be a string"))}return $(N).then((d)=>{if(d===null){P.add(n);return null}P.delete(n);if(!d.has(n))return null;const p=d.get(n);return p==null?null:JSON.parse(JSON.stringify(p))})},set:(n,d)=>{if(typeof n!=="string"){return Promise.reject(new TypeError("storage.set: key must be a string"))}let p;try{p=JSON.stringify(d)}catch(g){return Promise.reject(new TypeError("storage.set: value must be JSON-serializable ("+String(g)+")"))}if(p===undefined){return Promise.reject(new TypeError("storage.set: value must be JSON-serializable"))}Q(n,p,d);const f=JSON.parse(p);return $(()=>N().then((g)=>{if(g===null)return q;if(P.has(n)){if(g.has(n))return X;P.delete(n)}g.set(n,f);return F(g)}))},delete:(n)=>{if(typeof n!=="string"){return Promise.reject(new TypeError("storage.delete: key must be a string"))}return $(()=>N().then((d)=>{if(d===null)return q;if(P.has(n)){if(d.has(n))return X;P.delete(n)}d.delete(n);return F(d)}))},keys:()=>$(N).then((n)=>n===null?[]:Array.from(n.keys()))};window.omelette={writeFile:(n,d)=>H(n,d).then((p)=>{if(!p.persisted&&!p.noHost){throw new Error(p.reason||"write failed")}}),storage:ee};if(A&&A!==window){const n=(e,t)=>{try{A.postMessage({__omelette_log:true,type:e,data:t},"*")}catch{}};["log","warn","error"].forEach((e)=>{const t=console[e];console[e]=(...a)=>{const u=a.map((s)=>{try{return typeof s==="object"?JSON.stringify(s):String(s)}catch{try{return String(s)}catch{return"[unstringifiable]"}}}).join(" ");n(e,u);t.apply(console,a)}});window.addEventListener("error",(e)=>{const t=e.target;if(t&&t!==window&&t.tagName){const a=t.src||t.href||"";n("resource_error",`${t.tagName} failed to load: ${a}`)}else{n("error",`${e.message||"Unknown error"} at ${e.filename||"?"}:${e.lineno||0}:${e.colno||0}`)}},true);window.addEventListener("unhandledrejection",(e)=>{const t=e.reason;const a=t instanceof Error?`${t.message} ${t.stack}`:String(t);n("error",`Unhandled rejection: ${a}`)});window.addEventListener("click",(e)=>{if(e.defaultPrevented||e.button!==0)return;if(e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;const t=e.composedPath?e.composedPath():[];const a=["button","input","select","textarea","summary","label"];let u=null;for(const v of t){if(!(v instanceof Element))continue;if(v.localName==="a"){if(!(v instanceof HTMLAnchorElement))return;u=v;break}if(a.indexOf(v.localName)!==-1)return}if(!u)return;if(u.isContentEditable)return;const s=u.closest("[contenteditable]");if(s&&s.getAttribute("contenteditable")!=="false")return;const S=(u.getAttribute("target")||"_self").toLowerCase();if(S!=="_self"&&S!=="_top"&&S!=="_parent")return;let _;try{_=new URL(u.href)}catch{return}if(_.protocol!=="http:"&&_.protocol!=="https:")return;if(location.origin==="null")return;if(_.origin===location.origin)return;e.preventDefault();window.open(_.href,"_blank","noopener,noreferrer")});const d=()=>{try{A.postMessage({type:"omelette:height",height:document.documentElement.scrollHeight},"*")}catch{}};if(window.ResizeObserver)new ResizeObserver(d).observe(document.documentElement);const p=()=>{d();if(!document.querySelector('script[type="text/babel"],script[type="text/jsx"]'))return;const e=()=>document.getElementById("root")||document.querySelector("body > div[id]");const t=e()?.firstElementChild??null;let a=0;const u=()=>{const s=e();if(s&&s.firstElementChild!==t||++a>30){d();return}setTimeout(u,100)};setTimeout(u,100)};if(document.readyState==="complete")p();else window.addEventListener("load",p);const f={};let g=0;const h=(e)=>new Promise((t,a)=>{if(!I.length){a(new Error("claude.complete: no parent origin"));return}const u=`c${++g}`;const s=()=>setTimeout(()=>{delete f[u];a(new Error(`claude.complete: no data for ${J/1000}s`))},J);const S=s();f[u]={resolve:t,reject:a,text:"",t:S,arm:s};try{for(const _ of I){A.postMessage({__om_api:true,id:u,body:e},_)}}catch(_){clearTimeout(S);delete f[u];a(_)}});const y=8;const m=async(e,t)=>{if(!Array.isArray(e.messages)){throw new Error("claude.complete: tools require a messages array")}const a=e.messages.slice();const u={...e,tools:e.tools.map((_)=>{if(_===null||typeof _!=="object")return _;const v={};for(const o of Object.keys(_)){if(typeof _[o]!=="function")v[o]=_[o]}return v})};const s=u.tool_choice;const S=s!=null&&(s.type==="any"||s.type==="tool")?{...u,tool_choice:s.disable_parallel_tool_use!==undefined?{type:"auto",disable_parallel_tool_use:s.disable_parallel_tool_use}:{type:"auto"}}:u;for(let _=0;_<y;_++){const v=await h({..._===0?u:S,messages:a});const o=v.message;const r=o&&Array.isArray(o.content)?o.content:null;const l=r?r.filter((c)=>c?.type==="tool_use"):[];if(o?.stop_reason!=="tool_use"||l.length===0){return v.text}const i=[];for(const c of l){const k=t.get(c.name);if(!k){i.push({type:"tool_result",tool_use_id:c.id,content:`no handler for tool "${c.name}"`,is_error:true});continue}try{const b=await k(c.input);const E=typeof b==="string"?b:O(b)??"";i.push({type:"tool_result",tool_use_id:c.id,content:E})}catch(b){i.push({type:"tool_result",tool_use_id:c.id,content:String(b?.message??b??"tool handler failed"),is_error:true})}}a.push({role:"assistant",content:r},{role:"user",content:i})}throw new Error(`claude.complete: exceeded ${y} tool turns`)};window.claude={complete(e){const t=e;if(t!==null&&typeof t==="object"&&Array.isArray(t.tools)&&t.tools.some((a)=>a!==null&&typeof a==="object"&&typeof a.run==="function")){const a=new Map;for(const u of t.tools){if(u!==null&&typeof u==="object"&&typeof u.run==="function"){a.set(String(u.name),u.run)}}return m(t,a)}return h(e).then((a)=>a.text)}};const w={};let R=0;H=(e,t)=>new Promise((a)=>{if(!I.length){a({persisted:false,noHost:true,reason:U});return}const u=`f${++R}`;const s=setTimeout(()=>{delete w[u];a({persisted:false,noHost:true,reason:U})},G);w[u]={settle:a,t:s};try{for(const S of I){A.postMessage({__om_file:true,id:u,op:"write",path:e,content:t},S)}}catch{clearTimeout(s);delete w[u];a({persisted:false,noHost:true,reason:U})}});const O=(e)=>{try{return JSON.stringify(e)}catch{return JSON.stringify(String(e))}};window.addEventListener("message",(e)=>{if(I.indexOf(e.origin)<0)return;if(e.source!==A)return;const t=e.data;if(!t)return;if(t.type==="omelette-preview-refresh"){if(typeof t.token!=="string"||!/^[0-9a-f.-]+(\.(rc|pr-[0-9]+))?(\.[0-9]+\.[0-9a-f]{16})?$/.test(t.token))return;const s=Math.max(1,Math.floor((t.expiresAt||0)-Date.now()/1000));document.cookie="__Host-omelette-preview="+t.token+"; Path=/; Secure; SameSite=None; Partitioned; Max-Age="+s;C();return}if(t.__om_file_r){const s=w[t.id];if(!s)return;clearTimeout(s.t);delete w[t.id];s.settle(t.ok?{persisted:true}:{persisted:false,reason:t.error||"write failed"});return}if(t.__om_api_r){const s=f[t.id];if(!s)return;if(t.error!=null){clearTimeout(s.t);delete f[t.id];s.reject(new Error(t.error));return}if(t.chunk!=null){clearTimeout(s.t);s.t=s.arm();s.text+=t.chunk;return}if(t.done){clearTimeout(s.t);delete f[t.id];s.resolve({text:t.text!=null?t.text:s.text,message:t.message});return}return}if(!t.__om_eval)return;const a=t;const u=(s)=>{e.source.postMessage({...s,__om_eval_r:1,id:a.id},e.origin)};try{const s=(0,eval)(a.code);if(s&&typeof s.then==="function"){s.then((S)=>u({ok:1,v:O(S)}),(S)=>u({ok:0,e:String(S)}))}else{u({ok:1,v:O(s)})}}catch(s){u({ok:0,e:String(s)})}})}})();
+</script>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/organic-2b55a48c-9a7b-49cb-87a9-d16ca644b82b/styles.css">
+<script src="_ds/organic-2b55a48c-9a7b-49cb-87a9-d16ca644b82b/_ds_bundle.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caprasimo&family=Figtree:wght@400;600;700;800&display=swap">
+<style>
+html,body{margin:0;background:var(--color-neutral-200);color:var(--color-text);font-family:Figtree,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:var(--color-accent-700)}a:hover{color:var(--color-accent-800)}
+button,input{font-family:inherit;color:inherit}
+button:focus-visible,input:focus-visible{outline:2px solid var(--color-accent);outline-offset:2px}
+.scroll::-webkit-scrollbar{width:0;height:0}
+[data-palette]{--on-accent-fill:var(--color-bg);--on-accent2-fill:var(--color-neutral-100);--on-accent:#201e1d;--on-accent-sub:#402310;--bezel:#16140f}
+[data-palette="night"]{--on-accent2-fill:oklch(.17 .01 70);--on-accent:oklch(.17 .01 70);--on-accent-sub:oklch(.28 .03 90);--bezel:oklch(.42 .01 70)}
+[data-palette="day"]{--color-bg:oklch(.975 .008 105);--color-surface:oklch(.93 .016 110);--color-text:oklch(.2 .015 130);--color-accent:oklch(.84 .19 128);--color-accent-2:oklch(.7 .15 30);--color-divider:color-mix(in srgb,oklch(.2 .015 130) 16%,transparent);--color-neutral-100:oklch(0.97 0.004 105);--color-neutral-200:oklch(0.93 0.006 105);--color-neutral-300:oklch(0.87 0.010 105);--color-neutral-400:oklch(0.78 0.014 105);--color-neutral-500:oklch(0.68 0.018 105);--color-neutral-600:oklch(0.58 0.017 105);--color-neutral-700:oklch(0.48 0.015 105);--color-neutral-800:oklch(0.38 0.013 105);--color-neutral-900:oklch(0.28 0.009 105);--color-accent-100:oklch(0.97 0.034 128);--color-accent-200:oklch(0.93 0.059 128);--color-accent-300:oklch(0.87 0.094 128);--color-accent-400:oklch(0.78 0.136 128);--color-accent-500:oklch(0.68 0.170 128);--color-accent-600:oklch(0.58 0.162 128);--color-accent-700:oklch(0.48 0.145 128);--color-accent-800:oklch(0.38 0.119 128);--color-accent-900:oklch(0.28 0.085 128);--color-accent-2-100:oklch(0.97 0.028 30);--color-accent-2-200:oklch(0.93 0.049 30);--color-accent-2-300:oklch(0.87 0.077 30);--color-accent-2-400:oklch(0.78 0.112 30);--color-accent-2-500:oklch(0.68 0.140 30);--color-accent-2-600:oklch(0.58 0.133 30);--color-accent-2-700:oklch(0.48 0.119 30);--color-accent-2-800:oklch(0.38 0.098 30);--color-accent-2-900:oklch(0.28 0.070 30);--on-accent-fill:oklch(.2 .015 130);--on-accent2-fill:oklch(.2 .015 130);--on-accent:oklch(.2 .015 130);--on-accent-sub:oklch(.3 .04 128)}
+input::placeholder{color:var(--color-neutral-600)}
+[data-palette="chili"]{--color-bg:oklch(.97 .012 85);--color-surface:oklch(.92 .018 80);--color-text:oklch(.2 .01 50);--color-accent:oklch(.6 .19 32);--color-accent-2:oklch(.58 .1 178);--color-divider:color-mix(in srgb,oklch(.2 .01 50) 16%,transparent);--color-neutral-100:oklch(0.97 0.004 75);--color-neutral-200:oklch(0.93 0.007 75);--color-neutral-300:oklch(0.87 0.011 75);--color-neutral-400:oklch(0.78 0.016 75);--color-neutral-500:oklch(0.68 0.020 75);--color-neutral-600:oklch(0.58 0.019 75);--color-neutral-700:oklch(0.48 0.017 75);--color-neutral-800:oklch(0.38 0.014 75);--color-neutral-900:oklch(0.28 0.010 75);--color-accent-100:oklch(0.97 0.038 32);--color-accent-200:oklch(0.93 0.066 32);--color-accent-300:oklch(0.87 0.105 32);--color-accent-400:oklch(0.78 0.152 32);--color-accent-500:oklch(0.68 0.190 32);--color-accent-600:oklch(0.58 0.180 32);--color-accent-700:oklch(0.48 0.162 32);--color-accent-800:oklch(0.38 0.133 32);--color-accent-900:oklch(0.28 0.095 32);--color-accent-2-100:oklch(0.97 0.020 178);--color-accent-2-200:oklch(0.93 0.035 178);--color-accent-2-300:oklch(0.87 0.055 178);--color-accent-2-400:oklch(0.78 0.080 178);--color-accent-2-500:oklch(0.68 0.100 178);--color-accent-2-600:oklch(0.58 0.095 178);--color-accent-2-700:oklch(0.48 0.085 178);--color-accent-2-800:oklch(0.38 0.070 178);--color-accent-2-900:oklch(0.28 0.050 178);}
+[data-palette="mango"]{--color-bg:oklch(.96 .02 92);--color-surface:oklch(.91 .03 88);--color-text:oklch(.22 .02 60);--color-accent:oklch(.66 .16 58);--color-accent-2:oklch(.48 .13 268);--color-divider:color-mix(in srgb,oklch(.22 .02 60) 16%,transparent);--color-neutral-100:oklch(0.97 0.005 85);--color-neutral-200:oklch(0.93 0.009 85);--color-neutral-300:oklch(0.87 0.014 85);--color-neutral-400:oklch(0.78 0.020 85);--color-neutral-500:oklch(0.68 0.025 85);--color-neutral-600:oklch(0.58 0.024 85);--color-neutral-700:oklch(0.48 0.021 85);--color-neutral-800:oklch(0.38 0.017 85);--color-neutral-900:oklch(0.28 0.013 85);--color-accent-100:oklch(0.97 0.032 58);--color-accent-200:oklch(0.93 0.056 58);--color-accent-300:oklch(0.87 0.088 58);--color-accent-400:oklch(0.78 0.128 58);--color-accent-500:oklch(0.68 0.160 58);--color-accent-600:oklch(0.58 0.152 58);--color-accent-700:oklch(0.48 0.136 58);--color-accent-800:oklch(0.38 0.112 58);--color-accent-900:oklch(0.28 0.080 58);--color-accent-2-100:oklch(0.97 0.026 268);--color-accent-2-200:oklch(0.93 0.045 268);--color-accent-2-300:oklch(0.87 0.072 268);--color-accent-2-400:oklch(0.78 0.104 268);--color-accent-2-500:oklch(0.68 0.130 268);--color-accent-2-600:oklch(0.58 0.123 268);--color-accent-2-700:oklch(0.48 0.111 268);--color-accent-2-800:oklch(0.38 0.091 268);--color-accent-2-900:oklch(0.28 0.065 268);}
+[data-palette="plum"]{--color-bg:oklch(.96 .012 20);--color-surface:oklch(.91 .02 15);--color-text:oklch(.21 .015 350);--color-accent:oklch(.52 .14 355);--color-accent-2:oklch(.64 .1 135);--color-divider:color-mix(in srgb,oklch(.21 .015 350) 16%,transparent);--color-neutral-100:oklch(0.97 0.004 20);--color-neutral-200:oklch(0.93 0.007 20);--color-neutral-300:oklch(0.87 0.011 20);--color-neutral-400:oklch(0.78 0.016 20);--color-neutral-500:oklch(0.68 0.020 20);--color-neutral-600:oklch(0.58 0.019 20);--color-neutral-700:oklch(0.48 0.017 20);--color-neutral-800:oklch(0.38 0.014 20);--color-neutral-900:oklch(0.28 0.010 20);--color-accent-100:oklch(0.97 0.028 355);--color-accent-200:oklch(0.93 0.049 355);--color-accent-300:oklch(0.87 0.077 355);--color-accent-400:oklch(0.78 0.112 355);--color-accent-500:oklch(0.68 0.140 355);--color-accent-600:oklch(0.58 0.133 355);--color-accent-700:oklch(0.48 0.119 355);--color-accent-800:oklch(0.38 0.098 355);--color-accent-900:oklch(0.28 0.070 355);--color-accent-2-100:oklch(0.97 0.020 135);--color-accent-2-200:oklch(0.93 0.035 135);--color-accent-2-300:oklch(0.87 0.055 135);--color-accent-2-400:oklch(0.78 0.080 135);--color-accent-2-500:oklch(0.68 0.100 135);--color-accent-2-600:oklch(0.58 0.095 135);--color-accent-2-700:oklch(0.48 0.085 135);--color-accent-2-800:oklch(0.38 0.070 135);--color-accent-2-900:oklch(0.28 0.050 135);}
+[data-palette="night"]{--color-bg:oklch(.19 .01 70);--color-surface:oklch(.25 .012 70);--color-text:oklch(.95 .012 85);--color-accent:oklch(.84 .17 128);--color-accent-2:oklch(.72 .13 30);--color-divider:color-mix(in srgb,oklch(.95 .012 85) 16%,transparent);--color-neutral-100:oklch(0.26 0.003 70);--color-neutral-200:oklch(0.3 0.005 70);--color-neutral-300:oklch(0.36 0.008 70);--color-neutral-400:oklch(0.45 0.012 70);--color-neutral-500:oklch(0.55 0.015 70);--color-neutral-600:oklch(0.65 0.014 70);--color-neutral-700:oklch(0.74 0.013 70);--color-neutral-800:oklch(0.83 0.010 70);--color-neutral-900:oklch(0.92 0.007 70);--color-accent-100:oklch(0.26 0.034 128);--color-accent-200:oklch(0.3 0.059 128);--color-accent-300:oklch(0.36 0.094 128);--color-accent-400:oklch(0.45 0.136 128);--color-accent-500:oklch(0.55 0.170 128);--color-accent-600:oklch(0.65 0.162 128);--color-accent-700:oklch(0.74 0.145 128);--color-accent-800:oklch(0.83 0.119 128);--color-accent-900:oklch(0.92 0.085 128);--color-accent-2-100:oklch(0.26 0.026 30);--color-accent-2-200:oklch(0.3 0.045 30);--color-accent-2-300:oklch(0.36 0.072 30);--color-accent-2-400:oklch(0.45 0.104 30);--color-accent-2-500:oklch(0.55 0.130 30);--color-accent-2-600:oklch(0.65 0.123 30);--color-accent-2-700:oklch(0.74 0.111 30);--color-accent-2-800:oklch(0.83 0.091 30);--color-accent-2-900:oklch(0.92 0.065 30);color-scheme:dark;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+</style>
+</helmet>
+<div data-palette="{{ palette }}" style="min-height:100vh;background:var(--color-neutral-200);color:var(--color-text);display:flex;flex-wrap:wrap;gap:48px;align-items:flex-start;justify-content:center;padding:40px 20px">
+
+<sc-if value="{{ showPanel }}" hint-placeholder-val="{{ true }}">
+<div style="width:300px;display:flex;flex-direction:column;gap:18px;padding-top:12px">
+  <div style="display:flex;flex-direction:column;gap:6px">
+    <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent-700);font-weight:700">Member app · clickable prototype</div>
+    <div style="font-family:Caprasimo,serif;font-size:36px;line-height:1.05">Clubhouse</div>
+    <div style="font-size:14px;line-height:1.5;color:var(--color-neutral-700);text-wrap:pretty">Tap through the phone, or jump to a screen. Key screens have alternate directions.</div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:6px">
+    <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-neutral-700);font-weight:700">Screens</div>
+    <sc-for list="{{ panelScreens }}" as="s" hint-placeholder-count="9">
+      <button onClick="{{ s.go }}" style="display:flex;justify-content:space-between;align-items:center;text-align:left;border:none;cursor:pointer;border-radius:999px;padding:10px 16px;font-size:14px;font-weight:600;background:{{ s.bg }};color:{{ s.fg }}"><span>{{ s.label }}</span><span style="font-size:11px;opacity:0.75">{{ s.count }}</span></button>
+    </sc-for>
+  </div>
+  <sc-if value="{{ hasVariants }}" hint-placeholder-val="{{ false }}">
+  <div style="display:flex;flex-direction:column;gap:8px">
+    <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-neutral-700);font-weight:700">Direction for this screen</div>
+    <sc-for list="{{ variants }}" as="v" hint-placeholder-count="3">
+      <button onClick="{{ v.pick }}" style="display:flex;gap:12px;align-items:center;text-align:left;cursor:pointer;border-radius:22px;padding:10px 14px;background:{{ v.bg }};border:1px solid {{ v.border }}">
+        <span style="flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-family:Caprasimo,serif;font-size:14px;background:{{ v.badgeBg }};color:{{ v.badgeFg }}">{{ v.id }}</span>
+        <span style="display:flex;flex-direction:column"><span style="font-weight:700;font-size:14px">{{ v.label }}</span><span style="font-size:12px;color:var(--color-neutral-700)">{{ v.desc }}</span></span>
+      </button>
+    </sc-for>
+  </div>
+  </sc-if>
+  <div style="display:flex;flex-direction:column;gap:8px">
+    <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-neutral-700);font-weight:700">Palette</div>
+    <sc-for list="{{ palettes }}" as="p" hint-placeholder-count="5">
+      <button onClick="{{ p.pick }}" style="display:flex;gap:12px;align-items:center;text-align:left;cursor:pointer;border-radius:22px;padding:10px 14px;background:{{ p.bg }};border:1px solid {{ p.border }};color:var(--color-text)">
+        <span style="display:flex;flex:none"><span style="width:26px;height:26px;border-radius:50%;background:{{ p.c1 }};border:2px solid var(--color-neutral-100)"></span><span style="width:26px;height:26px;margin-left:-8px;border-radius:50%;background:{{ p.c2 }};border:2px solid var(--color-neutral-100)"></span><span style="width:26px;height:26px;margin-left:-8px;border-radius:50%;background:{{ p.c3 }};border:2px solid var(--color-neutral-100)"></span></span>
+        <span style="display:flex;flex-direction:column"><span style="font-weight:700;font-size:14px">{{ p.label }}</span><span style="font-size:12px;color:var(--color-neutral-700)">{{ p.desc }}</span></span>
+      </button>
+    </sc-for>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:8px">
+    <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-neutral-700);font-weight:700">Team AI mode</div>
+    <button onClick="{{ toggleAi }}" style="display:flex;align-items:center;justify-content:space-between;border:none;cursor:pointer;border-radius:999px;padding:8px 8px 8px 16px;background:var(--color-surface);font-size:14px;font-weight:600">
+      <span>{{ aiLabel }}</span>
+      <span style="width:52px;height:30px;border-radius:999px;padding:3px;display:flex;justify-content:{{ aiJustify }};background:{{ aiTrack }}"><span style="width:24px;height:24px;border-radius:50%;background:var(--color-neutral-100);box-shadow:var(--shadow-sm)"></span></span>
+    </button>
+    <div style="font-size:12px;line-height:1.5;color:var(--color-neutral-700)">Off: photo logging, coach and swap cards disappear or fall back to logic. Every number still comes from the logic engine.</div>
+  </div>
+</div>
+</sc-if>
+
+<div style="position:relative;width:390px;height:844px;flex:none;border-radius:54px;border:10px solid var(--bezel);background:var(--color-bg);overflow:hidden;box-shadow:var(--shadow-lg)">
+  <div style="position:absolute;top:0;left:0;right:0;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font-size:14px;font-weight:700;z-index:5;background:var(--color-bg)"><span>18:40</span><span style="width:110px;height:28px;border-radius:999px;background:#16140f"></span><span>5G 82%</span></div>
+
+  <div ref="{{ scrollRef }}" class="scroll" style="position:absolute;top:44px;left:0;right:0;bottom:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:none">
+
+  <!-- LOGIN -->
+  <sc-if value="{{ isLogin }}" hint-placeholder-val="{{ false }}">
+  <div data-screen-label="Login" style="min-height:780px;padding:40px 28px 32px;display:flex;flex-direction:column;gap:28px">
+    <div style="display:flex;gap:10px;align-items:center"><span style="width:44px;height:44px;border-radius:50%;background:var(--color-accent)"></span><span style="width:28px;height:28px;border-radius:50%;background:var(--color-accent-2);margin-left:-22px;border:3px solid var(--color-bg)"></span><span style="font-family:Caprasimo,serif;font-size:22px">Clubhouse</span></div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-top:40px">
+      <div style="font-family:Caprasimo,serif;font-size:46px;line-height:1.02">Fuel up.<br>Move more.<br><span style="color:var(--color-accent-600)">Together.</span></div>
+      <div style="font-size:15px;color:var(--color-neutral-700);line-height:1.5">Invite-only. Your admin sent your username and a temporary password.</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--color-neutral-700)">Username<input value="{{ user }}" onChange="{{ onUser }}" style="min-height:52px;border-radius:999px;border:1px solid var(--color-divider);background:var(--color-surface);padding:0 18px;font-size:16px"></label>
+      <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--color-neutral-700)">Password<input type="password" value="{{ pass }}" onChange="{{ onPass }}" placeholder="12-character temp password" style="min-height:52px;border-radius:999px;border:1px solid var(--color-divider);background:var(--color-surface);padding:0 18px;font-size:16px"></label>
+      <sc-if value="{{ loginErr }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px;color:var(--color-accent-700);font-weight:600">Enter your password to continue.</div></sc-if>
+    </div>
+    <div style="margin-top:auto;display:flex;flex-direction:column;gap:10px">
+      <button onClick="{{ doLogin }}" style="min-height:56px;border:none;border-radius:999px;background:var(--color-accent);color:var(--on-accent-fill);font-family:Caprasimo,serif;font-size:18px;cursor:pointer">Let's go</button>
+      <div style="text-align:center;font-size:13px;color:var(--color-neutral-700)">Locked out? Ask your admin to reset it.</div>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- ONBOARDING -->
+  <sc-if value="{{ isOnboard }}" hint-placeholder-val="{{ false }}">
+  <div data-screen-label="Onboarding" style="min-height:780px;padding:28px 24px 32px;display:flex;flex-direction:column;gap:22px">
+    <div style="display:flex;gap:6px"><span style="flex:1;height:6px;border-radius:999px;background:var(--color-accent)"></span><span style="flex:1;height:6px;border-radius:999px;background:var(--color-accent)"></span><span style="flex:1;height:6px;border-radius:999px;background:var(--color-neutral-300)"></span></div>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent-700);font-weight:700">Step 2 of 3 · Your goal</div>
+      <div style="font-family:Caprasimo,serif;font-size:32px;line-height:1.08">What are we chasing, Arjun?</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <sc-for list="{{ goals }}" as="g" hint-placeholder-count="3">
+        <button onClick="{{ g.pick }}" style="display:flex;justify-content:space-between;align-items:center;text-align:left;cursor:pointer;border-radius:28px;padding:16px 20px;background:{{ g.bg }};border:2px solid {{ g.border }}">
+          <span style="display:flex;flex-direction:column;gap:2px"><span style="font-family:Caprasimo,serif;font-size:19px">{{ g.label }}</span><span style="font-size:13px;color:var(--color-neutral-700)">{{ g.desc }}</span></span>
+          <span style="font-weight:800;font-size:15px">{{ g.kcal }}</span>
+        </button>
+      </sc-for>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div style="font-size:13px;color:var(--color-neutral-700)">Units</div>
+      <div style="display:flex;border:1px solid var(--color-divider);border-radius:999px;overflow:hidden;align-self:flex-start">
+        <sc-for list="{{ unitOpts }}" as="u" hint-placeholder-count="2"><button onClick="{{ u.pick }}" style="border:none;cursor:pointer;padding:10px 18px;font-size:14px;font-weight:600;min-height:44px;background:{{ u.bg }};color:{{ u.fg }}">{{ u.label }}</button></sc-for>
+      </div>
+    </div>
+    <div style="background:var(--color-accent-2-200);border-radius:28px;padding:16px 18px;display:flex;flex-direction:column;gap:4px">
+      <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent-2-800);font-weight:700">Your daily target</div>
+      <div style="font-family:Caprasimo,serif;font-size:30px;color:var(--color-accent-2-900)">{{ targetFmt }} kcal</div>
+      <div style="font-size:12px;color:var(--color-accent-2-800)">Mifflin-St Jeor · 72 kg · 176 cm · moderately active. Never below the safe floor of 1,500.</div>
+    </div>
+    <button onClick="{{ goToday }}" style="margin-top:auto;min-height:56px;border:none;border-radius:999px;background:var(--color-accent);color:var(--on-accent-fill);font-family:Caprasimo,serif;font-size:18px;cursor:pointer">Start logging</button>
+  </div>
+  </sc-if>
+
+  <!-- TODAY A -->
+  <sc-if value="{{ isTodayA }}" hint-placeholder-val="{{ true }}">
+  <div data-screen-label="Today 1a" style="padding:10px 20px 120px;display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="flex:1;display:flex;flex-direction:column"><span style="font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent-700);font-weight:700">Tue 30 Sep</span><span style="font-family:Caprasimo,serif;font-size:28px;line-height:1.1">Let's go, Arjun</span></div>
+      <button onClick="{{ goMom }}" style="display:flex;align-items:center;gap:6px;border:none;cursor:pointer;background:var(--color-accent-200);color:var(--color-accent-800);border-radius:999px;padding:0 14px;min-height:44px;font-weight:800;font-size:15px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg>12</button>
+      <button onClick="{{ goSet }}" aria-label="Settings" style="width:44px;height:44px;border-radius:50%;border:none;cursor:pointer;background:var(--color-surface);display:grid;place-items:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg></button>
+    </div>
+    <div style="background:var(--color-surface);border-radius:32px;padding:18px;display:flex;gap:16px;align-items:center">
+      <div style="position:relative;width:150px;height:150px;flex:none">
+        <svg width="150" height="150" viewBox="0 0 150 150" style="transform:rotate(-90deg)"><circle cx="75" cy="75" r="64" fill="none" stroke="var(--color-neutral-300)" stroke-width="14"></circle><circle cx="75" cy="75" r="64" fill="none" stroke="var(--color-accent)" stroke-width="14" stroke-linecap="round" stroke-dasharray="{{ ringDash }}"></circle></svg>
+        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center"><span style="font-family:Caprasimo,serif;font-size:32px;line-height:1">{{ remainingFmt }}</span><span style="font-size:12px;color:var(--color-neutral-700)">kcal left</span></div>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;flex-direction:column"><span style="font-size:12px;color:var(--color-neutral-700)">Eaten</span><span style="font-weight:800;font-size:18px">{{ eatenFmt }}</span></div>
+        <div style="display:flex;flex-direction:column"><span style="font-size:12px;color:var(--color-neutral-700)">Burned</span><span style="font-weight:800;font-size:18px">+{{ burnedFmt }}</span></div>
+        <span style="align-self:flex-start;font-size:12px;font-weight:700;border-radius:999px;padding:4px 10px;background:{{ bandBg }};color:{{ bandFg }}">{{ bandLabel }}</span>
+      </div>
+    </div>
+    <div style="background:var(--color-surface);border-radius:32px;padding:18px;display:flex;flex-direction:column;gap:12px">
+      <sc-for list="{{ macros }}" as="m" hint-placeholder-count="4">
+        <div style="display:flex;flex-direction:column;gap:5px" role="img" aria-label="{{ m.aria }}">
+          <div style="display:flex;justify-content:space-between;font-size:13px"><span style="font-weight:700">{{ m.label }}</span><span style="color:var(--color-neutral-700)">{{ m.val }} / {{ m.target }} g</span></div>
+          <div style="height:10px;border-radius:999px;background:var(--color-neutral-300);overflow:hidden"><div style="height:100%;border-radius:999px;width:{{ m.w }};background:{{ m.color }}"></div></div>
+        </div>
+      </sc-for>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <sc-for list="{{ slots }}" as="s" hint-placeholder-count="5">
+        <div style="background:var(--color-surface);border-radius:28px;padding:14px 16px;display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;align-items:center;gap:8px"><span style="flex:1;font-family:Caprasimo,serif;font-size:17px">{{ s.name }}</span><span style="font-size:13px;color:var(--color-neutral-700);font-weight:700">{{ s.kcal }}</span><button onClick="{{ s.add }}" aria-label="Add to {{ s.name }}" style="width:36px;height:36px;border-radius:50%;border:none;cursor:pointer;background:var(--color-accent);color:var(--on-accent-fill);display:grid;place-items:center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></button></div>
+          <sc-for list="{{ s.items }}" as="it" hint-placeholder-count="1">
+            <div style="display:flex;align-items:center;gap:8px;font-size:14px"><span style="flex:1">{{ it.name }} <span style="color:var(--color-neutral-700)">· {{ it.portion }}</span></span><sc-if value="{{ it.ai }}" hint-placeholder-val="{{ false }}"><span style="font-size:10px;font-weight:800;letter-spacing:0.06em;border-radius:999px;padding:2px 7px;background:var(--color-accent-2-200);color:var(--color-accent-2-800)">AI</span></sc-if><span style="font-weight:700">{{ it.kcal }}</span></div>
+          </sc-for>
+          <sc-if value="{{ s.empty }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px;color:var(--color-neutral-700)">Nothing yet</div></sc-if>
+        </div>
+      </sc-for>
+    </div>
+    <div style="background:var(--color-accent-2-200);border-radius:28px;padding:14px 16px;display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;align-items:center"><span style="flex:1;font-family:Caprasimo,serif;font-size:17px;color:var(--color-accent-2-900)">Moves</span><button onClick="{{ goAct }}" style="border:none;cursor:pointer;background:var(--color-accent-2);color:var(--on-accent2-fill);border-radius:999px;padding:0 14px;min-height:36px;font-weight:700;font-size:13px">Log activity</button></div>
+      <sc-for list="{{ actList }}" as="a" hint-placeholder-count="1"><div style="display:flex;font-size:14px;color:var(--color-accent-2-900)"><span style="flex:1">{{ a.name }} · {{ a.min }} min</span><span style="font-weight:700">−{{ a.kcal }}</span></div></sc-for>
+    </div>
+    <sc-if value="{{ aiOn }}" hint-placeholder-val="{{ true }}">
+    <div style="background:var(--color-text);color:var(--color-bg);border-radius:28px;padding:16px 18px;display:flex;flex-direction:column;gap:6px">
+      <div style="display:flex;align-items:center;gap:8px"><span style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;color:var(--color-accent-400)">Coach</span><span style="font-size:10px;font-weight:800;border-radius:999px;padding:2px 7px;background:var(--color-accent-2-700);color:var(--color-accent-2-100)">AI</span></div>
+      <div style="font-size:15px;line-height:1.5">{{ coachAi }}</div>
+    </div>
+    </sc-if>
+    <sc-if value="{{ aiOff }}" hint-placeholder-val="{{ false }}">
+    <div style="background:var(--color-text);color:var(--color-bg);border-radius:28px;padding:16px 18px;display:flex;flex-direction:column;gap:6px">
+      <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;color:var(--color-accent-400)">Protein gap</div>
+      <div style="font-size:15px;line-height:1.5">{{ coachLogic }}</div>
+    </div>
+    </sc-if>
+  </div>
+  </sc-if>
+
+  <!-- TODAY B -->
+  <sc-if value="{{ isTodayB }}" hint-placeholder-val="{{ false }}">
+  <div data-screen-label="Today 1b" style="padding:14px 22px 120px;display:flex;flex-direction:column;gap:18px">
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <span style="font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent-700);font-weight:700">Tue 30 Sep · Cutting</span>
+      <div style="display:flex;gap:8px"><button onClick="{{ goMom }}" style="border:none;cursor:pointer;background:var(--color-accent-200);color:var(--color-accent-800);border-radius:999px;padding:0 14px;min-height:40px;font-weight:800;font-size:14px">12-day streak</button><button onClick="{{ goSet }}" aria-label="Settings" style="width:40px;height:40px;border-radius:50%;border:none;cursor:pointer;background:var(--color-surface);display:grid;place-items:center"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg></button></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:4px">
+      <div style="font-family:Caprasimo,serif;font-size:96px;line-height:0.9;letter-spacing:-0.03em">{{ remainingFmt }}</div>
+      <div style="font-size:18px;font-weight:700">kcal left to fuel <span style="color:var(--color-neutral-700);font-weight:400">of {{ budgetFmt }}</span></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;height:22px;border-radius:999px;overflow:hidden;background:var(--color-neutral-300)">
+        <div style="width:{{ eatenW }};background:var(--color-accent)"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:13px"><span><b>{{ eatenFmt }}</b> eaten</span><span><b>+{{ burnedFmt }}</b> burned</span><span style="font-weight:700;border-radius:999px;padding:1px 9px;background:{{ bandBg }};color:{{ bandFg }}">{{ bandLabel }}</span></div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px">
+      <sc-for list="{{ macros }}" as="m" hint-placeholder-count="4">
+        <div style="background:var(--color-surface);border-radius:22px;padding:12px 10px;display:flex;flex-direction:column;gap:4px" role="img" aria-label="{{ m.aria }}">
+          <span style="font-size:11px;color:var(--color-neutral-700);font-weight:700">{{ m.label }}</span>
+          <span style="font-family:Caprasimo,serif;font-size:20px">{{ m.val }}<span style="font-family:Figtree;font-size:12px;color:var(--color-neutral-700)">/{{ m.target }}</span></span>
+          <div style="height:6px;border-radius:999px;background:var(--color-neutral-300);overflow:hidden"><div style="height:100%;width:{{ m.w }};background:{{ m.color }}"></div></div>
+        </div>
+      </sc-for>
+    </div>
+    <div style="background:var(--color-accent);color:var(--on-accent-fill);border-radius:32px;padding:18px 20px;display:flex;flex-direction:column;gap:10px">
+      <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;color:var(--on-accent-sub)">Next up · Dinner from your plan</div>
+      <div style="font-family:Caprasimo,serif;font-size:26px;line-height:1.1;color:var(--on-accent)">{{ nextLabel }}</div>
+      <div style="display:flex;align-items:center;gap:10px"><span style="flex:1;font-weight:700;color:var(--on-accent-sub)">{{ nextKcal }} kcal · leaves {{ afterNext }}</span><button onClick="{{ logNext }}" style="border:none;cursor:pointer;background:var(--color-text);color:var(--color-bg);border-radius:999px;padding:0 18px;min-height:44px;font-family:Caprasimo,serif;font-size:15px">Log it</button></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;align-items:baseline"><span style="flex:1;font-family:Caprasimo,serif;font-size:20px">Crew today</span><span style="font-size:13px;color:var(--color-neutral-700)">{{ crewLogged }} of 6 logged</span></div>
+      <div style="display:flex;gap:10px">
+        <sc-for list="{{ crew }}" as="c" hint-placeholder-count="6"><div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1"><span style="width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:15px;background:{{ c.bg }};color:{{ c.fg }};border:2px solid {{ c.ring }}">{{ c.i }}</span><span style="font-size:11px;color:var(--color-neutral-700)">{{ c.name }}</span></div></sc-for>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:2px">
+      <div style="font-family:Caprasimo,serif;font-size:20px;margin-bottom:6px">Logged</div>
+      <sc-for list="{{ flatLog }}" as="e" hint-placeholder-count="4">
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid color-mix(in srgb,var(--color-text) 10%,transparent);font-size:14px"><span style="width:92px;color:var(--color-neutral-700);font-size:12px">{{ e.slot }}</span><span style="flex:1;font-weight:600">{{ e.name }}</span><span style="font-weight:700">{{ e.kcal }}</span></div>
+      </sc-for>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- TODAY C -->
+  <sc-if value="{{ isTodayC }}" hint-placeholder-val="{{ false }}">
+  <div data-screen-label="Today 1c" style="padding:10px 20px 120px;display:flex;flex-direction:column;gap:16px">
+    <div style="position:sticky;top:0;z-index:2;background:var(--color-text);color:var(--color-bg);border-radius:32px;padding:16px 18px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">
+      <div style="display:flex;flex-direction:column"><span style="font-size:11px;color:var(--color-neutral-300)">In</span><span style="font-family:Caprasimo,serif;font-size:24px">{{ eatenFmt }}</span></div>
+      <div style="display:flex;flex-direction:column"><span style="font-size:11px;color:var(--color-neutral-300)">Out</span><span style="font-family:Caprasimo,serif;font-size:24px;color:var(--color-accent-2-300)">{{ burnedFmt }}</span></div>
+      <div style="display:flex;flex-direction:column"><span style="font-size:11px;color:var(--color-neutral-300)">Left</span><span style="font-family:Caprasimo,serif;font-size:24px;color:var(--color-accent-400)">{{ remainingFmt }}</span></div>
+      <div style="grid-column:1 / -1;height:8px;border-radius:999px;background:var(--color-neutral-800);overflow:hidden"><div style="height:100%;width:{{ eatenW }};background:var(--color-accent-400);border-radius:999px"></div></div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <span style="font-family:Caprasimo,serif;font-size:26px">Your day so far</span>
+      <button onClick="{{ goMom }}" style="border:none;cursor:pointer;background:var(--color-accent-200);color:var(--color-accent-800);border-radius:999px;padding:0 12px;min-height:40px;font-weight:800;font-size:13px">12 days</button>
+    </div>
+    <div style="position:relative;display:flex;flex-direction:column;gap:12px;padding-left:22px">
+      <div style="position:absolute;left:6px;top:8px;bottom:8px;width:3px;border-radius:999px;background:var(--color-neutral-300)"></div>
+      <sc-for list="{{ timeline }}" as="t" hint-placeholder-count="5">
+        <div style="position:relative;display:flex;flex-direction:column;gap:6px">
+          <span style="position:absolute;left:-22px;top:14px;width:15px;height:15px;border-radius:50%;background:{{ t.dot }};border:3px solid var(--color-bg)"></span>
+          <div style="display:flex;align-items:center;gap:10px;border-radius:24px;padding:12px 14px;background:{{ t.bg }}">
+            <span style="width:44px;font-size:12px;font-weight:700;color:var(--color-neutral-700)">{{ t.time }}</span>
+            <span style="flex:1;display:flex;flex-direction:column"><span style="font-weight:700;font-size:14px">{{ t.title }}</span><span style="font-size:12px;color:var(--color-neutral-700)">{{ t.sub }}</span></span>
+            <span style="font-family:Caprasimo,serif;font-size:17px;color:{{ t.kcalColor }}">{{ t.kcal }}</span>
+          </div>
+        </div>
+      </sc-for>
+      <div style="position:relative;display:flex;align-items:center;gap:10px">
+        <span style="position:absolute;left:-25px;width:21px;height:21px;border-radius:50%;background:var(--color-accent);border:4px solid var(--color-accent-200)"></span>
+        <span style="font-size:12px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent-700)">Now · 18:40</span>
+      </div>
+      <button onClick="{{ openDinner }}" style="display:flex;align-items:center;gap:10px;cursor:pointer;border-radius:24px;padding:14px;border:2px dashed var(--color-neutral-400);background:transparent;text-align:left">
+        <span style="width:44px;font-size:12px;font-weight:700;color:var(--color-neutral-700)">20:00</span>
+        <span style="flex:1;display:flex;flex-direction:column"><span style="font-weight:700;font-size:14px">Dinner</span><span style="font-size:12px;color:var(--color-neutral-700)">Plan: {{ nextLabel }} · {{ nextKcal }}</span></span>
+        <span style="width:36px;height:36px;border-radius:50%;background:var(--color-accent);color:var(--on-accent-fill);display:grid;place-items:center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></span>
+      </button>
+    </div>
+    <sc-if value="{{ aiOn }}" hint-placeholder-val="{{ true }}">
+      <div style="background:var(--color-accent-2-200);border-radius:28px;padding:14px 16px;font-size:14px;line-height:1.5;color:var(--color-accent-2-900)"><span style="font-size:10px;font-weight:800;border-radius:999px;padding:2px 7px;background:var(--color-accent-2);color:var(--on-accent2-fill);margin-right:6px">AI</span>{{ coachAi }}</div>
+    </sc-if>
+    <sc-if value="{{ aiOff }}" hint-placeholder-val="{{ false }}">
+      <div style="background:var(--color-accent-2-200);border-radius:28px;padding:14px 16px;font-size:14px;line-height:1.5;color:var(--color-accent-2-900)">{{ coachLogic }}</div>
+    </sc-if>
+  </div>
+  </sc-if>
+
+  <!-- LOG FOOD -->
+  <sc-if value="{{ isFood }}" hint-placeholder-val="{{ false }}">
+  <div data-screen-label="Log food" style="padding:8px 20px 40px;display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;align-items:center;gap:10px">
+      <button onClick="{{ goBack }}" aria-label="Back" style="width:44px;height:44px;border-radius:50%;border:none;cursor:pointer;background:var(--color-surface);display:grid;place-items:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg></button>
+      <span style="flex:1;font-family:Caprasimo,serif;font-size:24px">Log food</span>
+    </div>
+    <div class="scroll" style="display:flex;gap:6px;overflow-x:auto;margin:0 -20px;padding:0 20px 4px;flex:none;scrollbar-width:none">
+      <sc-for list="{{ slotOpts }}" as="o" hint-placeholder-count="5"><button onClick="{{ o.pick }}" style="flex:none;border:none;cursor:pointer;border-radius:999px;padding:0 14px;min-height:40px;font-size:13px;font-weight:700;background:{{ o.bg }};color:{{ o.fg }}">{{ o.label }}</button></sc-for>
+    </div>
+
+    <sc-if value="{{ stageAnalyzing }}" hint-placeholder-val="{{ false }}">
+      <div style="height:300px;border-radius:32px;background:repeating-linear-gradient(135deg,var(--color-neutral-300) 0 10px,var(--color-surface) 10px 20px);display:flex;flex-direction:column;justify-content:flex-end;padding:18px;gap:10px">
+        <span style="align-self:flex-start;font-family:ui-monospace,monospace;font-size:11px;background:var(--color-neutral-100);border-radius:999px;padding:3px 10px">your plate photo</span>
+        <div style="background:var(--color-neutral-100);border-radius:24px;padding:14px;display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;justify-content:space-between;font-size:14px;font-weight:700"><span style="animation:pulse 1.2s infinite">Reading your plate…</span><span style="color:var(--color-neutral-700);font-weight:400">up to 20 s</span></div>
+          <div style="height:8px;border-radius:999px;background:var(--color-neutral-300);overflow:hidden"><div style="height:100%;border-radius:999px;background:var(--color-accent-2);width:{{ progW }};transition:width 1.6s ease-out"></div></div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ stageResults }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;gap:12px;align-items:center">
+          <div style="width:84px;height:84px;flex:none;border-radius:50%;background:repeating-linear-gradient(135deg,var(--color-neutral-300) 0 8px,var(--color-surface) 8px 16px);display:grid;place-items:center;font-family:ui-monospace,monospace;font-size:9px">photo</div>
+          <div style="display:flex;flex-direction:column;gap:4px"><span style="font-family:Caprasimo,serif;font-size:22px;line-height:1.1">Found 3 things</span><span style="font-size:13px;color:var(--color-neutral-700)">Check portions — numbers come from our food database.</span></div>
+        </div>
+        <sc-for list="{{ detected }}" as="d" hint-placeholder-count="3">
+          <div style="background:var(--color-surface);border-radius:26px;padding:12px 12px 12px 16px;display:flex;align-items:center;gap:10px">
+            <span style="flex:1;display:flex;flex-direction:column"><span style="font-weight:700;font-size:15px">{{ d.name }} <span style="font-size:10px;font-weight:800;border-radius:999px;padding:2px 7px;background:var(--color-accent-2-200);color:var(--color-accent-2-800);vertical-align:2px">AI</span></span><span style="font-size:12px;color:var(--color-neutral-700)">{{ d.q }} × {{ d.portion }} · {{ d.kcal }} kcal</span></span>
+            <button onClick="{{ d.dec }}" aria-label="Less" style="width:40px;height:40px;border-radius:50%;border:1px solid var(--color-divider);background:transparent;cursor:pointer;font-size:18px;font-weight:700">−</button>
+            <span style="width:18px;text-align:center;font-weight:800">{{ d.q }}</span>
+            <button onClick="{{ d.inc }}" aria-label="More" style="width:40px;height:40px;border-radius:50%;border:none;background:var(--color-accent);color:var(--on-accent-fill);cursor:pointer;font-size:18px;font-weight:700">+</button>
+          </div>
+        </sc-for>
+        <div style="display:flex;justify-content:space-between;font-size:14px;padding:0 6px"><span style="color:var(--color-neutral-700)">P {{ detP }} g · C {{ detC }} g · F {{ detF }} g · Fibre {{ detFi }} g</span><span style="font-weight:800">{{ detKcal }} kcal</span></div>
+        <div style="display:flex;gap:8px">
+          <button onClick="{{ retake }}" style="flex:1;min-height:52px;border-radius:999px;border:1px solid var(--color-divider);background:transparent;cursor:pointer;font-family:Caprasimo,serif;font-size:15px">Retake</button>
+          <button onClick="{{ confirmDetected }}" style="flex:2;min-height:52px;border-radius:999px;border:none;background:var(--color-accent);color:var(--on-accent-fill);cursor:pointer;font-family:Caprasimo,serif;font-size:16px">Add to {{ slot }}</button>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ showFoodA }}" hint-placeholder-val="{{ false }}">
+      <sc-if value="{{ aiOn }}" hint-placeholder-val="{{ true }}">
+        <div style="position:relative;height:300px;border-radius:32px;background:repeating-linear-gradient(135deg,var(--color-neutral-300) 0 10px,var(--color-surface) 10px 20px);display:flex;align-items:flex-end;justify-content:center;padding:18px">
+          <span style="position:absolute;top:16px;left:16px;font-family:ui-monospace,monospace;font-size:11px;background:var(--color-neutral-100);border-radius:999px;padding:3px 10px">live camera · point at your plate</span>
+          <span style="position:absolute;top:16px;right:16px;font-size:10px;font-weight:800;border-radius:999px;padding:3px 8px;background:var(--color-accent-2-200);color:var(--color-accent-2-800)">AI</span>
+          <button onClick="{{ snap }}" aria-label="Take photo" style="width:78px;height:78px;border-radius:50%;border:6px solid var(--color-neutral-100);background:var(--color-accent);cursor:pointer;box-shadow:var(--shadow-md)"></button>
+        </div>
+      </sc-if>
+      <sc-if value="{{ aiOff }}" hint-placeholder-val="{{ false }}">
+        <div style="border-radius:32px;background:var(--color-surface);padding:20px;display:flex;flex-direction:column;gap:6px">
+          <span style="font-family:Caprasimo,serif;font-size:20px">Photo logging is off</span>
+          <span style="font-size:14px;color:var(--color-neutral-700);line-height:1.5">Your admin paused AI for the team. Search works exactly the same — one tap per food.</span>
+        </div>
+      </sc-if>
+      <div style="font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-neutral-700);font-weight:700;margin-top:4px">Or search</div>
+    </sc-if>
+
+    <sc-if value="{{ showSearch }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;align-items:center;gap:8px;min-height:54px;border-radius:999px;background:var(--color-surface);border:1px solid var(--color-divider);padding:0 6px 0 18px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+        <input value="{{ query }}" onChange="{{ onQuery }}" placeholder="Roti, dosa, dal…" aria-label="Search food" style="flex:1;min-width:0;border:none;background:transparent;font-size:16px;outline:none">
+        <sc-if value="{{ showCamInSearch }}" hint-placeholder-val="{{ false }}"><button onClick="{{ snap }}" aria-label="Photo" style="width:44px;height:44px;border-radius:50%;border:none;cursor:pointer;background:var(--color-accent);color:var(--on-accent-fill);display:grid;place-items:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"></path><circle cx="12" cy="13" r="3"></circle></svg></button></sc-if>
+      </div>
+      <sc-if value="{{ showQuick }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <span style="font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-neutral-700);font-weight:700">Your usuals</span>
+          <div style="display:flex;flex-wrap:wrap;gap:8px"><sc-for list="{{ usuals }}" as="u" hint-placeholder-count="5"><button onClick="{{ u.add }}" style="border:none;cursor:pointer;border-radius:999px;padding:0 14px;min-height:40px;background:var(--color-accent-200);color:var(--color-accent-800);font-weight:700;font-size:13px">+ {{ u.name }}</button></sc-for></div>
+        </div>
+      </sc-if>
+      <div style="display:flex;flex-direction:column">
+        <sc-for list="{{ results }}" as="r" hint-placeholder-count="6">
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid color-mix(in srgb,var(--color-text) 10%,transparent)">
+            <span style="flex:1;display:flex;flex-direction:column"><span style="font-weight:700;font-size:15px">{{ r.name }}</span><span style="font-size:12px;color:var(--color-neutral-700)">{{ r.portion }} · P {{ r.p }} · C {{ r.c }} · F {{ r.f }}</span></span>
+            <span style="font-weight:800;font-size:14px">{{ r.kcal }}</span>
+            <button onClick="{{ r.add }}" aria-label="Add {{ r.name }}" style="width:44px;height:44px;border-radius:50%;border:none;cursor:pointer;background:var(--color-accent);color:var(--on-accent-fill);display:grid;place-items:center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></button>
+          </div>
+        </sc-for>
+        <sc-if value="{{ noResults }}" hint-placeholder-val="{{ false }}"><div style="padding:16px 0;font-size:14px;color:var(--color-neutral-700)">Nothing matches yet. Ask your admin to add it.</div></sc-if>
+      </div>
+    </sc-if>
+  </div>
+  </sc-if>
+
+  <!-- LOG ACTIVITY -->
+  <sc-if value="{{ isAct }}" hint-placeholder-val="{{ false }}">
+  <div data-screen-label="Log activity" style="padding:8px 20px 40px;display:flex;flex-direction:column;gap:18px;min-height:780px">
+    <div style="display:flex;align-items:center;gap:10px">
+      <button onClick="{{ goBack }}" aria-label="Back" style="width:44px;height:44px;border-radius:50%;border:none;cursor:pointer;background:var(--color-surface);display:grid;place-items:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg></button>
+      <span style="flex:1;font-family:Caprasimo,serif;font-size:24px">Log a move</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px">
+      <sc-for list="{{ actTypes }}" as="a" hint-placeholder-count="8"><button onClick="{{ a.pick }}" style="border:none;cursor:pointer;border-radius:24px;padding:14px 4px;min-height:64px;font-weight:700;font-size:13px;background:{{ a.bg }};color:{{ a.fg }}">{{ a.t }}</button></sc-for>
+    </div>
+    <div style="background:var(--color-surface);border-radius:32px;padding:18px;display:flex;flex-direction:column;gap:14px;align-items:center">
+      <span style="font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-neutral-700);font-weight:700">Duration</span>
+      <div style="display:flex;align-items:center;gap:18px">
+        <button onClick="{{ minDown }}" aria-label="5 minutes less" style="width:52px;height:52px;border-radius:50%;border:1px solid var(--color-divider);background:transparent;cursor:pointer;font-size:22px;font-weight:700">−</button>
+        <span style="font-family:Caprasimo,serif;font-size:64px;line-height:1;min-width:110px;text-align:center">{{ actMin }}<span style="font-family:Figtree;font-size:16px;color:var(--color-neutral-700)"> min</span></span>
+        <button onClick="{{ minUp }}" aria-label="5 minutes more" style="width:52px;height:52px;border-radius:50%;border:none;background:var(--color-accent);color:var(--on-accent-fill);cursor:pointer;font-size:22px;font-weight:700">+</button>
+      </div>
+      <div style="display:flex;border:1px solid var(--color-divider);border-radius:999px;overflow:hidden">
+        <sc-for list="{{ intOpts }}" as="o" hint-placeholder-count="3"><button onClick="{{ o.pick }}" style="border:none;cursor:pointer;padding:0 18px;min-height:44px;font-size:14px;font-weight:700;background:{{ o.bg }};color:{{ o.fg }}">{{ o.label }}</button></sc-for>
+      </div>
+    </div>
+    <div style="background:var(--color-accent-2);color:var(--on-accent);border-radius:32px;padding:18px 20px;display:flex;flex-direction:column;gap:2px">
+      <span style="font-size:12px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;color:var(--on-accent-sub)">Estimated burn</span>
+      <span style="font-family:Caprasimo,serif;font-size:48px;line-height:1.05;color:var(--on-accent)">{{ actKcal }} kcal</span>
+      <span style="font-size:12px;color:var(--on-accent-sub)">MET {{ actMet }} × 72 kg × {{ actMin }} min · logic engine</span>
+    </div>
+    <div style="font-size:13px;color:var(--color-neutral-700);text-align:center">This week: Gym 3 of 5 · Run 2 of 3</div>
+    <button onClick="{{ logAct }}" style="margin-top:auto;min-height:56px;border:none;border-radius:999px;background:var(--color-accent);color:var(--on-accent-fill);font-family:Caprasimo,serif;font-size:18px;cursor:pointer">Log {{ actType }}</button>
+  </div>
+  </sc-if>
+
+  <!-- DIET -->
+  <sc-if value="{{ isDiet }}" hint-placeholder-val="{{ false }}">
+  <div data-screen-label="Diet plan" style="padding:10px 20px 120px;display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;flex-direction:column;gap:2px">
+      <span style="font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent-700);font-weight:700">Cutting plan · set by Meera</span>
+      <span style="font-family:Caprasimo,serif;font-size:30px;line-height:1.1">Pick your plates</span>
+      <span style="font-size:14px;color:var(--color-neutral-700)">Today's picks add up to <b style="color:var(--color-text)">{{ planTotal }} kcal</b> of your {{ targetFmt }}.</span>
+    </div>
+    <sc-if value="{{ aiOn }}" hint-placeholder-val="{{ true }}">
+      <div style="background:var(--color-accent-2-200);border-radius:28px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;color:var(--color-accent-2-900)">
+        <div style="display:flex;gap:8px;align-items:center"><span style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700">Swap idea</span><span style="font-size:10px;font-weight:800;border-radius:999px;padding:2px 7px;background:var(--color-accent-2);color:var(--on-accent2-fill)">AI</span></div>
+        <span style="font-size:14px;line-height:1.5">Late training night? Curd rice sits lighter than dal-roti at a similar 260 kcal — tap it under Dinner.</span>
+      </div>
+    </sc-if>
+    <sc-for list="{{ dietSlots }}" as="d" hint-placeholder-count="5">
+      <div style="background:var(--color-surface);border-radius:30px;padding:16px;display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;align-items:center"><span style="flex:1;font-family:Caprasimo,serif;font-size:19px">{{ d.slot }}</span><sc-if value="{{ d.logged }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px;font-weight:700;border-radius:999px;padding:3px 10px;background:var(--color-accent-2-200);color:var(--color-accent-2-800)">Logged</span></sc-if></div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <sc-for list="{{ d.opts }}" as="o" hint-placeholder-count="2">
+            <button onClick="{{ o.pick }}" style="display:flex;align-items:center;gap:10px;cursor:pointer;text-align:left;border-radius:22px;padding:10px 14px;min-height:48px;background:{{ o.bg }};border:2px solid {{ o.border }}">
+              <span style="width:18px;height:18px;border-radius:50%;flex:none;border:2px solid {{ o.dotBorder }};background:{{ o.dot }}"></span>
+              <span style="flex:1;font-weight:600;font-size:14px">{{ o.label }}</span>
+              <span style="font-size:13px;color:var(--color-neutral-700);font-weight:700">{{ o.kcal }}</span>
+            </button>
+          </sc-for>
+        </div>
+        <sc-if value="{{ d.canLog }}" hint-placeholder-val="{{ false }}"><button onClick="{{ d.log }}" style="align-self:flex-start;border:none;cursor:pointer;background:var(--color-accent);color:var(--on-accent-fill);border-radius:999px;padding:0 18px;min-height:44px;font-family:Caprasimo,serif;font-size:14px">Log this</button></sc-if>
+      </div>
+    </sc-for>
+  </div>
+  </sc-if>
+
+  <!-- PROGRESS A -->
+  <sc-if value="{{ isProgA }}" hint-placeholder-val="{{ false }}">
+  <div data-screen-label="Progress 3a" style="padding:10px 20px 120px;display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;flex-direction:column;gap:2px">
+      <span style="font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent-700);font-weight:700">Weight · last 14 weigh-ins</span>
+      <div style="display:flex;align-items:baseline;gap:10px"><span style="font-family:Caprasimo,serif;font-size:64px;line-height:1">72.4</span><span style="font-size:16px;font-weight:700">kg</span><span style="font-size:14px;font-weight:800;border-radius:999px;padding:3px 10px;background:var(--color-accent-2-200);color:var(--color-accent-2-800)">−2.8 kg</span></div>
+    </div>
+    <div style="background:var(--color-surface);border-radius:32px;padding:16px 12px 10px">
+      <svg width="100%" height="170" viewBox="0 0 320 170" preserveAspectRatio="none" role="img" aria-label="Weight trend from 75.2 to 72.4 kg, forecast 70 kg by 18 Nov">
+        <line x1="0" y1="{{ goalY }}" x2="320" y2="{{ goalY }}" stroke="var(--color-accent-2)" stroke-width="2" stroke-dasharray="3 5"></line>
+        <polyline points="{{ forecastPts }}" fill="none" stroke="var(--color-neutral-400)" stroke-width="3" stroke-dasharray="6 6" stroke-linecap="round"></polyline>
+        <polyline points="{{ weightPts }}" fill="none" stroke="var(--color-accent)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></polyline>
+      </svg>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--color-neutral-700);padding:4px 6px 0"><span>17 Sep</span><span>30 Sep</span><span>Goal 70 kg</span><span>18 Nov</span></div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px">
+      <div style="background:var(--color-accent);color:var(--on-accent);border-radius:28px;padding:16px;display:flex;flex-direction:column"><span style="font-size:12px;font-weight:700;color:var(--on-accent-sub)">Forecast</span><span style="font-family:Caprasimo,serif;font-size:24px">70 kg</span><span style="font-size:12px;color:var(--on-accent-sub)">by 18 Nov at this pace</span></div>
+      <div style="background:var(--color-surface);border-radius:28px;padding:16px;display:flex;flex-direction:column"><span style="font-size:12px;font-weight:700;color:var(--color-neutral-700)">Pace</span><span style="font-family:Caprasimo,serif;font-size:24px">−0.35 kg</span><span style="font-size:12px;color:var(--color-neutral-700)">per week · safe range</span></div>
+    </div>
+    <button onClick="{{ logWeight }}" style="min-height:52px;border-radius:999px;border:1px solid var(--color-divider);background:transparent;cursor:pointer;font-family:Caprasimo,serif;font-size:16px">Log today's weight</button>
+    <sc-if value="{{ aiOn }}" hint-placeholder-val="{{ true }}"><div style="background:var(--color-text);color:var(--color-bg);border-radius:28px;padding:16px 18px;font-size:14px;line-height:1.55"><span style="font-size:10px;font-weight:800;border-radius:999px;padding:2px 7px;background:var(--color-accent-2-700);color:var(--color-accent-2-100);margin-right:6px">AI</span>Your two heaviest days followed Sunday biryani. The trend barely noticed — keep it as your one flex meal.</div></sc-if>
+  </div>
+  </sc-if>
+
+  <!-- PROGRESS B -->
+  <sc-if value="{{ isProgB }}" hint-placeholder-val="{{ false }}">
+  <div data-screen-label="Progress 3b" style="padding:10px 20px 120px;display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;flex-direction:column;gap:2px">
+      <span style="font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent-700);font-weight:700">This week</span>
+      <span style="font-family:Caprasimo,serif;font-size:30px;line-height:1.1">4 of 6 days in range</span>
+    </div>
+    <div style="background:var(--color-surface);border-radius:32px;padding:18px 14px 12px;display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;align-items:flex-end;gap:8px;height:180px;position:relative">
+        <sc-for list="{{ weekBars }}" as="w" hint-placeholder-count="7">
+          <div style="flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px">
+            <span style="font-size:10px;font-weight:700;color:var(--color-neutral-700)">{{ w.k }}</span>
+            <div style="width:100%;border-radius:14px;height:{{ w.h }};background:{{ w.bg }};border:2px solid {{ w.border }}"></div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display:flex;gap:8px"><sc-for list="{{ weekBars }}" as="w" hint-placeholder-count="7"><div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px"><span style="font-size:12px;font-weight:700">{{ w.d }}</span><span style="font-size:10px;color:{{ w.labelFg }};font-weight:700">{{ w.band }}</span></div></sc-for></div>
+    </div>
+    <div style="display:flex;gap:14px;font-size:12px;color:var(--color-neutral-700);flex-wrap:wrap"><span style="display:flex;gap:6px;align-items:center"><span style="width:12px;height:12px;border-radius:50%;background:var(--color-accent-2)"></span>In range ±10%</span><span style="display:flex;gap:6px;align-items:center"><span style="width:12px;height:12px;border-radius:50%;background:var(--color-accent)"></span>Over</span><span style="display:flex;gap:6px;align-items:center"><span style="width:12px;height:12px;border-radius:50%;background:var(--color-neutral-100);border:2px solid var(--color-neutral-500)"></span>Under</span></div>
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">
+      <div style="background:var(--color-surface);border-radius:24px;padding:14px 12px;display:flex;flex-direction:column"><span style="font-size:11px;color:var(--color-neutral-700);font-weight:700">Avg in</span><span style="font-family:Caprasimo,serif;font-size:20px">2,107</span></div>
+      <div style="background:var(--color-surface);border-radius:24px;padding:14px 12px;display:flex;flex-direction:column"><span style="font-size:11px;color:var(--color-neutral-700);font-weight:700">Burned</span><span style="font-family:Caprasimo,serif;font-size:20px">1,460</span></div>
+      <div style="background:var(--color-surface);border-radius:24px;padding:14px 12px;display:flex;flex-direction:column"><span style="font-size:11px;color:var(--color-neutral-700);font-weight:700">Weight</span><span style="font-family:Caprasimo,serif;font-size:20px">−0.6</span></div>
+    </div>
+    <sc-if value="{{ aiOn }}" hint-placeholder-val="{{ true }}"><div style="background:var(--color-text);color:var(--color-bg);border-radius:28px;padding:16px 18px;font-size:14px;line-height:1.55"><span style="font-size:10px;font-weight:800;border-radius:999px;padding:2px 7px;background:var(--color-accent-2-700);color:var(--color-accent-2-100);margin-right:6px">AI</span>Thursday went over with zero activity logged. A 30-min walk on rest days would have kept it green.</div></sc-if>
+    <sc-if value="{{ aiOff }}" hint-placeholder-val="{{ false }}"><div style="background:var(--color-text);color:var(--color-bg);border-radius:28px;padding:16px 18px;font-size:14px;line-height:1.55">Best day: Friday — 1,850 in, 420 burned. Forecast holds at 70 kg by 18 Nov.</div></sc-if>
+  </div>
+  </sc-if>
+
+  <!-- MOMENTUM -->
+  <sc-if value="{{ isMom }}" hint-placeholder-val="{{ false }}">
+  <div data-screen-label="Momentum" style="padding:8px 20px 40px;display:flex;flex-direction:column;gap:16px">
+    <div style="display:flex;align-items:center;gap:10px">
+      <button onClick="{{ goBack }}" aria-label="Back" style="width:44px;height:44px;border-radius:50%;border:none;cursor:pointer;background:var(--color-surface);display:grid;place-items:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg></button>
+      <span style="flex:1;font-family:Caprasimo,serif;font-size:24px">Momentum</span>
+    </div>
+    <div style="background:var(--color-accent);border-radius:36px;padding:22px;display:flex;flex-direction:column;gap:4px;color:var(--on-accent)">
+      <span style="font-size:12px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;color:var(--on-accent-sub)">Logging streak</span>
+      <div style="display:flex;align-items:baseline;gap:8px"><span style="font-family:Caprasimo,serif;font-size:96px;line-height:0.9">12</span><span style="font-family:Caprasimo,serif;font-size:24px">days</span></div>
+      <span style="font-size:14px;color:var(--on-accent-sub);font-weight:600">Best ever: 19. Seven more and you tie it.</span>
+    </div>
+    <div style="background:var(--color-surface);border-radius:30px;padding:16px;display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;justify-content:space-between;font-size:13px"><span style="font-weight:700">Last 21 days</span><span style="color:var(--color-neutral-700)">1 grace day left this week</span></div>
+      <div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px">
+        <sc-for list="{{ dots }}" as="d" hint-placeholder-count="21"><span title="{{ d.label }}" style="aspect-ratio:1;border-radius:50%;display:grid;place-items:center;font-size:10px;font-weight:800;background:{{ d.bg }};color:{{ d.fg }};border:2px solid {{ d.border }}">{{ d.mark }}</span></sc-for>
+      </div>
+      <div style="display:flex;gap:12px;font-size:11px;color:var(--color-neutral-700)"><span>● logged</span><span>G grace — streak paused, not broken</span></div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px">
+      <sc-for list="{{ streaks }}" as="s" hint-placeholder-count="3"><div style="background:{{ s.bg }};border-radius:28px;padding:16px;display:flex;flex-direction:column;gap:2px"><span style="font-size:12px;font-weight:700;color:{{ s.sub }}">{{ s.label }}</span><span style="font-family:Caprasimo,serif;font-size:32px;color:{{ s.fg }}">{{ s.n }}</span><span style="font-size:12px;color:{{ s.sub }}">{{ s.note }}</span></div></sc-for>
+      <div style="background:var(--color-text);border-radius:28px;padding:16px;display:flex;flex-direction:column;gap:8px;color:var(--color-bg)">
+        <span style="font-size:12px;font-weight:700;color:var(--color-neutral-300)">Team streak</span>
+        <span style="font-family:Caprasimo,serif;font-size:32px">9</span>
+        <div style="display:flex"><sc-for list="{{ crew }}" as="c" hint-placeholder-count="6"><span style="width:24px;height:24px;margin-right:-6px;border-radius:50%;display:grid;place-items:center;font-size:10px;font-weight:800;background:{{ c.bg }};color:{{ c.fg }};border:2px solid var(--color-text)">{{ c.i }}</span></sc-for></div>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- CHAT -->
+  <sc-if value="{{ isChat }}" hint-placeholder-val="{{ false }}">
+  <div data-screen-label="Team chat" style="padding:6px 16px 190px;display:flex;flex-direction:column;gap:12px">
+    <div style="display:flex;align-items:center;gap:10px;padding:0 4px">
+      <div style="flex:1;display:flex;flex-direction:column"><span style="font-family:Caprasimo,serif;font-size:24px">The Clubhouse</span><span style="font-size:12px;color:var(--color-neutral-700)">6 members · team streak 9</span></div>
+    </div>
+    <div style="background:var(--color-accent-200);border-radius:22px;padding:10px 14px;font-size:13px;color:var(--color-accent-800)"><b>Pinned · Meera:</b> New dinner options are live in Diet. Sunday 6am run from Cubbon Park.</div>
+    <sc-for list="{{ msgs }}" as="m" hint-placeholder-count="5">
+      <div style="display:flex;flex-direction:column;gap:4px;align-items:{{ m.align }}">
+        <span style="font-size:11px;color:var(--color-neutral-700);font-weight:700;padding:0 10px">{{ m.who }} · {{ m.time }}</span>
+        <div style="max-width:84%;border-radius:24px;padding:10px 14px;display:flex;flex-direction:column;gap:8px;background:{{ m.bg }};color:{{ m.fg }}">
+          <sc-if value="{{ m.isMeme }}" hint-placeholder-val="{{ false }}">
+            <div style="width:220px;height:150px;border-radius:18px;background:repeating-linear-gradient(135deg,var(--color-neutral-300) 0 10px,var(--color-surface) 10px 20px);display:flex;align-items:center;justify-content:center;font-family:ui-monospace,monospace;font-size:11px;color:var(--color-text)">meme image</div>
+            <span style="font-size:11px;font-weight:700;color:var(--color-accent-700)">Trigger: went over by 400+ kcal · Rohan opted in to roasts</span>
+          </sc-if>
+          <sc-if value="{{ m.hasText }}" hint-placeholder-val="{{ true }}"><span style="font-size:15px;line-height:1.45">{{ m.text }}</span></sc-if>
+          <sc-if value="{{ m.hasTag }}" hint-placeholder-val="{{ false }}"><span style="align-self:flex-start;font-size:12px;font-weight:700;border-radius:999px;padding:4px 10px;background:{{ m.tagBg }};color:{{ m.tagFg }}">{{ m.tag }}</span></sc-if>
+        </div>
+        <div style="display:flex;gap:4px;padding:0 6px">
+          <sc-for list="{{ m.reacts }}" as="r" hint-placeholder-count="0"><button onClick="{{ r.toggle }}" style="border:1px solid {{ r.border }};cursor:pointer;border-radius:999px;padding:0 10px;min-height:30px;font-size:12px;font-weight:700;background:{{ r.bg }}">{{ r.label }} {{ r.n }}</button></sc-for>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+  <div style="position:absolute;left:0;right:0;bottom:88px;padding:10px 14px;background:var(--color-bg);display:flex;flex-direction:column;gap:8px;z-index:3">
+    <sc-if value="{{ draftTagOn }}" hint-placeholder-val="{{ false }}"><span style="align-self:flex-start;font-size:12px;font-weight:700;border-radius:999px;padding:4px 10px;background:var(--color-accent-200);color:var(--color-accent-800)">Tagging: {{ lastTag }}</span></sc-if>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button onClick="{{ toggleTag }}" aria-label="Tag a food you logged" style="width:44px;height:44px;flex:none;border-radius:50%;cursor:pointer;display:grid;place-items:center;border:none;background:{{ tagBtnBg }};color:{{ tagBtnFg }}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"></path><path d="M7 2v20"></path><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"></path></svg></button>
+      <input value="{{ draft }}" onChange="{{ onDraft }}" onKeyDown="{{ onDraftKey }}" placeholder="Hype the crew…" aria-label="Message" style="flex:1;min-width:0;min-height:48px;border-radius:999px;border:1px solid var(--color-divider);background:var(--color-surface);padding:0 16px;font-size:15px">
+      <button onClick="{{ send }}" aria-label="Send" style="width:48px;height:48px;flex:none;border-radius:50%;border:none;cursor:pointer;background:var(--color-accent);color:var(--on-accent-fill);display:grid;place-items:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"></path><path d="M22 2 11 13"></path></svg></button>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- SETTINGS -->
+  <sc-if value="{{ isSet }}" hint-placeholder-val="{{ false }}">
+  <div data-screen-label="Notifications & settings" style="padding:8px 20px 40px;display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;align-items:center;gap:10px">
+      <button onClick="{{ goBack }}" aria-label="Back" style="width:44px;height:44px;border-radius:50%;border:none;cursor:pointer;background:var(--color-surface);display:grid;place-items:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg></button>
+      <span style="flex:1;font-family:Caprasimo,serif;font-size:24px">Notifications</span>
+    </div>
+    <sc-for list="{{ notifGroups }}" as="g" hint-placeholder-count="3">
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <span style="font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-neutral-700);font-weight:700;padding:0 6px">{{ g.title }}</span>
+        <div style="background:var(--color-surface);border-radius:28px;padding:4px 0">
+          <sc-for list="{{ g.rows }}" as="r" hint-placeholder-count="2">
+            <button onClick="{{ r.toggle }}" role="switch" aria-checked="{{ r.on }}" style="width:100%;display:flex;align-items:center;gap:12px;border:none;background:transparent;cursor:pointer;text-align:left;padding:12px 16px;min-height:56px">
+              <span style="flex:1;display:flex;flex-direction:column"><span style="font-weight:700;font-size:15px">{{ r.label }}</span><span style="font-size:12px;color:var(--color-neutral-700)">{{ r.sub }}</span></span>
+              <span style="width:50px;height:30px;flex:none;border-radius:999px;padding:3px;display:flex;justify-content:{{ r.justify }};background:{{ r.track }}"><span style="width:24px;height:24px;border-radius:50%;background:var(--color-neutral-100)"></span></span>
+            </button>
+          </sc-for>
+        </div>
+      </div>
+    </sc-for>
+    <div style="display:flex;gap:8px">
+      <button onClick="{{ exportData }}" style="flex:1;min-height:48px;border-radius:999px;border:1px solid var(--color-divider);background:transparent;cursor:pointer;font-weight:700;font-size:14px">Export my data</button>
+      <button onClick="{{ logout }}" style="flex:1;min-height:48px;border-radius:999px;border:none;background:var(--color-text);color:var(--color-bg);cursor:pointer;font-weight:700;font-size:14px">Log out</button>
+    </div>
+  </div>
+  </sc-if>
+
+  </div>
+
+  <!-- TAB BAR -->
+  <sc-if value="{{ showTabs }}" hint-placeholder-val="{{ true }}">
+  <div style="position:absolute;left:0;right:0;bottom:0;height:88px;background:var(--color-bg);box-shadow:0 -1px 0 color-mix(in srgb,var(--color-text) 10%,transparent);display:flex;align-items:flex-start;justify-content:space-around;padding:10px 8px 0;z-index:4">
+    <sc-for list="{{ tabsL }}" as="t" hint-placeholder-count="2"><button onClick="{{ t.go }}" style="border:none;background:transparent;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;min-width:60px;min-height:48px;font-size:11px;font-weight:700;color:{{ t.fg }}"><span style="width:26px;height:6px;border-radius:999px;background:{{ t.bar }}"></span><span style="font-size:13px">{{ t.label }}</span></button></sc-for>
+    <button onClick="{{ openSheet }}" aria-label="Log something" style="width:60px;height:60px;margin-top:-22px;border-radius:50%;border:5px solid var(--color-bg);background:var(--color-accent);color:var(--on-accent-fill);cursor:pointer;display:grid;place-items:center;box-shadow:var(--shadow-md)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></button>
+    <sc-for list="{{ tabsR }}" as="t" hint-placeholder-count="2"><button onClick="{{ t.go }}" style="border:none;background:transparent;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;min-width:60px;min-height:48px;font-size:11px;font-weight:700;color:{{ t.fg }}"><span style="width:26px;height:6px;border-radius:999px;background:{{ t.bar }}"></span><span style="font-size:13px">{{ t.label }}</span></button></sc-for>
+  </div>
+  </sc-if>
+
+  <!-- LOG SHEET -->
+  <sc-if value="{{ sheet }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ closeSheet }}" style="position:absolute;inset:0;z-index:8;background:rgba(10,8,6,.55);display:flex;align-items:flex-end">
+    <div onClick="{{ stop }}" style="width:100%;background:var(--color-bg);border-radius:36px 36px 0 0;padding:14px 20px 34px;display:flex;flex-direction:column;gap:10px">
+      <span style="align-self:center;width:44px;height:5px;border-radius:999px;background:var(--color-neutral-400)"></span>
+      <span style="font-family:Caprasimo,serif;font-size:24px;margin:4px 0">What are we logging?</span>
+      <sc-for list="{{ sheetOpts }}" as="o" hint-placeholder-count="3">
+        <button onClick="{{ o.go }}" style="display:flex;align-items:center;gap:14px;text-align:left;border:none;cursor:pointer;border-radius:26px;padding:14px 16px;min-height:64px;background:{{ o.bg }};color:{{ o.fg }}">
+          <span style="flex:1;display:flex;flex-direction:column"><span style="font-family:Caprasimo,serif;font-size:18px">{{ o.label }}</span><span style="font-size:12px;opacity:0.8">{{ o.sub }}</span></span>
+          <sc-if value="{{ o.ai }}" hint-placeholder-val="{{ false }}"><span style="font-size:10px;font-weight:800;border-radius:999px;padding:2px 7px;background:var(--color-accent-2-200);color:var(--color-accent-2-800)">AI</span></sc-if>
+        </button>
+      </sc-for>
+    </div>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+  <div style="position:absolute;top:54px;left:20px;right:20px;z-index:9;display:flex;justify-content:center;pointer-events:none"><span style="background:var(--color-text);color:var(--color-bg);border-radius:999px;padding:12px 18px;font-size:14px;font-weight:700;box-shadow:var(--shadow-lg)">{{ toast }}</span></div>
+  </sc-if>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;showPanel&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;palette&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;organic&quot;,&quot;chili&quot;,&quot;mango&quot;,&quot;plum&quot;,&quot;day&quot;,&quot;night&quot;],&quot;default&quot;:&quot;day&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+const FOODS=[
+{n:'Idli',u:'2 pcs',k:116,p:4,c:24,f:0.4,fi:1.6},{n:'Masala dosa',u:'1 dosa',k:387,p:7,c:52,f:16,fi:4},
+{n:'Coconut chutney',u:'2 tbsp',k:70,p:1,c:3,f:6,fi:2},{n:'Sambar',u:'1 bowl',k:130,p:6,c:20,f:3,fi:5},
+{n:'Roti',u:'1 roti',k:104,p:3,c:18,f:2,fi:3},{n:'Dal tadka',u:'1 bowl',k:180,p:9,c:24,f:6,fi:6},
+{n:'Poha',u:'1 plate',k:250,p:6,c:45,f:6,fi:3},{n:'Upma',u:'1 plate',k:230,p:6,c:35,f:8,fi:3},
+{n:'Rajma chawal',u:'1 plate',k:410,p:14,c:70,f:8,fi:11},{n:'Paneer tikka',u:'6 pcs',k:280,p:18,c:8,f:19,fi:2},
+{n:'Chicken biryani',u:'1 plate',k:520,p:26,c:62,f:18,fi:3},{n:'Curd rice',u:'1 bowl',k:260,p:8,c:42,f:7,fi:1},
+{n:'Masala chai',u:'1 cup',k:90,p:3,c:12,f:3,fi:0},{n:'Sprouts chaat',u:'1 bowl',k:150,p:10,c:24,f:2,fi:7},
+{n:'Egg bhurji',u:'2 eggs',k:210,p:13,c:4,f:16,fi:1},{n:'Banana',u:'1 medium',k:105,p:1,c:27,f:0,fi:3},
+{n:'Aloo paratha',u:'1 paratha',k:290,p:6,c:40,f:12,fi:4},{n:'Chole',u:'1 bowl',k:240,p:12,c:34,f:7,fi:9}];
+const F=n=>FOODS.find(x=>x.n===n);
+const SLOTS=['Breakfast','Morning snack','Lunch','Evening snack','Dinner'];
+const GOALS={lose:{label:'Lean out',desc:'Lose ~0.4 kg a week',k:2100},maintain:{label:'Hold steady',desc:'Keep weight, build fitness',k:2500},gain:{label:'Bulk up',desc:'Gain lean mass slowly',k:2900}};
+const DIET={
+'Breakfast':[{l:'Poha + chai',i:[['Poha',1],['Masala chai',1]]},{l:'Idli sambar',i:[['Idli',1],['Sambar',1]]},{l:'Egg bhurji + roti',i:[['Egg bhurji',1],['Roti',1]]}],
+'Morning snack':[{l:'Banana',i:[['Banana',1]]},{l:'Sprouts chaat',i:[['Sprouts chaat',1]]}],
+'Lunch':[{l:'Rajma chawal',i:[['Rajma chawal',1]]},{l:'Dal + 2 roti',i:[['Dal tadka',1],['Roti',2]]},{l:'Chole + 1 roti',i:[['Chole',1],['Roti',1]]}],
+'Evening snack':[{l:'Masala chai',i:[['Masala chai',1]]},{l:'Paneer tikka',i:[['Paneer tikka',1]]}],
+'Dinner':[{l:'Dal + 2 roti',i:[['Dal tadka',1],['Roti',2]]},{l:'Paneer tikka + roti',i:[['Paneer tikka',1],['Roti',1]]},{l:'Curd rice',i:[['Curd rice',1]]}]};
+const optK=o=>o.i.reduce((s,[n,q])=>s+F(n).k*q,0);
+const ACTS=[['Run',9.8],['Cycle',7.5],['Swim',8],['Gym',5],['Walk',3.5],['Yoga',2.5],['Football',7],['Badminton',5.5]];
+const INT={Easy:0.8,Moderate:1,Hard:1.25};
+const W=[75.2,75.0,75.1,74.7,74.6,74.2,74.3,73.9,73.6,73.7,73.2,73.0,72.8,72.4];
+const WEEK=[['Wed',1980,250],['Thu',2400,0],['Fri',1850,420],['Sat',2050,0],['Sun',2600,180],['Mon',1920,300]];
+const DOTS='llllmllgllllllllllll'.split('').concat(['t']);
+const CREW=[['A','Arjun',1],['P','Priya',1],['R','Rohan',1],['S','Sneha',1],['M','Meera',0],['K','Kabir',0]];
+const fmt=n=>Math.round(n).toLocaleString('en-IN');
+const SCREENS=[['login','Login & onboarding',''],['today','Today','3'],['food','Log food','2'],['act','Log activity',''],['diet','Diet plan',''],['prog','Progress & weight','2'],['mom','Momentum',''],['chat','Team chat',''],['set','Notifications','']];
+const VARS={
+today:[['1a','a','Ring & meals','Classic dashboard, grouped by slot'],['1b','b','Big number','One loud number, next meal up front'],['1c','c','Day timeline','Chronological, with a Now marker']],
+food:[['2a','a','Camera first','Viewfinder on open, search below'],['2b','b','Search first','Usuals + search, camera in the field']],
+prog:[['3a','a','Weight trend','Line + forecast to goal'],['3b','b','Weekly bands','Calories in range, day by day']]};
+let uid=100;
+const PALS=[['organic','Terracotta & sage','Organic default','#f5ead8','#c67139','#7a8a5e'],
+['chili','Chili & mint','Hotter, sportier','oklch(.97 .012 85)','oklch(.6 .19 32)','oklch(.58 .1 178)'],
+['mango','Mango & indigo','Summer, high contrast','oklch(.96 .02 92)','oklch(.66 .16 58)','oklch(.48 .13 268)'],
+['plum','Plum & pistachio','Softer, calmer','oklch(.96 .012 20)','oklch(.52 .14 355)','oklch(.64 .1 135)'],
+['day','Day run','Light mode, lime & coral','oklch(.975 .008 105)','oklch(.84 .19 128)','oklch(.7 .15 30)'],
+['night','Night run','Dark mode, lime & coral','oklch(.19 .01 70)','oklch(.84 .17 128)','oklch(.72 .13 30)']];
+
+class Component extends DCLogic {
+  state={screen:'today',prev:'today',ai:true,v:{today:'a',food:'a',prog:'a'},sheet:false,toast:'',
+    log:[{id:1,slot:'Breakfast',n:'Poha',q:1,t:'08:10'},{id:2,slot:'Breakfast',n:'Masala chai',q:1,t:'08:10'},{id:3,slot:'Lunch',n:'Rajma chawal',q:1,t:'13:20'},{id:4,slot:'Evening snack',n:'Masala chai',q:1,t:'17:05'}],
+    acts:[{id:5,type:'Run',name:'Morning run',min:32,kcal:310,t:'06:30'}],
+    stage:'idle',prog:0,query:'',slot:'Dinner',detected:[],
+    actType:'Run',actMin:30,actInt:'Moderate',
+    diet:{'Breakfast':0,'Morning snack':0,'Lunch':0,'Evening snack':0,'Dinner':0},
+    goal:'lose',units:'Metric',user:'arjun',pass:'',loginErr:false,
+    notif:{meals:true,activity:true,chat:true,mentions:true,quiet:true,roast:true,photoAi:true},
+    msgs:[
+      {id:1,who:'Priya',time:'06:52',text:"5k done before sunrise. Who's in tomorrow?",tag:'Run · 34 min · 330 kcal',tagType:'act',reacts:[['Beast',4,false],['In',2,false]]},
+      {id:2,who:'Rohan',time:'13:40',text:'Sunday rules apply on Tuesday. No regrets.',tag:'Chicken biryani · 520 kcal',tagType:'food',reacts:[['Legend',3,false]]},
+      {id:3,who:'Clubhouse',time:'13:41',meme:true,text:'',reacts:[['Dead',5,true]]},
+      {id:4,who:'Sneha',time:'17:30',text:'Team streak at 9. Meera, Kabir — log dinner and we hit 10!',reacts:[['Let\'s go',3,false]]}],
+    draft:'',draftTag:false};
+  scrollRef=React.createRef();
+  go=s=>{this.setState(st=>({screen:s,prev:['food','act','mom','set'].includes(st.screen)?st.prev:st.screen,sheet:false,stage:'idle',query:'',draftTag:false}));if(this.scrollRef.current)this.scrollRef.current.scrollTop=0;};
+  toastMsg(t){clearTimeout(this._tt);this.setState({toast:t});this._tt=setTimeout(()=>this.setState({toast:''}),2200);}
+  addItems(slot,items,ai){const now='18:40';this.setState(s=>({log:s.log.concat(items.map(([n,q])=>({id:uid++,slot,n,q,t:now,ai})))}));}
+  snap=()=>{this.setState({stage:'analyzing',prog:0});setTimeout(()=>this.setState({prog:100}),60);setTimeout(()=>this.setState({stage:'results',detected:[{n:'Masala dosa',q:1},{n:'Coconut chutney',q:1},{n:'Sambar',q:1}]}),1800);};
+  componentWillUnmount(){clearTimeout(this._tt);}
+
+  renderVals(){
+    const s=this.state, ai=s.ai, sc=s.screen, target=GOALS[s.goal].k;
+    const items=s.log.map(e=>{const f=F(e.n);return {...e,f,k:f.k*e.q,p:f.p*e.q,c:f.c*e.q,fa:f.f*e.q,fi:f.fi*e.q};});
+    const sum=key=>items.reduce((a,x)=>a+x[key],0);
+    const eaten=sum('k'), burned=s.acts.reduce((a,x)=>a+x.kcal,0), budget=target+burned, remaining=Math.max(0,budget-eaten);
+    const pct=eaten/budget;
+    const band=pct>1.1?['Over — no stress','var(--color-accent-200)','var(--color-accent-800)']:pct>=0.9?['In range','var(--color-accent-2-200)','var(--color-accent-2-800)']:['Room to fuel','var(--color-neutral-100)','var(--color-neutral-800)'];
+    const T={p:120,c:230,fa:65,fi:30};
+    const macros=[['Protein','p','var(--color-accent)'],['Carbs','c','var(--color-neutral-500)'],['Fat','fa','var(--color-accent-500)'],['Fibre','fi','var(--color-accent-2)']].map(([label,k,color])=>{const v=Math.round(sum(k));return {label,val:v,target:T[k],w:Math.min(100,v/T[k]*100)+'%',color,aria:`${label} ${v} of ${T[k]} grams`};});
+    const pLeft=Math.max(0,T.p-Math.round(sum('p')));
+    const openFood=slot=>()=>{this.setState({slot});this.go('food');};
+    const slots=SLOTS.map(n=>{const its=items.filter(x=>x.slot===n);return {name:n,kcal:its.length?fmt(its.reduce((a,x)=>a+x.k,0)):'',empty:!its.length,add:openFood(n),items:its.map(x=>({name:x.n,portion:(x.q>1?x.q+' × ':'')+x.f.u,kcal:x.k,ai:!!x.ai}))};});
+    const dOpt=DIET.Dinner[s.diet.Dinner];
+    const logged=new Set(items.map(x=>x.slot));
+    const crew=CREW.map(([i,name,l],ix)=>{const on=l||(ix===0);return {i,name,bg:on?'var(--color-accent)':'var(--color-surface)',fg:on?'var(--on-accent)':'var(--color-neutral-700)',ring:on?'var(--color-accent)':'var(--color-neutral-300)'};});
+    const timeline=[...items.map(x=>({t:x.t,title:x.n,sub:x.slot+' · '+(x.q>1?x.q+' × ':'')+x.f.u+(x.ai?' · AI':''),kcal:'+'+x.k,dot:'var(--color-accent)',bg:'var(--color-surface)',kcalColor:'var(--color-text)'})),...s.acts.map(a=>({t:a.t,title:a.name,sub:a.min+' min · '+a.type,kcal:'−'+a.kcal,dot:'var(--color-accent-2)',bg:'var(--color-accent-2-200)',kcalColor:'var(--color-accent-2-800)'}))].sort((a,b)=>a.t.localeCompare(b.t)).map(x=>({...x,time:x.t}));
+
+    // food search
+    const q=s.query.trim().toLowerCase();
+    const res=(q?FOODS.filter(f=>f.n.toLowerCase().includes(q)):FOODS.slice(0,8));
+    const addFood=n=>()=>{this.addItems(s.slot,[[n,1]],false);this.toastMsg(`${n} added to ${s.slot}`);};
+    const det=s.detected.map((d,ix)=>{const f=F(d.n);return {name:d.n,q:d.q,portion:f.u,kcal:f.k*d.q,f,
+      inc:()=>this.setState(st=>({detected:st.detected.map((x,j)=>j===ix?{...x,q:x.q+1}:x)})),
+      dec:()=>this.setState(st=>({detected:st.detected.map((x,j)=>j===ix?{...x,q:Math.max(0,x.q-1)}:x).filter(x=>x.q>0)}))};});
+    const dsum=k=>Math.round(det.reduce((a,d)=>a+d.f[k]*d.q,0));
+    const fv=s.v.food, idle=s.stage==='idle';
+
+    const met=ACTS.find(a=>a[0]===s.actType)[1]*INT[s.actInt];
+    const actKcal=Math.round(met*72*s.actMin/60);
+
+    // progress
+    const yOf=w=>10+(75.6-w)/(75.6-69.6)*150;
+    const xs=i=>i*(200/13);
+    const weightPts=W.map((w,i)=>`${xs(i).toFixed(1)},${yOf(w).toFixed(1)}`).join(' ');
+    const forecastPts=`${xs(13)},${yOf(72.4)} 320,${yOf(70)}`;
+    const weekAll=WEEK.concat([['Tue',eaten,burned]]);
+    const weekBars=weekAll.map(([d,k,b],i)=>{const bud=target+b, r=k/bud, today=i===6;
+      const band=today?'Today':r>1.1?'Over':r>=0.9?'In':'Under';
+      const bg=today?'var(--color-neutral-100)':r>1.1?'var(--color-accent)':r>=0.9?'var(--color-accent-2)':'var(--color-neutral-100)';
+      return {d,k:fmt(k),h:Math.min(100,k/2800*100)*0.82+'%',band,bg,border:(today||band==='Under')?'var(--color-neutral-500)':bg,labelFg:band==='Over'?'var(--color-accent-700)':band==='In'?'var(--color-accent-2-700)':'var(--color-neutral-700)'};});
+
+    const dots=DOTS.map(d=>({label:d,mark:d==='g'?'G':d==='t'?'•':'',
+      bg:d==='l'?'var(--color-accent)':d==='g'?'var(--color-accent-200)':d==='t'?'var(--color-text)':'var(--color-neutral-100)',fg:d==='t'?'var(--color-bg)':'var(--color-accent-800)',border:d==='m'?'var(--color-neutral-400)':d==='g'?'var(--color-accent-400)':'transparent'}));
+
+    const tag=items.length?items[items.length-1]:null;
+    const lastTag=tag?`${tag.n} · ${tag.k} kcal`:'';
+    const msgs=s.msgs.map(m=>{const me=m.who==='You';return {who:m.who,time:m.time,text:m.text,hasText:!!m.text,isMeme:!!m.meme,
+      align:me?'flex-end':'flex-start',bg:me?'var(--color-accent)':m.meme?'var(--color-accent-200)':'var(--color-surface)',fg:me?'var(--on-accent)':'var(--color-text)',
+      hasTag:!!m.tag,tag:m.tag,tagBg:me?'var(--color-bg)':m.tagType==='act'?'var(--color-accent-2-200)':'var(--color-accent-200)',tagFg:m.tagType==='act'?'var(--color-accent-2-800)':'var(--color-accent-800)',
+      reacts:(m.reacts||[]).map(([label,n,mine],ri)=>({label,n,bg:mine?'var(--color-accent-200)':'transparent',border:mine?'var(--color-accent-400)':'var(--color-divider)',
+        toggle:()=>this.setState(st=>({msgs:st.msgs.map(x=>x.id!==m.id?x:{...x,reacts:x.reacts.map((r,j)=>j!==ri?r:[r[0],r[1]+(r[2]?-1:1),!r[2]])})}))}))};});
+    const send=()=>{const t=s.draft.trim();if(!t&&!s.draftTag)return;this.setState(st=>({draft:'',draftTag:false,msgs:st.msgs.concat([{id:uid++,who:'You',time:'18:40',text:t,tag:st.draftTag?lastTag:null,tagType:'food',reacts:[]}])}));setTimeout(()=>{const el=this.scrollRef.current;if(el)el.scrollTop=el.scrollHeight;},30);};
+
+    const tog=k=>()=>this.setState(st=>({notif:{...st.notif,[k]:!st.notif[k]}}));
+    const row=(k,label,sub)=>({label,sub,on:String(s.notif[k]),toggle:tog(k),justify:s.notif[k]?'flex-end':'flex-start',track:s.notif[k]?'var(--color-accent)':'var(--color-neutral-400)'});
+    const notifGroups=[{title:'Push',rows:[row('meals','Meal reminders','Breakfast 8:30 · Lunch 13:30 · Dinner 20:30'),row('activity','Activity nudges','On your picked gym days only'),row('chat','Team chat','New messages and reactions'),row('mentions','Mentions & tags','When someone tags you')]},
+      {title:'Quiet hours',rows:[row('quiet','Quiet 22:00 – 07:00','Nothing delivered, even from admins')]},
+      {title:'Fun & privacy',rows:[row('roast','Roast memes','Memes can poke fun at you when you go over'),row('photoAi','Send photos to AI','Off: photo logging stays hidden for you')]}];
+
+    const tab=(k,label)=>({label,go:()=>this.go(k),fg:sc===k?'var(--color-accent-700)':'var(--color-neutral-700)',bar:sc===k?'var(--color-accent)':'transparent'});
+    const hasV=!!VARS[sc];
+    const pal=s.palette??this.props.palette??'organic';
+    return {
+      palette:pal,
+      palettes:PALS.map(([k,label,desc,c1,c2,c3])=>({label,desc,c1,c2,c3,pick:()=>this.setState({palette:k}),bg:pal===k?'var(--color-neutral-100)':'transparent',border:pal===k?'var(--color-accent)':'var(--color-divider)'})),
+      showPanel:this.props.showPanel??true,
+      panelScreens:SCREENS.map(([k,label,count])=>{const act=sc===k||(k==='login'&&sc==='onboard');return {label,count:count?count+' options':'',go:()=>this.go(k),bg:act?'var(--color-text)':'transparent',fg:act?'var(--color-bg)':'var(--color-text)'};}),
+      hasVariants:hasV,
+      variants:hasV?VARS[sc].map(([id,val,label,desc])=>{const on=s.v[sc]===val;return {id,label,desc,pick:()=>this.setState(st=>({v:{...st.v,[sc]:val},stage:'idle'})),bg:on?'var(--color-neutral-100)':'transparent',border:on?'var(--color-accent)':'var(--color-divider)',badgeBg:on?'var(--color-accent)':'var(--color-neutral-300)',badgeFg:on?'var(--on-accent-fill)':'var(--color-text)'};}):[],
+      toggleAi:()=>{this.setState(st=>({ai:!st.ai,stage:'idle'}));this.toastMsg(ai?'Team AI mode off':'Team AI mode on');},
+      aiLabel:ai?'AI on':'AI off',aiJustify:ai?'flex-end':'flex-start',aiTrack:ai?'var(--color-accent-2)':'var(--color-neutral-400)',
+      aiOn:ai,aiOff:!ai,
+      isLogin:sc==='login',isOnboard:sc==='onboard',
+      isTodayA:sc==='today'&&s.v.today==='a',isTodayB:sc==='today'&&s.v.today==='b',isTodayC:sc==='today'&&s.v.today==='c',
+      isFood:sc==='food',isAct:sc==='act',isDiet:sc==='diet',isProgA:sc==='prog'&&s.v.prog==='a',isProgB:sc==='prog'&&s.v.prog==='b',isMom:sc==='mom',isChat:sc==='chat',isSet:sc==='set',
+      showTabs:['today','diet','prog','chat'].includes(sc),
+      user:s.user,pass:s.pass,loginErr:s.loginErr,
+      onUser:e=>this.setState({user:e.target.value}),onPass:e=>this.setState({pass:e.target.value,loginErr:false}),
+      doLogin:()=>{if(!s.pass){this.setState({loginErr:true});return;}this.go('onboard');},
+      goals:Object.entries(GOALS).map(([k,g])=>({label:g.label,desc:g.desc,kcal:fmt(g.k),pick:()=>this.setState({goal:k}),bg:s.goal===k?'var(--color-accent-200)':'var(--color-surface)',border:s.goal===k?'var(--color-accent)':'transparent'})),
+      unitOpts:['Metric','Imperial'].map(u=>({label:u,pick:()=>this.setState({units:u}),bg:s.units===u?'var(--color-accent)':'transparent',fg:s.units===u?'var(--on-accent-fill)':'var(--color-text)'})),
+      targetFmt:fmt(target),goToday:()=>{this.go('today');this.toastMsg('Welcome to the Clubhouse, Arjun');},
+      goMom:()=>this.go('mom'),goSet:()=>this.go('set'),goAct:()=>this.go('act'),goBack:()=>this.go(s.prev||'today'),
+      ringDash:`${(Math.min(1,pct)*402).toFixed(1)} 402`,
+      remainingFmt:fmt(remaining),eatenFmt:fmt(eaten),burnedFmt:fmt(burned),budgetFmt:fmt(budget),eatenW:Math.min(100,pct*100)+'%',
+      bandLabel:band[0],bandBg:band[1],bandFg:band[2],macros,slots,
+      actList:s.acts.map(a=>({name:a.name,min:a.min,kcal:a.kcal})),
+      coachAi:pLeft>0?`${pLeft} g protein to go. Paneer tikka + roti for dinner closes ${Math.min(pLeft,21)} g of it and still leaves you room.`:'Protein nailed today. Keep dinner light and hydrate — long run tomorrow.',
+      coachLogic:pLeft>0?`${pLeft} g to go. Highest-protein picks in your plan: Paneer tikka (18 g), Egg bhurji (13 g), Rajma chawal (14 g).`:'Protein target hit. Nice work.',
+      nextLabel:dOpt.l,nextKcal:optK(dOpt),afterNext:fmt(Math.max(0,remaining-optK(dOpt))),
+      logNext:()=>{this.addItems('Dinner',dOpt.i,false);this.toastMsg(`Dinner logged · ${dOpt.l}`);},
+      openDinner:openFood('Dinner'),
+      crew,crewLogged:crew.filter(c=>c.bg==='var(--color-accent)').length,
+      flatLog:items.map(x=>({slot:x.slot,name:x.n,kcal:x.k})),timeline,
+      slot:s.slot,slotOpts:SLOTS.map(n=>({label:n,pick:()=>this.setState({slot:n}),bg:s.slot===n?'var(--color-text)':'var(--color-surface)',fg:s.slot===n?'var(--color-bg)':'var(--color-text)'})),
+      stageAnalyzing:s.stage==='analyzing',stageResults:s.stage==='results',progW:s.prog+'%',
+      detected:det,detKcal:dsum('k'),detP:dsum('p'),detC:dsum('c'),detF:dsum('f'),detFi:dsum('fi'),
+      retake:()=>this.snap(),
+      confirmDetected:()=>{const its=s.detected.map(d=>[d.n,d.q]);this.addItems(s.slot,its,true);this.go('today');this.toastMsg(`${dsum('k')} kcal added to ${s.slot}`);},
+      snap:this.snap,
+      showFoodA:idle&&fv==='a',showSearch:idle,showCamInSearch:ai&&fv==='b'&&s.notif.photoAi,showQuick:fv==='b'&&!q,
+      query:s.query,onQuery:e=>this.setState({query:e.target.value}),
+      usuals:['Roti','Dal tadka','Masala chai','Idli','Banana'].map(n=>({name:n,add:addFood(n)})),
+      results:res.map(f=>({name:f.n,portion:f.u,kcal:f.k,p:f.p,c:f.c,f:f.f,add:addFood(f.n)})),noResults:!res.length,
+      actTypes:ACTS.map(([t])=>({t,pick:()=>this.setState({actType:t}),bg:s.actType===t?'var(--color-accent-2)':'var(--color-surface)',fg:s.actType===t?'var(--on-accent2-fill)':'var(--color-text)'})),
+      actMin:s.actMin,actType:s.actType,actKcal,actMet:met.toFixed(1),
+      minDown:()=>this.setState(st=>({actMin:Math.max(5,st.actMin-5)})),minUp:()=>this.setState(st=>({actMin:Math.min(240,st.actMin+5)})),
+      intOpts:Object.keys(INT).map(k=>({label:k,pick:()=>this.setState({actInt:k}),bg:s.actInt===k?'var(--color-text)':'transparent',fg:s.actInt===k?'var(--color-bg)':'var(--color-text)'})),
+      logAct:()=>{this.setState(st=>({acts:st.acts.concat([{id:uid++,type:st.actType,name:st.actType,min:st.actMin,kcal:actKcal,t:'18:40'}])}));this.go('today');this.toastMsg(`${s.actType} logged · −${actKcal} kcal`);},
+      planTotal:fmt(SLOTS.reduce((a,n)=>a+optK(DIET[n][s.diet[n]]),0)),
+      dietSlots:SLOTS.map(n=>{const isL=logged.has(n);return {slot:n,logged:isL,canLog:!isL,
+        log:()=>{const o=DIET[n][s.diet[n]];this.addItems(n,o.i,false);this.toastMsg(`${n} logged · ${optK(o)} kcal`);},
+        opts:DIET[n].map((o,j)=>{const on=s.diet[n]===j;return {label:o.l,kcal:optK(o),pick:()=>this.setState(st=>({diet:{...st.diet,[n]:j}})),bg:on?'var(--color-neutral-100)':'transparent',border:on?'var(--color-accent)':'transparent',dot:on?'var(--color-accent)':'transparent',dotBorder:on?'var(--color-accent)':'var(--color-neutral-500)'};})};}),
+      weightPts,forecastPts,goalY:yOf(70).toFixed(1),weekBars,logWeight:()=>this.toastMsg('Weight logged · 72.4 kg'),
+      dots,streaks:[{label:'Activity',n:'6',note:'days moving',bg:'var(--color-accent-2-200)',fg:'var(--color-accent-2-900)',sub:'var(--color-accent-2-800)'},{label:'In range',n:'4',note:'days on target',bg:'var(--color-surface)',fg:'var(--color-text)',sub:'var(--color-neutral-700)'},{label:'Protein',n:'3',note:'days hit',bg:'var(--color-accent-200)',fg:'var(--color-accent-900)',sub:'var(--color-accent-800)'}],
+      msgs,draft:s.draft,onDraft:e=>this.setState({draft:e.target.value}),onDraftKey:e=>{if(e.key==='Enter')send();},send,
+      toggleTag:()=>this.setState(st=>({draftTag:!st.draftTag})),draftTagOn:s.draftTag&&!!tag,lastTag,
+      tagBtnBg:s.draftTag?'var(--color-accent)':'var(--color-surface)',tagBtnFg:s.draftTag?'var(--on-accent-fill)':'var(--color-text)',
+      notifGroups,exportData:()=>this.toastMsg('Export ready · CSV + JSON'),logout:()=>this.go('login'),
+      tabsL:[tab('today','Today'),tab('diet','Diet')],tabsR:[tab('prog','Progress'),tab('chat','Chat')],
+      sheet:s.sheet,openSheet:()=>this.setState({sheet:true}),closeSheet:()=>this.setState({sheet:false}),stop:e=>e.stopPropagation(),
+      sheetOpts:[
+        ...(ai&&s.notif.photoAi?[{label:'Snap a meal',sub:'One photo, we read the plate',ai:true,bg:'var(--color-accent)',fg:'var(--on-accent)',go:()=>{this.go('food');setTimeout(this.snap,50);}}]:[]),
+        {label:'Search food',sub:'Roti, dosa, dal and 400 more',ai:false,bg:'var(--color-surface)',fg:'var(--color-text)',go:()=>{this.setState({v:{...s.v,food:'b'}});this.go('food');}},
+        {label:'Log activity',sub:'Three taps: type, time, done',ai:false,bg:'var(--color-accent-2)',fg:'var(--on-accent)',go:()=>this.go('act')}],
+      hasToast:!!s.toast,toast:s.toast};
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+{
+  "name": "@clubhouse/client",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@clubhouse/contracts": "workspace:*",
+    "zod": "^4.6.5"
+  }
+}

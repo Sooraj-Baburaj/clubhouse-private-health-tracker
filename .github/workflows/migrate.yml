@@ -1,0 +1,36 @@
+name: Migrate database
+
+# Migrations run from here, never inside the Vercel build (plan §11). Uses the Supabase *session* pooler (port 5432).
+on:
+  push:
+    branches: [main]
+    paths: ['packages/db/drizzle/**', 'packages/db/src/schema.ts']
+  workflow_dispatch:
+
+concurrency:
+  group: migrate-production
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Apply migrations
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL_MIGRATE }}
+          DATABASE_URL_MIGRATE: ${{ secrets.DATABASE_URL_MIGRATE }}
+        run: pnpm db:migrate
+      - name: Static seeds (idempotent)
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL_MIGRATE }}
+          DATABASE_URL_MIGRATE: ${{ secrets.DATABASE_URL_MIGRATE }}
+        run: pnpm seed:static

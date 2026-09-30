@@ -1,0 +1,40 @@
+{
+  "name": "@clubhouse/server",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "dev": "tsx watch --env-file-if-exists=../../.env src/dev.ts",
+    "seed:demo": "tsx scripts/seed-demo.ts"
+  },
+  "dependencies": {
+    "@clubhouse/ai-gateway": "workspace:*",
+    "@clubhouse/contracts": "workspace:*",
+    "@clubhouse/db": "workspace:*",
+    "@clubhouse/domain": "workspace:*",
+    "@date-fns/tz": "^1.5.0",
+    "@hono/node-server": "^2.1.3",
+    "@node-rs/argon2": "^2.2.1",
+    "@vercel/functions": "^3.9.9",
+    "aws4fetch": "^1.0.20",
+    "bcryptjs": "^3.0.3",
+    "date-fns": "^4.4.0",
+    "drizzle-orm": "^0.45.3",
+    "fflate": "^0.8.3",
+    "hono": "^4.13.12",
+    "otplib": "^13.5.0",
+    "postgres": "^3.4.9",
+    "resend": "^6.31.0",
+    "sharp": "^0.35.5",
+    "web-push": "^3.6.7",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/web-push": "^3.6.4",
+    "dotenv": "^18.0.5",
+    "tsx": "^4.23.15"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "name": "@clubhouse/db",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "generate": "drizzle-kit generate",
+    "migrate": "tsx scripts/migrate.ts",
+    "reset": "tsx scripts/reset.ts",
+    "seed:static": "tsx scripts/seed-static.ts",
+    "seed:foods": "tsx scripts/seed-foods.ts",
+    "seed:triggers": "tsx scripts/seed-triggers.ts",
+    "setup:super-admin": "tsx scripts/setup-super-admin.ts"
+  },
+  "dependencies": {
+    "@clubhouse/contracts": "workspace:*",
+    "@clubhouse/domain": "workspace:*",
+    "@node-rs/argon2": "^2.2.1",
+    "drizzle-orm": "^0.45.3",
+    "postgres": "^3.4.9"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.31.11",
+    "dotenv": "^18.0.5",
+    "tsx": "^4.23.15"
+  }
+}

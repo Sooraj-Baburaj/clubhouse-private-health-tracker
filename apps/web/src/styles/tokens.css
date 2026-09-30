@@ -1,0 +1,279 @@
+/* Organic design system (design/ds-organic/styles.css) ported to Tailwind v4 theme variables.
+   Palettes from the member design override the same variables at runtime via [data-palette] on <html>. */
+@theme {
+  --color-*: initial;
+  --color-bg: #f5ead8;
+  --color-surface: #ebddc5;
+  --color-text: #201e1d;
+  --color-accent: #c67139;
+  --color-accent-2: #7a8a5e;
+  --color-divider: color-mix(in srgb, #201e1d 16%, transparent);
+  --color-white: #ffffff;
+  --color-black: #000000;
+  --color-transparent: transparent;
+
+  --color-neutral-100: #f9f4ed;
+  --color-neutral-200: #eee7db;
+  --color-neutral-300: #dcd3c4;
+  --color-neutral-400: #c0b6a5;
+  --color-neutral-500: #a19786;
+  --color-neutral-600: #82796a;
+  --color-neutral-700: #645c50;
+  --color-neutral-800: #474238;
+  --color-neutral-900: #2e2b25;
+
+  --color-accent-100: #fff2eb;
+  --color-accent-200: #ffe1d0;
+  --color-accent-300: #ffc6a5;
+  --color-accent-400: #f6a06b;
+  --color-accent-500: #d67f48;
+  --color-accent-600: #b2622d;
+  --color-accent-700: #8c491a;
+  --color-accent-800: #643312;
+  --color-accent-900: #402310;
+
+  --color-accent-2-100: #f0fae1;
+  --color-accent-2-200: #e1eecc;
+  --color-accent-2-300: #ccdbb2;
+  --color-accent-2-400: #aebf92;
+  --color-accent-2-500: #8fa073;
+  --color-accent-2-600: #728157;
+  --color-accent-2-700: #56633f;
+  --color-accent-2-800: #3d472b;
+  --color-accent-2-900: #272e1b;
+
+  --color-on-accent-fill: var(--on-accent-fill);
+  --color-on-accent2-fill: var(--on-accent2-fill);
+  --color-on-accent: var(--on-accent);
+  --color-on-accent-sub: var(--on-accent-sub);
+
+  --font-heading: 'Caprasimo', ui-serif, Georgia, serif;
+  --font-body: 'Figtree', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 28px;
+  --radius-xl: 32px;
+  --radius-2xl: 36px;
+
+  --shadow-sm: 0 1px 2px color-mix(in srgb, #2e2b25 14%, transparent);
+  --shadow-md: 0 3px 10px color-mix(in srgb, #2e2b25 16%, transparent);
+  --shadow-lg: 0 12px 32px color-mix(in srgb, #2e2b25 22%, transparent);
+
+  --ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-emphasized: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+[data-palette] {
+  --on-accent-fill: var(--color-bg);
+  --on-accent2-fill: var(--color-neutral-100);
+  --on-accent: #201e1d;
+  --on-accent-sub: #402310;
+  --ring-track: var(--color-neutral-300);
+  --ring-fill: var(--color-accent);
+}
+
+[data-palette='organic'] {
+  color-scheme: light;
+  /* Restated so an organic swatch nested inside another palette (Settings › App) shows its own colours. */
+  --color-bg: #f5ead8;
+  --color-surface: #ebddc5;
+  --color-text: #201e1d;
+  --color-accent: #c67139;
+  --color-accent-2: #7a8a5e;
+}
+
+[data-palette='day'] {
+  color-scheme: light;
+  --color-bg: oklch(0.975 0.008 105);
+  --color-surface: oklch(0.93 0.016 110);
+  --color-text: oklch(0.2 0.015 130);
+  --color-accent: oklch(0.84 0.19 128);
+  --color-accent-2: oklch(0.7 0.15 30);
+  --color-divider: color-mix(in srgb, oklch(0.2 0.015 130) 16%, transparent);
+  --color-neutral-100: oklch(0.97 0.004 105);
+  --color-neutral-200: oklch(0.93 0.006 105);
+  --color-neutral-300: oklch(0.87 0.01 105);
+  --color-neutral-400: oklch(0.78 0.014 105);
+  --color-neutral-500: oklch(0.68 0.018 105);
+  --color-neutral-600: oklch(0.58 0.017 105);
+  --color-neutral-700: oklch(0.48 0.015 105);
+  --color-neutral-800: oklch(0.38 0.013 105);
+  --color-neutral-900: oklch(0.28 0.009 105);
+  --color-accent-100: oklch(0.97 0.034 128);
+  --color-accent-200: oklch(0.93 0.059 128);
+  --color-accent-300: oklch(0.87 0.094 128);
+  --color-accent-400: oklch(0.78 0.136 128);
+  --color-accent-500: oklch(0.68 0.17 128);
+  --color-accent-600: oklch(0.58 0.162 128);
+  --color-accent-700: oklch(0.48 0.145 128);
+  --color-accent-800: oklch(0.38 0.119 128);
+  --color-accent-900: oklch(0.28 0.085 128);
+  --color-accent-2-100: oklch(0.97 0.028 30);
+  --color-accent-2-200: oklch(0.93 0.049 30);
+  --color-accent-2-300: oklch(0.87 0.077 30);
+  --color-accent-2-400: oklch(0.78 0.112 30);
+  --color-accent-2-500: oklch(0.68 0.14 30);
+  --color-accent-2-600: oklch(0.58 0.133 30);
+  --color-accent-2-700: oklch(0.48 0.119 30);
+  --color-accent-2-800: oklch(0.38 0.098 30);
+  --color-accent-2-900: oklch(0.28 0.07 30);
+  --on-accent-fill: oklch(0.2 0.015 130);
+  --on-accent2-fill: oklch(0.2 0.015 130);
+  --on-accent: oklch(0.2 0.015 130);
+  --on-accent-sub: oklch(0.3 0.04 128);
+}
+
+[data-palette='chili'] {
+  color-scheme: light;
+  --color-bg: oklch(0.97 0.012 85);
+  --color-surface: oklch(0.92 0.018 80);
+  --color-text: oklch(0.2 0.01 50);
+  --color-accent: oklch(0.6 0.19 32);
+  --color-accent-2: oklch(0.58 0.1 178);
+  --color-divider: color-mix(in srgb, oklch(0.2 0.01 50) 16%, transparent);
+  --color-neutral-100: oklch(0.97 0.004 75);
+  --color-neutral-200: oklch(0.93 0.007 75);
+  --color-neutral-300: oklch(0.87 0.011 75);
+  --color-neutral-400: oklch(0.78 0.016 75);
+  --color-neutral-500: oklch(0.68 0.02 75);
+  --color-neutral-600: oklch(0.58 0.019 75);
+  --color-neutral-700: oklch(0.48 0.017 75);
+  --color-neutral-800: oklch(0.38 0.014 75);
+  --color-neutral-900: oklch(0.28 0.01 75);
+  --color-accent-100: oklch(0.97 0.038 32);
+  --color-accent-200: oklch(0.93 0.066 32);
+  --color-accent-300: oklch(0.87 0.105 32);
+  --color-accent-400: oklch(0.78 0.152 32);
+  --color-accent-500: oklch(0.68 0.19 32);
+  --color-accent-600: oklch(0.58 0.18 32);
+  --color-accent-700: oklch(0.48 0.162 32);
+  --color-accent-800: oklch(0.38 0.133 32);
+  --color-accent-900: oklch(0.28 0.095 32);
+  --color-accent-2-100: oklch(0.97 0.02 178);
+  --color-accent-2-200: oklch(0.93 0.035 178);
+  --color-accent-2-300: oklch(0.87 0.055 178);
+  --color-accent-2-400: oklch(0.78 0.08 178);
+  --color-accent-2-500: oklch(0.68 0.1 178);
+  --color-accent-2-600: oklch(0.58 0.095 178);
+  --color-accent-2-700: oklch(0.48 0.085 178);
+  --color-accent-2-800: oklch(0.38 0.07 178);
+  --color-accent-2-900: oklch(0.28 0.05 178);
+}
+
+[data-palette='mango'] {
+  color-scheme: light;
+  --color-bg: oklch(0.96 0.02 92);
+  --color-surface: oklch(0.91 0.03 88);
+  --color-text: oklch(0.22 0.02 60);
+  --color-accent: oklch(0.66 0.16 58);
+  --color-accent-2: oklch(0.48 0.13 268);
+  --color-divider: color-mix(in srgb, oklch(0.22 0.02 60) 16%, transparent);
+  --color-neutral-100: oklch(0.97 0.005 85);
+  --color-neutral-200: oklch(0.93 0.009 85);
+  --color-neutral-300: oklch(0.87 0.014 85);
+  --color-neutral-400: oklch(0.78 0.02 85);
+  --color-neutral-500: oklch(0.68 0.025 85);
+  --color-neutral-600: oklch(0.58 0.024 85);
+  --color-neutral-700: oklch(0.48 0.021 85);
+  --color-neutral-800: oklch(0.38 0.017 85);
+  --color-neutral-900: oklch(0.28 0.013 85);
+  --color-accent-100: oklch(0.97 0.032 58);
+  --color-accent-200: oklch(0.93 0.056 58);
+  --color-accent-300: oklch(0.87 0.088 58);
+  --color-accent-400: oklch(0.78 0.128 58);
+  --color-accent-500: oklch(0.68 0.16 58);
+  --color-accent-600: oklch(0.58 0.152 58);
+  --color-accent-700: oklch(0.48 0.136 58);
+  --color-accent-800: oklch(0.38 0.112 58);
+  --color-accent-900: oklch(0.28 0.08 58);
+  --color-accent-2-100: oklch(0.97 0.026 268);
+  --color-accent-2-200: oklch(0.93 0.045 268);
+  --color-accent-2-300: oklch(0.87 0.072 268);
+  --color-accent-2-400: oklch(0.78 0.104 268);
+  --color-accent-2-500: oklch(0.68 0.13 268);
+  --color-accent-2-600: oklch(0.58 0.123 268);
+  --color-accent-2-700: oklch(0.48 0.111 268);
+  --color-accent-2-800: oklch(0.38 0.091 268);
+  --color-accent-2-900: oklch(0.28 0.065 268);
+}
+
+[data-palette='plum'] {
+  color-scheme: light;
+  --color-bg: oklch(0.96 0.012 20);
+  --color-surface: oklch(0.91 0.02 15);
+  --color-text: oklch(0.21 0.015 350);
+  --color-accent: oklch(0.52 0.14 355);
+  --color-accent-2: oklch(0.64 0.1 135);
+  --color-divider: color-mix(in srgb, oklch(0.21 0.015 350) 16%, transparent);
+  --color-neutral-100: oklch(0.97 0.004 20);
+  --color-neutral-200: oklch(0.93 0.007 20);
+  --color-neutral-300: oklch(0.87 0.011 20);
+  --color-neutral-400: oklch(0.78 0.016 20);
+  --color-neutral-500: oklch(0.68 0.02 20);
+  --color-neutral-600: oklch(0.58 0.019 20);
+  --color-neutral-700: oklch(0.48 0.017 20);
+  --color-neutral-800: oklch(0.38 0.014 20);
+  --color-neutral-900: oklch(0.28 0.01 20);
+  --color-accent-100: oklch(0.97 0.028 355);
+  --color-accent-200: oklch(0.93 0.049 355);
+  --color-accent-300: oklch(0.87 0.077 355);
+  --color-accent-400: oklch(0.78 0.112 355);
+  --color-accent-500: oklch(0.68 0.14 355);
+  --color-accent-600: oklch(0.58 0.133 355);
+  --color-accent-700: oklch(0.48 0.119 355);
+  --color-accent-800: oklch(0.38 0.098 355);
+  --color-accent-900: oklch(0.28 0.07 355);
+  --color-accent-2-100: oklch(0.97 0.02 135);
+  --color-accent-2-200: oklch(0.93 0.035 135);
+  --color-accent-2-300: oklch(0.87 0.055 135);
+  --color-accent-2-400: oklch(0.78 0.08 135);
+  --color-accent-2-500: oklch(0.68 0.1 135);
+  --color-accent-2-600: oklch(0.58 0.095 135);
+  --color-accent-2-700: oklch(0.48 0.085 135);
+  --color-accent-2-800: oklch(0.38 0.07 135);
+  --color-accent-2-900: oklch(0.28 0.05 135);
+}
+
+[data-palette='night'] {
+  color-scheme: dark;
+  --color-bg: oklch(0.19 0.01 70);
+  --color-surface: oklch(0.25 0.012 70);
+  --color-text: oklch(0.95 0.012 85);
+  --color-accent: oklch(0.84 0.17 128);
+  --color-accent-2: oklch(0.72 0.13 30);
+  --color-divider: color-mix(in srgb, oklch(0.95 0.012 85) 16%, transparent);
+  --color-neutral-100: oklch(0.26 0.003 70);
+  --color-neutral-200: oklch(0.3 0.005 70);
+  --color-neutral-300: oklch(0.36 0.008 70);
+  --color-neutral-400: oklch(0.45 0.012 70);
+  --color-neutral-500: oklch(0.55 0.015 70);
+  --color-neutral-600: oklch(0.65 0.014 70);
+  --color-neutral-700: oklch(0.74 0.013 70);
+  --color-neutral-800: oklch(0.83 0.01 70);
+  --color-neutral-900: oklch(0.92 0.007 70);
+  --color-accent-100: oklch(0.26 0.034 128);
+  --color-accent-200: oklch(0.3 0.059 128);
+  --color-accent-300: oklch(0.36 0.094 128);
+  --color-accent-400: oklch(0.45 0.136 128);
+  --color-accent-500: oklch(0.55 0.17 128);
+  --color-accent-600: oklch(0.65 0.162 128);
+  --color-accent-700: oklch(0.74 0.145 128);
+  --color-accent-800: oklch(0.83 0.119 128);
+  --color-accent-900: oklch(0.92 0.085 128);
+  --color-accent-2-100: oklch(0.26 0.026 30);
+  --color-accent-2-200: oklch(0.3 0.045 30);
+  --color-accent-2-300: oklch(0.36 0.072 30);
+  --color-accent-2-400: oklch(0.45 0.104 30);
+  --color-accent-2-500: oklch(0.55 0.13 30);
+  --color-accent-2-600: oklch(0.65 0.123 30);
+  --color-accent-2-700: oklch(0.74 0.111 30);
+  --color-accent-2-800: oklch(0.83 0.091 30);
+  --color-accent-2-900: oklch(0.92 0.065 30);
+  --on-accent2-fill: oklch(0.17 0.01 70);
+  --on-accent: oklch(0.17 0.01 70);
+  --on-accent-sub: oklch(0.28 0.03 90);
+  --shadow-sm: 0 0 0 1px color-mix(in srgb, white 6%, transparent);
+  --shadow-md: 0 0 0 1px color-mix(in srgb, white 7%, transparent), 0 6px 18px rgb(0 0 0 / 0.35);
+  --shadow-lg: 0 0 0 1px color-mix(in srgb, white 8%, transparent), 0 14px 36px rgb(0 0 0 / 0.5);
+}

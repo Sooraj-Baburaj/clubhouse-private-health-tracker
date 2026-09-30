@@ -1,0 +1,10 @@
+export { createAiGateway, type AiGateway, type GatewayDeps } from './gateway';
+export { FEATURES, registryEntries, isRegistered, UnregisteredFeatureError, type FeatureInput, type FeatureOutput, type RegistryEntry } from './registry';
+export { costOf, monthKey } from './pricing';
+export type * from './types';
+export type { Recognition, RecognisedItem } from './features/shared';
+export type { HomeSummaryInput, HomeSummaryOutput } from './features/homeSummary';
+export type { ProgressNarrativeInput, ProgressNarrativeOutput } from './features/progressNarrative';
+export type { DietDraftInput, DietDraftOutput } from './features/dietDraft';
+export type { FoodPhotoInput } from './features/foodPhoto';
+export type { FoodTextInput } from './features/foodText';
