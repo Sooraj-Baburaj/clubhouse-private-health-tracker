@@ -26,6 +26,17 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # Fails clearly when the secret is missing (an unset secret is an empty string) and shows only host:port, never
+      # the password, so a mis-encoded URL is easy to spot.
+      - name: Check database URL
+        env:
+          DATABASE_URL_MIGRATE: ${{ secrets.DATABASE_URL_MIGRATE }}
+        run: |
+          if [ -z "$DATABASE_URL_MIGRATE" ]; then
+            echo "::error::DATABASE_URL_MIGRATE is empty. Add it as a secret (not a variable) of the 'production' environment."
+            exit 1
+          fi
+          node -e 'let u; try { u = new URL(process.env.DATABASE_URL_MIGRATE); } catch {} if (!u?.hostname) { console.log("::error::DATABASE_URL_MIGRATE is not a valid URL. Percent-encode special characters (@ # / ?) in the password."); process.exit(1); } console.log(`Migrating ${u.hostname}:${u.port || 5432}`)'
       - name: Apply migrations
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL_MIGRATE }}
