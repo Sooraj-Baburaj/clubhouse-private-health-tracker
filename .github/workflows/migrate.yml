@@ -4,7 +4,9 @@ name: Migrate database
 on:
   push:
     branches: [main]
-    paths: ['packages/db/drizzle/**', 'packages/db/src/schema.ts']
+    # A new branch is diffed against the default branch, so pushing a branch that already matches it changes no paths;
+    # run the workflow by hand (workflow_dispatch) in that case. Editing this file also triggers a run.
+    paths: ['packages/db/drizzle/**', 'packages/db/src/schema.ts', '.github/workflows/migrate.yml']
   workflow_dispatch:
 
 concurrency:
