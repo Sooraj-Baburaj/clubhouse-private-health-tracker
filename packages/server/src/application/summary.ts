@@ -6,12 +6,14 @@ import type { Container } from '../container';
 import type { AuthUser } from '../interface/http/types';
 import { computeDay, logicSummary, nextUpFor } from './today';
 
-const REGENERATE_AFTER_MS = 60 * 60_000;
+/** Inputs changed: regenerate at most every 10 minutes (and never within 30 s of a log); logic text fills the gap. */
+const REGENERATE_AFTER_MS = 10 * 60_000;
 const DEBOUNCE_AFTER_LOG_MS = 30_000;
 
 /**
  * APP-HOME-02/03 + plan §13: the Coach card. Returns the cached AI summary for the member's day when the inputs have
- * not changed, regenerates at most hourly (and never within 30 s of a log), and always falls back to the logic text.
+ * not changed, regenerates at most every 10 minutes (never within 30 s of a log), and otherwise returns the logic text
+ * flagged `stale` so the client polls again shortly.
  */
 export async function getSummary(c: Container, user: AuthUser, dateIn?: string): Promise<SummaryResponse> {
   const d = await computeDay(c, user, dateIn);
@@ -55,7 +57,8 @@ export async function getSummary(c: Container, user: AuthUser, dateIn?: string):
   const tooSoon = cached && now - cached.createdAt.getTime() < REGENERATE_AFTER_MS;
   const lastLog = await c.db.query.foodLogs.findFirst({ where: eq(s.foodLogs.userId, user.id), orderBy: [desc(s.foodLogs.serverUpdatedAt)] });
   const justLogged = !!lastLog && now - lastLog.serverUpdatedAt.getTime() < DEBOUNCE_AFTER_LOG_MS;
-  if (tooSoon || justLogged) return fromCache(true) ?? { ...logic, stale: true };
+  // Never show AI text whose numbers no longer match; the logic text is always current.
+  if (tooSoon || justLogged) return { ...logic, stale: true };
 
   const r = await c.ai.callFeature('home.summary', { teamId: user.teamId, userId: user.id, dayStart: d.clock.dayStart, memberOptedOut: d.profile.aiOptOuts.summary }, input);
   if (!r.ok) return fromCache(true) ?? logic;

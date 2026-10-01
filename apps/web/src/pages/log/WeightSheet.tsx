@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Minus, Plus } from 'lucide-react';
 import { motion } from 'motion/react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import type { TodayResponse } from '@clubhouse/contracts';
 import { displayWeight, kgToLb, lbToKg } from '@clubhouse/domain';
 import { toast } from '@clubhouse/ui';
@@ -34,16 +34,21 @@ export function WeightSheet() {
   const [latestKg, setLatestKg] = useState<number | null>(null);
   const [existingId, setExistingId] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!open) return;
-    const t = qc.getQueryData<TodayResponse>(qk.today(undefined));
-    const kg = t?.weight && !t.weight.deleted ? t.weight.weightKg : (t?.latestWeightKg ?? me.profile.weightKg);
-    setLatestKg(kg ?? null);
-    setExistingId(t?.weight && !t.weight.deleted ? t.weight.id : null);
-    setValue(kg ? fmt1(imperial ? kgToLb(kg) : kg).replace(/,/g, '') : '');
-    setNote(t?.weight?.note ?? '');
-    setError(null);
-  }, [open, qc, me.profile.weightKg, imperial]);
+  // Prefill on open, and again if the profile weight or units change while open (adjust state during render).
+  const prefillKey = open ? `${me.profile.weightKg}|${imperial}` : null;
+  const [prefilledFor, setPrefilledFor] = useState<string | null>(null);
+  if (prefillKey !== prefilledFor) {
+    setPrefilledFor(prefillKey);
+    if (open) {
+      const t = qc.getQueryData<TodayResponse>(qk.today(undefined));
+      const kg = t?.weight && !t.weight.deleted ? t.weight.weightKg : (t?.latestWeightKg ?? me.profile.weightKg);
+      setLatestKg(kg ?? null);
+      setExistingId(t?.weight && !t.weight.deleted ? t.weight.id : null);
+      setValue(kg ? fmt1(imperial ? kgToLb(kg) : kg).replace(/,/g, '') : '');
+      setNote(t?.weight?.note ?? '');
+      setError(null);
+    }
+  }
 
   const num = Number(value.replace(',', '.'));
   const kg = Number.isFinite(num) && value.trim() ? (imperial ? lbToKg(num) : num) : null;

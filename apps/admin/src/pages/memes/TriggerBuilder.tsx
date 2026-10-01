@@ -1,5 +1,5 @@
 import { AlertTriangle, ArrowDown, ArrowUp, Check, Minus, Trash2, X, Zap } from 'lucide-react';
-import { useCallback, useId, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useId, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
   CONDITION_LABELS,
   CooldownScope,
@@ -45,7 +45,7 @@ import {
   type Column,
 } from '@/ui';
 import { AddConditionMenu, ConditionEditor, defaultCondition, extraConditionIssues, MAX_CONDITIONS } from './ConditionEditors';
-import { ACTION_LABELS, COOLDOWN_LABELS, EVENT_HINTS, EVENT_LABELS, eventLabel, IssueText, issuesAt, MemeImage, tagLabel, tagOptions, TONE_LABELS, TonePill, type Issue } from './shared';
+import { ACTION_LABELS, COOLDOWN_LABELS, EVENT_HINTS, EVENT_LABELS, eventLabel, issuesAt, MemeImage, tagLabel, tagOptions, TONE_LABELS, TonePill, type Issue } from './shared';
 
 /* ───────── Draft model ───────── */
 
@@ -187,7 +187,9 @@ export function TriggerBuilder({ id, open, onClose, onOpenId }: { id: string | u
 
   // Stable identity so the drawer's Escape listener isn't re-registered on every render.
   const closeRef = useRef(requestClose);
-  closeRef.current = requestClose;
+  useLayoutEffect(() => {
+    closeRef.current = requestClose;
+  });
   const onDrawerClose = useCallback(() => void closeRef.current(), []);
 
   const onSave = async (e?: React.FormEvent) => {

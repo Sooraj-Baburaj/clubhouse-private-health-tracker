@@ -1,5 +1,5 @@
 import { Palmtree } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import type { MomentumResponse } from '@clubhouse/contracts';
 import { addDays, daysBetween } from '@clubhouse/domain';
 import { toast } from '@clubhouse/ui';
@@ -47,13 +47,17 @@ function VacationSheet({ open, onClose, today, daysLeft }: { open: boolean; onCl
   const [from, setFrom] = useState(today);
   const [to, setTo] = useState(addDays(today, 6));
   const [error, setError] = useState<string | null>(null);
-  useEffect(() => {
+  // Fresh range on open, or if today / the quota change while open (adjust state during render).
+  const resetKey = open ? `${today}|${daysLeft}` : null;
+  const [resetFor, setResetFor] = useState<string | null>(null);
+  if (resetKey !== resetFor) {
+    setResetFor(resetKey);
     if (open) {
       setFrom(today);
       setTo(addDays(today, Math.min(6, Math.max(0, daysLeft - 1))));
       setError(null);
     }
-  }, [open, today, daysLeft]);
+  }
   const len = from && to ? daysBetween(from, to) + 1 : 0;
   const submit = () => {
     if (!from || !to || to < from) return setError('The last day needs to be on or after the first.');

@@ -69,7 +69,12 @@ export function ActivityTypeGrid({ types, value, onPick }: { types: ActivityType
 export function DurationPicker({ value, onChange, children }: { value: number; onChange: (v: number) => void; children?: React.ReactNode }) {
   const clamp = (v: number) => Math.max(1, Math.min(720, Math.round(v)));
   const [text, setText] = useState(String(value));
-  useEffect(() => setText(String(value)), [value]);
+  // Mirror outside changes into the text (adjust state during render when the value changes).
+  const [shown, setShown] = useState(value);
+  if (value !== shown) {
+    setShown(value);
+    setText(String(value));
+  }
   return (
     <div className="flex flex-col items-center gap-3.5 rounded-[32px] bg-surface p-[18px]">
       <span className="text-[12px] font-bold uppercase tracking-[0.1em] text-neutral-700" id="duration-label">

@@ -1,7 +1,7 @@
 import { useNavigate, useRouter, useSearch } from '@tanstack/react-router';
 import { Trash2 } from 'lucide-react';
 import { motion } from 'motion/react';
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import type { ActivityLogUpsert, ActivityTypeDto, GymFocus, Intensity, PlanItemDto } from '@clubhouse/contracts';
 import { computeBurn } from '@clubhouse/domain';
 import { toast } from '@clubhouse/ui';
@@ -80,11 +80,11 @@ export function LogActivityPage() {
     setDuration(p.targetMin ?? t?.defaultDurationMin ?? 30);
   };
 
-  // Initial selection: the edited log, ?plan=, ?type=, the next unfinished plan item, else the first type.
-  const initialised = useRef(false);
-  useEffect(() => {
-    if (initialised.current || !typeList.length || (search.edit && !log) || (plan.isPending && plan.fetchStatus === 'fetching')) return;
-    initialised.current = true;
+  // Initial selection, once the data is in (adjust state during render): the edited log, ?plan=, ?type=,
+  // the next unfinished plan item, else the first type.
+  const [initialised, setInitialised] = useState(false);
+  if (!initialised && typeList.length && !(search.edit && !log) && !(plan.isPending && plan.fetchStatus === 'fetching')) {
+    setInitialised(true);
     if (log) {
       setTypeId(log.typeId);
       setPlanItemId(log.planItemId);
@@ -93,14 +93,15 @@ export function LogActivityPage() {
       if (log.focus === 'strength' || log.focus === 'cardio' || log.focus === 'mixed') setFocus(log.focus);
       setDistance(log.distanceKm ? String(log.distanceKm) : '');
       setOverride(log.kcalOverridden ? log.kcalBurned : null);
-      return;
+    } else {
+      const pick = startingPick(typeList, planItems, search.plan, search.type);
+      if (pick) {
+        setTypeId(pick.typeId);
+        setPlanItemId(pick.planItemId);
+        setDuration(pick.duration);
+      }
     }
-    const pick = startingPick(typeList, planItems, search.plan, search.type);
-    if (!pick) return;
-    setTypeId(pick.typeId);
-    setPlanItemId(pick.planItemId);
-    setDuration(pick.duration);
-  }, [typeList, planItems, log, search.edit, search.plan, search.type, plan.isPending, plan.fetchStatus]);
+  }
 
   const weightKg = me.profile.weightKg ?? 70;
   const km = Number(distance.replace(',', '.'));

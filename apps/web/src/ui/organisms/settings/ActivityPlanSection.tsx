@@ -1,6 +1,6 @@
 import { Check, Minus, Moon, Send } from 'lucide-react';
 import { motion } from 'motion/react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { MyPlanResponse, PlanItemDto, WeekStripDay } from '@clubhouse/contracts';
 import { fadeUp, stagger } from '@clubhouse/ui';
 import { dateLabel, relativeTime } from '@/features/format';
@@ -31,7 +31,11 @@ function PlanBody({ plan }: { plan: MyPlanResponse }) {
   const initial = useMemo(() => JSON.parse(initialKey) as Days, [initialKey]);
   const [days, setDaysState] = useState<Days>(initial);
   // Only reset when the saved plan actually changed (a refetch with the same days keeps unsaved edits).
-  useEffect(() => setDaysState(initial), [initial]);
+  const [savedKey, setSavedKey] = useState(initialKey);
+  if (initialKey !== savedKey) {
+    setSavedKey(initialKey);
+    setDaysState(initial);
+  }
   const dirty = JSON.stringify(days) !== JSON.stringify(initial);
   const save = () => setDays.mutate({ items: plan.items.map((i) => ({ itemId: i.itemId, days: (days[i.itemId]?.weekdays ?? []).map((weekday) => ({ weekday, time: days[i.itemId]?.time ?? '07:00' })) })) });
 

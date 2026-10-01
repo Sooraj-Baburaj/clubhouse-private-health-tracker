@@ -77,6 +77,17 @@ export const TriggerDefinition = z
         }
       }
     }
+    t.conditions.forEach((c, i) => {
+      if (c.type === 'count_this_week' && c.what === 'food_tag' && !c.tag) {
+        ctx.addIssue({ code: 'custom', path: ['conditions', i, 'tag'], message: 'Pick the food tag to count.' });
+      }
+      if (c.type === 'count_this_week' && c.what === 'activity_type' && !c.activityTypeId) {
+        ctx.addIssue({ code: 'custom', path: ['conditions', i, 'activityTypeId'], message: 'Pick the activity to count.' });
+      }
+      if (c.type === 'message_contains' && !c.useTeamKeywords && c.words.length === 0) {
+        ctx.addIssue({ code: 'custom', path: ['conditions', i, 'words'], message: 'Add at least one word, or use the team keyword list.' });
+      }
+    });
     if ((t.action === 'reply_to_message' || t.action === 'react_to_message') && t.event !== 'chat_message_posted') {
       ctx.addIssue({ code: 'custom', path: ['action'], message: 'Replying or reacting needs the "chat message posted" event.' });
     }

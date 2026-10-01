@@ -1,6 +1,6 @@
 import { useNavigate, useSearch } from '@tanstack/react-router';
 import { Target } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import type { AdminGoalRow } from '@clubhouse/contracts';
 import { CALORIE_FLOOR } from '@clubhouse/domain';
 import { useEatBackToggle, useGoals } from '@/features/goals';
@@ -24,9 +24,7 @@ export function GoalsPage() {
   const row = memberId ? (q.data?.find((r) => r.userId === memberId) ?? null) : null;
   // Keep the last row while the drawer animates out.
   const [lastRow, setLastRow] = useState<AdminGoalRow | null>(null);
-  useEffect(() => {
-    if (row) setLastRow(row);
-  }, [row]);
+  if (row && row !== lastRow) setLastRow(row);
 
   const openMember = (id: string) => void navigate({ search: (s) => ({ ...s, member: id }) });
   const closeDrawer = () => void navigate({ search: (s) => ({ ...s, member: undefined }), replace: true });

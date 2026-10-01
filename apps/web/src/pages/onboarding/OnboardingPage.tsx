@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useSearch } from '@tanstack/react-router';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ApiError } from '@clubhouse/client';
 import { OnboardingRequest, type GoalType } from '@clubhouse/contracts';
 import { toast } from '@clubhouse/ui';
@@ -57,10 +57,14 @@ function Onboarding({ me }: { me: Me }) {
   const submit = useSubmitOnboarding();
   const prefs = useUpdatePreferences();
 
-  const prevStep = useRef(step);
-  const dir = step >= prevStep.current ? 1 : -1;
+  // Slide direction for the step transition (adjust state during render when the step changes).
+  const [prevStep, setPrevStep] = useState(step);
+  const [dir, setDir] = useState<1 | -1>(1);
+  if (step !== prevStep) {
+    setPrevStep(step);
+    setDir(step >= prevStep ? 1 : -1);
+  }
   useEffect(() => {
-    prevStep.current = step;
     window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
   }, [step, reduce]);
 

@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { create } from 'zustand';
 import { errorMessage } from '@/lib/errors';
 import { Button } from './Button';
@@ -31,14 +31,17 @@ export function ConfirmDialog({ open, onClose, onDone, ...o }: ConfirmOptions & 
   const [reason, setReason] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  useEffect(() => {
+  // Reset each time the dialog opens (adjust state during render on the open transition).
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
     if (open) {
       setTyped('');
       setReason('');
       setError(null);
       setBusy(false);
     }
-  }, [open]);
+  }
   const typedOk = !o.typedConfirm || typed.trim() === o.typedConfirm;
   const reasonOk = !o.requireReason || reason.trim().length >= 3;
   const submit = async (e: React.FormEvent) => {
@@ -115,24 +118,24 @@ export function ConfirmHost() {
   const current = useConfirmStore((s) => s.current);
   const [open, setOpen] = useState(false);
   const [opts, setOpts] = useState<ConfirmState['current']>(null);
-  useEffect(() => {
+  // Show each new request (adjust state during render when the store's request changes).
+  const [seen, setSeen] = useState<ConfirmState['current']>(null);
+  if (current !== seen) {
+    setSeen(current);
     if (current) {
       setOpts(current);
       setOpen(true);
     }
-  }, [current]);
+  }
   if (!opts) return null;
-  let settled = false;
   return (
     <ConfirmDialog
       {...opts}
       open={open}
-      onDone={(reason) => {
-        settled = true;
-        opts.resolve(reason);
-      }}
+      onDone={(reason) => opts.resolve(reason)}
       onClose={() => {
-        if (!settled) opts.resolve(null);
+        // No-op after onDone: a promise settles only once, so this only resolves null on cancel.
+        opts.resolve(null);
         setOpen(false);
         useConfirmStore.setState({ current: null });
       }}

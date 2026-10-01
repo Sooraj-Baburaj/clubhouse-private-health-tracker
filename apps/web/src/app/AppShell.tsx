@@ -74,9 +74,8 @@ function TabsHost({ active, hidden }: { active: TabKey; hidden: boolean }) {
   const [mounted, setMounted] = useState<TabKey[]>([active]);
   const dir = useUi((s) => s.tabDir);
   const reduce = useReducedMotion();
-  useEffect(() => {
-    setMounted((m) => (m.includes(active) ? m : [...m, active]));
-  }, [active]);
+  // Mount each tab the first time it becomes active (adjust state during render).
+  if (!mounted.includes(active)) setMounted([...mounted, active]);
   return (
     <div className="relative min-h-0 flex-1" aria-hidden={hidden || undefined}>
       {mounted.map((key) => {

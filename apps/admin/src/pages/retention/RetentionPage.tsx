@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router';
 import { ArrowRight, Download, HardDrive, Lock, PackageOpen, Play, UserX } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { RETAINED_IMAGE_KINDS, RetentionUpdate, type RetentionResponse } from '@clubhouse/contracts';
 import { toast } from '@clubhouse/ui';
 import { useRole } from '@/features/me';
@@ -91,7 +91,12 @@ function RetentionBody({ data }: { data: RetentionResponse }) {
 function RetentionCard({ data }: { data: RetentionResponse }) {
   const update = useUpdateRetention();
   const [days, setDays] = useState<number | null>(data.retentionDays);
-  useEffect(() => setDays(data.retentionDays), [data.retentionDays]);
+  // Follow the saved value when it changes (adjust state during render).
+  const [savedDays, setSavedDays] = useState(data.retentionDays);
+  if (savedDays !== data.retentionDays) {
+    setSavedDays(data.retentionDays);
+    setDays(data.retentionDays);
+  }
   const valid = days != null && Number.isInteger(days) && days >= 7 && days <= 365;
   const changed = days !== data.retentionDays;
   const preset = PRESETS.find((p) => p === days);
@@ -213,6 +218,9 @@ function CleanupCard({ data, lastReal }: { data: RetentionResponse; lastReal: Ru
 
 /* ───────── Export ───────── */
 
+/** Milliseconds from now until `iso` (negative once it has passed). Reads the clock, like `fmtRelative`. */
+const msUntil = (iso: string) => new Date(iso).getTime() - Date.now();
+
 function ExportCard({ exports }: { exports: Export[] }) {
   const start = useExportTeam();
   const sorted = useMemo(() => [...exports].sort((a, b) => b.createdAt.localeCompare(a.createdAt)), [exports]);
@@ -235,10 +243,10 @@ function ExportCard({ exports }: { exports: Export[] }) {
                 <span className="text-[12px] text-muted">
                   <span title={fmtDateTime(e.createdAt)}>{fmtRelative(e.createdAt)}</span>
                   {e.bytes != null && <> · {fmtBytes(e.bytes)}</>}
-                  {e.expiresAt && <> · {new Date(e.expiresAt).getTime() < Date.now() ? 'expired' : `expires ${fmtRelative(e.expiresAt)}`}</>}
+                  {e.expiresAt && <> · {msUntil(e.expiresAt) < 0 ? 'expired' : `expires ${fmtRelative(e.expiresAt)}`}</>}
                 </span>
               </div>
-              {e.url && (!e.expiresAt || new Date(e.expiresAt).getTime() > Date.now()) && (
+              {e.url && (!e.expiresAt || msUntil(e.expiresAt) > 0) && (
                 <a href={e.url} download className="inline-flex h-8 items-center gap-1.5 rounded-full border border-[rgba(182,49,108,0.25)] bg-white px-3 text-[13px] font-semibold text-ink hover:border-accent">
                   <Download aria-hidden className="h-3.5 w-3.5" /> Download
                 </a>

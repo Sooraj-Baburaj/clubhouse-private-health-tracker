@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { FoodSearchResult, Nutrients } from '@clubhouse/contracts';
 import { nutritionFor } from '@clubhouse/domain';
 import { AnimatedNumber } from '@clubhouse/ui';
@@ -51,13 +51,17 @@ export function PortionSheet({ food, initial, confirmLabel = 'Add', onClose, onC
   const [grams, setGrams] = useState('');
   const [qty, setQty] = useState(1);
 
-  useEffect(() => {
-    if (!food) return;
-    const match = initial && options.find((o) => o.label === initial.label);
-    setChoice(match ? match.label : initial ? CUSTOM : (options[0]?.label ?? CUSTOM));
-    setGrams(initial && !match ? String(Math.round(initial.grams * initial.qty)) : '');
-    setQty(initial && match ? initial.qty : 1);
-  }, [food, initial, options]);
+  // Start from `initial` (or the first serving) whenever a food opens (adjust state during render on change).
+  const [initFor, setInitFor] = useState<{ food: FoodSearchResult | null; initial?: Portion }>({ food: null });
+  if (food !== initFor.food || initial !== initFor.initial) {
+    setInitFor({ food, initial });
+    if (food) {
+      const match = initial && options.find((o) => o.label === initial.label);
+      setChoice(match ? match.label : initial ? CUSTOM : (options[0]?.label ?? CUSTOM));
+      setGrams(initial && !match ? String(Math.round(initial.grams * initial.qty)) : '');
+      setQty(initial && match ? initial.qty : 1);
+    }
+  }
 
   if (!food) return <MemberSheet open={false} onClose={onClose}>{null}</MemberSheet>;
   const opt = options.find((o) => o.label === choice);

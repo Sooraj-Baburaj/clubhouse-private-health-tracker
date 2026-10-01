@@ -1,6 +1,6 @@
 import { AlertTriangle, RotateCcw } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useMemo, useState, type FormEvent } from 'react';
 import { DEFAULT_MEAL_SLOTS, DEFAULT_STREAK_SETTINGS, DEFAULT_TEAM_SETTINGS, MEAL_SLOTS } from '@clubhouse/contracts';
 import { toast } from '@clubhouse/ui';
 import { useSaveTeamSettings, useTeamSettings, type TeamSettingsData } from '@/features/settings';
@@ -42,13 +42,14 @@ function SettingsEditor({ data }: { data: TeamSettingsData }) {
   const [form, setForm] = useState<SettingsForm>(base);
   const [errors, setErrors] = useState<Errors>({});
 
-  // Re-base on fresh server data; keep the admin's unsaved edits if there are any.
-  useEffect(() => {
+  // Re-base on fresh server data; keep the admin's unsaved edits if there are any (adjust state during render).
+  const [prevData, setPrevData] = useState(data);
+  if (data !== prevData) {
+    setPrevData(data);
     const next = toForm(data);
     setForm((f) => (JSON.stringify(f) === JSON.stringify(base) ? next : f));
     setBase(next);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data]);
+  }
 
   const save = useSaveTeamSettings((d) => {
     const next = toForm(d);

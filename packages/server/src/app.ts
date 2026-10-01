@@ -18,8 +18,15 @@ export function createApp(getC: () => Container = getContainer) {
     const requestId = ctx.req.header('x-request-id') ?? randomUUID();
     ctx.set('requestId', requestId);
     ctx.set('c', getC());
+    // Vercel sets x-forwarded-for; locally (node server, Vite proxy) fall back to the socket's peer address.
     const fwd = ctx.req.header('x-forwarded-for')?.split(',')[0]?.trim();
-    ctx.set('ip', fwd || ctx.req.header('x-real-ip') || '0.0.0.0');
+    let peer: string | undefined;
+    try {
+      peer = (ctx.env as { incoming?: { socket?: { remoteAddress?: string } } } | undefined)?.incoming?.socket?.remoteAddress;
+    } catch {
+      peer = undefined;
+    }
+    ctx.set('ip', fwd || ctx.req.header('x-real-ip') || peer || '0.0.0.0');
     ctx.set('userAgent', ctx.req.header('user-agent') ?? '');
     await next();
     ctx.header('x-request-id', requestId);

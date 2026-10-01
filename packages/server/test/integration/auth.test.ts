@@ -39,6 +39,9 @@ describe('auth', () => {
     const cross = await cl.req('POST', '/chat/read', { seq: 1 }, { origin: 'https://evil.example' });
     expect(cross.status).toBe(403);
     expect((await cl.req('POST', '/chat/read', { seq: 1 })).status).toBe(200);
+    // Same-origin requests from a LAN IP or tunnel (Origin host equals Host) are allowed.
+    const lan = await cl.req('POST', '/chat/read', { seq: 1 }, { origin: 'http://192.168.1.5:5173', host: '192.168.1.5:5173' });
+    expect(lan.status).toBe(200);
   });
 
   it('keeps members out of the admin API', async () => {

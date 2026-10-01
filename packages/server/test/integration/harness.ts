@@ -63,7 +63,7 @@ export async function createHarness(now = new Date('2026-09-30T06:30:00Z')): Pro
         body: body !== undefined ? JSON.stringify(body) : undefined,
       });
       const text = await res.text();
-      let json: any = null;
+      let json: any;
       try {
         json = text ? JSON.parse(text) : null;
       } catch {

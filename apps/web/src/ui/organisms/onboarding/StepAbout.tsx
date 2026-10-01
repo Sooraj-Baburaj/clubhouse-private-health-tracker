@@ -32,7 +32,7 @@ function ErrorText({ children }: { children?: string }) {
 export function StepAbout({ value, onChange, errors, today }: { value: AboutDraft; onChange: (d: AboutDraft) => void; errors: AboutErrors; today: string }) {
   const set = (patch: Partial<AboutDraft>) => onChange({ ...value, ...patch });
   const imperial = value.units === 'imperial';
-  const zones = useMemo(timezoneList, []);
+  const zones = useMemo(() => timezoneList(), []);
   const tzListId = useId();
   const sexId = useId();
   const levelId = useId();

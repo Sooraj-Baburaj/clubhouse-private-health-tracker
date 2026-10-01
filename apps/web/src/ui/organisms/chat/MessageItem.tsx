@@ -1,6 +1,6 @@
 import { AlertCircle, Clock, CornerUpLeft, Pin, RotateCw, Trash2 } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
-import { forwardRef, type KeyboardEvent, type ReactNode } from 'react';
+import { forwardRef, type ReactNode } from 'react';
 import type { ChatMessageDto } from '@clubhouse/contracts';
 import { timeOf } from '@/features/format';
 import { AIBadge, Tag } from '@/ui/atoms/Badges';
@@ -27,12 +27,6 @@ export const MessageItem = forwardRef<HTMLDivElement, { m: ChatMessageDto; first
   const trigger = typeof m.meta.triggerName === 'string' ? m.meta.triggerName : typeof m.meta.trigger === 'string' ? m.meta.trigger : null;
   const optedIn = typeof m.meta.optedInNote === 'string' ? m.meta.optedInNote : null;
   const lp = useLongPress(() => !m.deleted && ctx.onActions(m));
-  const onKey = (e: KeyboardEvent) => {
-    if ((e.key === 'Enter' || e.key === ' ' || e.key === 'ContextMenu') && !m.deleted) {
-      e.preventDefault();
-      ctx.onActions(m);
-    }
-  };
   const bubble = own ? 'bg-accent text-on-accent' : system ? 'bg-accent-200 text-accent-900' : 'bg-surface text-text';
   const spoken = `${who}, ${timeOf(m.createdAt)}: ${m.deleted ? 'message deleted' : m.body || (meme ? 'meme' : 'attachment')}`;
 
@@ -60,13 +54,12 @@ export const MessageItem = forwardRef<HTMLDivElement, { m: ChatMessageDto; first
             {m.aiGenerated && <AIBadge />}
           </span>
         )}
+        {/* The bubble is not itself a control (it contains links and buttons): touch/mouse use long-press or right-click,
+            keyboard and screen readers use the "Message actions" button below. */}
         <div
-          role="button"
-          tabIndex={0}
-          aria-haspopup="dialog"
+          role="group"
           aria-label={spoken}
           title="Long-press for reactions and more"
-          onKeyDown={onKey}
           {...lp.handlers}
           className={cn(
             'flex max-w-full select-none flex-col gap-2 rounded-[24px] px-3.5 py-2.5 transition-shadow [-webkit-touch-callout:none]',
@@ -110,6 +103,17 @@ export const MessageItem = forwardRef<HTMLDivElement, { m: ChatMessageDto; first
             </>
           )}
         </div>
+        {!m.deleted && (
+          <button
+            type="button"
+            aria-haspopup="dialog"
+            aria-label={`Message actions — ${spoken}`}
+            onClick={() => ctx.onActions(m)}
+            className="sr-only rounded-full bg-surface px-3 py-1.5 text-[12px] font-bold text-text focus-visible:not-sr-only focus-visible:ring-2 focus-visible:ring-accent"
+          >
+            Message actions
+          </button>
+        )}
         {!m.deleted && (m.reactions.length > 0 || m.memeReactions.length > 0) && <Reactions m={m} onToggle={ctx.onToggleReaction} />}
       </div>
     </motion.div>

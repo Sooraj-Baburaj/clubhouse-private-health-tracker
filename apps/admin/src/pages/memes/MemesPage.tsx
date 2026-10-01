@@ -1,6 +1,6 @@
 import { useNavigate, useSearch } from '@tanstack/react-router';
 import { Plus, Upload } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useMemes, useTriggers } from '@/features/memes';
 import { Button, PageHeader, TabPanel, Tabs } from '@/ui';
 import { DryRunPanel } from './DryRunPanel';
@@ -25,9 +25,7 @@ export function MemesPage() {
 
   // Keep the last trigger id while the drawer animates closed.
   const [lastTrigger, setLastTrigger] = useState(search.trigger);
-  useEffect(() => {
-    if (search.trigger) setLastTrigger(search.trigger);
-  }, [search.trigger]);
+  if (search.trigger && search.trigger !== lastTrigger) setLastTrigger(search.trigger);
 
   const setTab = (v: TabKey) => void navigate({ search: (s) => ({ ...s, tab: v === 'library' ? undefined : v }) });
   const openTrigger = (id: string, replace = false) => void navigate({ search: (s) => ({ ...s, trigger: id }), replace });

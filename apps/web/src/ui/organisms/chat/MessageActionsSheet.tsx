@@ -1,6 +1,6 @@
 import { Copy, CornerUpLeft, Flag, Plus, Share2, Trash2 } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { REACTION_QUICK_SET, type ChatMessageDto } from '@clubhouse/contracts';
 import { toast } from '@clubhouse/ui';
 import { Button } from '@/ui/atoms/Button';
@@ -30,12 +30,15 @@ export function MessageActionsSheet({ m, onClose, actions }: { m: ChatMessageDto
   const [reporting, setReporting] = useState(false);
   const [reason, setReason] = useState('');
   const [confirmDelete, setConfirmDelete] = useState<ChatMessageDto | null>(null);
-  useEffect(() => {
+  // Fresh sheet for each message (adjust state during render when the message changes).
+  const [forId, setForId] = useState(m?.id);
+  if (m?.id !== forId) {
+    setForId(m?.id);
     setCustom(false);
     setEmoji('');
     setReporting(false);
     setReason('');
-  }, [m?.id]);
+  }
 
   const mine = (e: string) => !!m?.reactions.find((r) => r.emoji === e && r.mine);
   const react = (e: string) => {

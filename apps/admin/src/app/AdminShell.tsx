@@ -68,7 +68,12 @@ export function AdminShell() {
     }
   }, [me.data, me.error, navigate]);
 
-  useEffect(() => setNavOpen(false), [location.pathname]);
+  // Close the nav drawer on navigation (adjust state during render on path change).
+  const [navPath, setNavPath] = useState(location.pathname);
+  if (navPath !== location.pathname) {
+    setNavPath(location.pathname);
+    setNavOpen(false);
+  }
   useEffect(() => {
     const p = location.pathname.replace(/^\/admin/, '') || '/';
     const item = NAV.flatMap((g) => g.items).find((i) => (i.to === '/' ? p === '/' : p === i.to || p.startsWith(`${i.to}/`)));

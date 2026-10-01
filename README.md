@@ -70,6 +70,43 @@ those use a tunnel (for example `cloudflared tunnel --url http://localhost:5173`
 | `pnpm db:reset` | Drop and recreate the local schema |
 | `pnpm icons` | Regenerate PWA icons from the logo |
 
+## Seeds: what runs where
+
+| Command | Local | Production | What it writes |
+|---|---|---|---|
+| `pnpm seed:static` | yes | yes (run automatically by the migrate workflow) | activity types with MET values, AI model pricing |
+| `pnpm seed:foods` | yes | yes, once (safe to re-run; never overwrites admin edits) | ~650 Indian foods with household servings + ~1,500 USDA basics |
+| `pnpm seed:triggers` | yes | yes, once | the starter meme-trigger catalogue, switched off |
+| `pnpm setup:super-admin` | yes | yes, once (or `POST /api/setup`) | the team and the first Super Admin |
+| `pnpm seed:demo` | yes | **never** (refuses when `NODE_ENV=production`) | 6 fake members with 30 days of logs, plans, chat and memes |
+
+## Headless API
+
+The backend is a standalone, headless HTTP API: `packages/server` (Hono) with no UI code, a typed contract
+(`packages/contracts`) and a typed client (`packages/client`). Both front-ends are static SPAs that only call it:
+
+```
+apps/web  (member PWA)  ─┐                         ┌─ /api/*        member endpoints
+                         ├─ @clubhouse/client ──▶ packages/server ─┤
+apps/admin (admin SPA)  ─┘                         └─ /api/admin/*  admin endpoints (role + re-auth guarded)
+```
+
+- **One API, two audiences.** Member and admin endpoints live in the same service under different prefixes and
+  middleware, sharing one domain engine and database. Splitting them into two services would duplicate auth,
+  validation and business rules without any scaling benefit at this size.
+- **Runs anywhere Node runs.** `src/dev.ts` is a plain Node HTTP server; `src/vercel.ts` adapts the same app to a
+  Vercel function. Docker, Fly, Railway or a VM work the same way. Another client (a native app, a bot) can use the
+  same API with the same session cookie or a `Authorization: Bearer` token.
+- **Same-origin by default.** Both SPAs and the API are served from one domain (`/`, `/admin`, `/api`), so the
+  session cookie stays `SameSite=Lax`, there is no CORS surface, and CSRF protection is a header + origin check.
+  Moving the API to its own domain (e.g. `api.example.com`) would need CORS with credentials and `SameSite=None`
+  cookies.
+- **Scaling.** The API is stateless: every instance can serve any request, so Vercel (or any host) scales it
+  horizontally. Shared state lives in Postgres (connection pooler, short transactions, indexed queries), object
+  storage (presigned URLs, so images never pass through the API after upload) and Supabase Realtime (live hints).
+  Background work uses lease rows, so any number of instances can receive the scheduler tick safely. The first limits
+  you would meet are Postgres connections and the free-tier quotas, long before the API design itself.
+
 ## Architecture notes
 
 - **Clean architecture.** Routes (`packages/server/src/interface/http`) validate input and call use cases in

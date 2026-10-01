@@ -1,7 +1,7 @@
 import { useNavigate, useRouter, useSearch } from '@tanstack/react-router';
 import { Trash2 } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { ApiError, NetworkError } from '@clubhouse/client';
 import type { FoodLogUpsert, FoodSearchResult, MealSlot, RecognitionResponse, UsualFood } from '@clubhouse/contracts';
 import { slotForTime } from '@clubhouse/domain';
@@ -92,18 +92,17 @@ export function LogFoodPage() {
   const back = () => (window.history.length > 1 ? router.history.back() : void navigate({ to: '/', search: {} }));
   const done = () => void navigate({ to: '/', search: date === now.date ? {} : { date }, replace: true });
 
-  // Edit mode: load the saved log into the cart once.
-  const loaded = useRef(false);
-  useEffect(() => {
-    if (!log || loaded.current) return;
-    loaded.current = true;
+  // Edit mode: load the saved log into the cart once (adjust state during render when it arrives).
+  const [loaded, setLoaded] = useState(false);
+  if (log && !loaded) {
+    setLoaded(true);
     setCart(cartFromLog(log));
     setSlot(log.mealSlot);
     setMode('search');
     setAiCallId(log.aiCallId);
     const thumb = !log.imageExpired ? (log.thumbUrl ?? log.imageUrl) : null;
     if (thumb) setPhoto({ url: thumb, imageId: null, status: 'ready' });
-  }, [log]);
+  }
 
   // ── cart ──
   const addItem = (item: CartItem, opts: { quiet?: boolean } = {}) => {
@@ -218,7 +217,9 @@ export function LogFoodPage() {
   // Share target: a photo shared into the app lands here once.
   const sharedTaken = useRef(false);
   const handlePhotoRef = useRef(handlePhoto);
-  handlePhotoRef.current = handlePhoto;
+  useLayoutEffect(() => {
+    handlePhotoRef.current = handlePhoto;
+  });
   useEffect(() => {
     if (!search.shared || sharedTaken.current) return;
     sharedTaken.current = true;

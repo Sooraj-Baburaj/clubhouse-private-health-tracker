@@ -61,7 +61,18 @@ export async function request<T>(method: string, path: string, init: { body?: un
   }
   if (res.status === 204) return undefined as T;
   const text = await res.text();
-  const data = text ? (JSON.parse(text) as unknown) : undefined;
+  let data: unknown;
+  let isJson = true;
+  try {
+    data = text ? (JSON.parse(text) as unknown) : undefined;
+  } catch {
+    isJson = false;
+  }
+  // Our API always answers errors with problem+json carrying a `code`. Anything else came from a proxy or gateway
+  // (API not running, deploy in progress, Vercel error page), which for the person means "couldn't reach the server".
+  const fromApi = isJson && !!data && typeof data === 'object' && 'code' in data;
+  if (!res.ok && !fromApi) throw new NetworkError();
+  if (!isJson) throw new NetworkError();
   if (!res.ok) {
     const err = new ApiError((data ?? {}) as Partial<ApiErrorBody>, res.status, Number(res.headers.get('retry-after')) || undefined);
     if (res.status === 401 && options.onUnauthorized) options.onUnauthorized(err);

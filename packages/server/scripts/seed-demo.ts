@@ -108,7 +108,8 @@ async function main() {
   // Foods by name (global seed rows only).
   const names = [...new Set(Object.values(MENU).flat(2))];
   const foods = await c.db.select().from(s.foodItems).where(and(isNull(s.foodItems.teamId), isNull(s.foodItems.deletedAt), inArray(s.foodItems.name, names)));
-  const food = new Map(foods.map((f) => [f.name, f]));
+  // Prefer the curated Indian rows (household servings) over USDA rows with the same name.
+  const food = new Map([...foods].sort((a, b) => Number(a.source === 'seed') - Number(b.source === 'seed')).map((f) => [f.name, f]));
   const missing = names.filter((n) => !food.has(n));
   if (missing.length) console.warn(`Foods not in the database (skipped): ${missing.join(', ')}. Run pnpm seed:foods first for a complete demo.`);
   const types = await c.db.query.activityTypes.findMany({ where: isNull(s.activityTypes.teamId) });

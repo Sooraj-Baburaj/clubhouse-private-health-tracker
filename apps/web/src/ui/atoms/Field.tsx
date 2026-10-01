@@ -14,8 +14,9 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
   const autoId = useId();
   const fid = id ?? autoId;
   return (
-    <label htmlFor={fid} className={cn('flex flex-col gap-1.5 text-[13px] text-neutral-700', className)}>
-      {label && <span>{label}</span>}
+    <div className={cn('flex flex-col gap-1.5 text-[13px] text-neutral-700', className)}>
+      {/* Only the text is the label: a prefix/suffix button (e.g. "Show password") must not join the input's name. */}
+      {label && <label htmlFor={fid}>{label}</label>}
       <span className={cn('flex min-h-[52px] items-center gap-2 rounded-full border bg-surface px-[18px] transition-colors focus-within:border-accent', error ? 'border-band-red' : 'border-divider')}>
         {prefix}
         <input ref={ref} id={fid} aria-invalid={!!error} aria-describedby={error ? `${fid}-err` : undefined} className="min-w-0 flex-1 border-0 bg-transparent text-[16px] text-text outline-none" {...rest} />
@@ -28,6 +29,6 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
       ) : hint ? (
         <span className="px-2 text-[12px]">{hint}</span>
       ) : null}
-    </label>
+    </div>
   );
 });

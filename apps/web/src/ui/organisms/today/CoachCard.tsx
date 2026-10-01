@@ -18,8 +18,9 @@ const NUTRIENT_NAME = { kcal: 'Calories', protein: 'Protein', carbs: 'Carbs', fa
 export function CoachCard({ summary, ai, date, isToday }: { summary: TodayResponse['summary']; ai: SummaryResponse | undefined; date: string; isToday: boolean }) {
   const navigate = useNavigate();
   const [why, setWhy] = useState(false);
-  const aiText = ai?.mode === 'ai' && ai.sentences.length ? ai.sentences.join(' ') : summary.mode === 'ai' ? summary.text : null;
-  const updatedAt = ai?.mode === 'ai' ? ai.updatedAt : summary.updatedAt;
+  const aiFresh = ai?.mode === 'ai' && !ai.stale && ai.sentences.length > 0;
+  const aiText = aiFresh ? ai.sentences.join(' ') : ai?.mode === 'logic' ? null : summary.mode === 'ai' ? summary.text : null;
+  const updatedAt = aiFresh ? ai.updatedAt : summary.updatedAt;
   const text = aiText ?? summary.text;
   const next = summary.why.nextSlot;
   return (

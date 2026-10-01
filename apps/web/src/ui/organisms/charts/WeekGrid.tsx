@@ -31,13 +31,15 @@ export function WeekGrid({ grid, selected, onSelect }: { grid: NutrientGridRespo
   return (
     <div role="grid" aria-label="Nutrients by day this week" className="flex flex-col gap-1.5">
       <div role="row" className="grid grid-cols-[64px_repeat(7,minmax(0,1fr))_34px] items-center gap-1">
-        <span />
+        <span role="columnheader" className="sr-only">
+          Nutrient
+        </span>
         {grid.days.map((d) => (
           <span role="columnheader" key={d.date} className="text-center text-[11px] font-bold text-neutral-700">
             {dateLabel(d.date, { weekday: 'narrow' })}
           </span>
         ))}
-        <span className="text-center text-[10px] font-bold text-neutral-700" title="Days on track">
+        <span role="columnheader" aria-label="Days on track" className="text-center text-[10px] font-bold text-neutral-700" title="Days on track">
           <BandIcon icon="check" className="mx-auto h-3 w-3" />
         </span>
       </div>
@@ -56,7 +58,7 @@ export function WeekGrid({ grid, selected, onSelect }: { grid: NutrientGridRespo
                 key={d.date}
                 type="button"
                 aria-label={spoken}
-                aria-pressed={on}
+                aria-selected={on}
                 onClick={() => onSelect({ date: d.date, nutrient: row.key })}
                 initial={reduce ? false : { scale: 0.6, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
@@ -72,7 +74,7 @@ export function WeekGrid({ grid, selected, onSelect }: { grid: NutrientGridRespo
               </motion.button>
             );
           })}
-          <span className="text-center text-[13px] font-extrabold tabular" aria-label={`${grid.greenCounts[row.key]} days on track`}>
+          <span role="gridcell" className="text-center text-[13px] font-extrabold tabular" aria-label={`${grid.greenCounts[row.key]} days on track`}>
             {grid.greenCounts[row.key]}
           </span>
         </div>

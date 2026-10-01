@@ -24,7 +24,8 @@ export async function login(c: Container, input: { login: string; password: stri
   const keyIp = `login:ip:${meta.ip}`;
   const { limit, windowSec } = LIMITS.loginFailures;
   for (const key of [keyUser, keyIp]) {
-    const rl = await checkRateLimit(c, key, key === keyIp ? limit * 4 : limit, windowSec);
+    // Per username: 5 failures (SRS). Per IP: far higher, because friends often share one home or office IP.
+    const rl = await checkRateLimit(c, key, key === keyIp ? limit * 6 : limit, windowSec);
     if (rl.blocked) {
       const mins = Math.ceil(rl.retryAfter / 60);
       throw new AppError(429, 'login_locked', `Too many attempts. Try again in ${mins} minute${mins === 1 ? '' : 's'}.`, undefined, { 'Retry-After': String(Math.ceil(rl.retryAfter)) });

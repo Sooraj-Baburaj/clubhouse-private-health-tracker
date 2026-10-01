@@ -54,7 +54,7 @@ export function ProfileSection() {
   const preview = useTargetsPreview(previewInput);
   const imperial = f.units === 'imperial';
   const ftin = cmToFtIn(f.heightCm);
-  const tzs = useMemo(timezones, []);
+  const tzs = useMemo(() => timezones(), []);
   const deviceTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const nameError = f.displayName.trim().length === 0 ? 'Your name can’t be empty' : null;
 

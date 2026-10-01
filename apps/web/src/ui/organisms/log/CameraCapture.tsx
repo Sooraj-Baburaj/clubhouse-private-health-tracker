@@ -34,16 +34,14 @@ export function PhotoPickButton({ onFile, label = 'Choose a photo', variant = 's
 /** Live viewfinder (rear camera) in the design's 300 px rounded frame with a 78 px shutter; falls back to the picker. */
 export function CameraCapture({ onPhoto }: { onPhoto: (b: Blob) => void }) {
   const video = useRef<HTMLVideoElement>(null);
-  const [state, setState] = useState<'starting' | 'live' | 'blocked'>('starting');
+  // No camera API at all (e.g. insecure context): go straight to the picker fallback.
+  const [state, setState] = useState<'starting' | 'live' | 'blocked'>(() => (typeof navigator.mediaDevices?.getUserMedia === 'function' ? 'starting' : 'blocked'));
   const [flash, setFlash] = useState(0);
 
   useEffect(() => {
     let stream: MediaStream | null = null;
     let cancelled = false;
-    if (!navigator.mediaDevices?.getUserMedia) {
-      setState('blocked');
-      return;
-    }
+    if (!navigator.mediaDevices?.getUserMedia) return;
     navigator.mediaDevices
       .getUserMedia({ video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 1280 } }, audio: false })
       .then(async (s) => {

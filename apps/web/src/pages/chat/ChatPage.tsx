@@ -44,7 +44,7 @@ export function ChatPage() {
   const visible = useDocumentVisible();
   const search = useSearch({ strict: false }) as { seq?: number; tag?: string };
   const navigate = useNavigate();
-  const pane = usePaneRef();
+  const paneRef = usePaneRef();
   const feed = useChatFeed();
   const members = useChatMembers();
   const team = useTeamSummary();
@@ -76,11 +76,13 @@ export function ChatPage() {
 
   const d = feed.data;
   const feedRef = useRef(d);
-  feedRef.current = d;
+  useLayoutEffect(() => {
+    feedRef.current = d;
+  }, [d]);
   const messages = useMemo(() => d?.messages ?? [], [d]);
   const ids = useMemo(() => new Set(messages.map((m) => m.id)), [messages]);
   const usernames = useMemo(() => new Set((members.data ?? []).map((m) => m.username.toLowerCase())), [members.data]);
-  const el = useCallback(() => pane?.current ?? null, [pane]);
+  const el = useCallback(() => paneRef?.current ?? null, [paneRef]);
 
   // Drop optimistic bubbles once the server copy is in the feed.
   useEffect(() => {
@@ -88,11 +90,10 @@ export function ChatPage() {
     if (done.length) dropPending(done);
   }, [ids, pendingStore, dropPending]);
 
-  // Unread marker anchor: captured when the tab opens, so it doesn't jump while reading.
-  useEffect(() => {
-    if (!active) setAnchor(null);
-    else if (d) setAnchor((a) => a ?? d.lastReadSeq);
-  }, [active, d]);
+  // Unread marker anchor: captured when the tab opens, so it doesn't jump while reading (adjust state during render).
+  if (!active) {
+    if (anchor !== null) setAnchor(null);
+  } else if (d && anchor === null) setAnchor(d.lastReadSeq);
 
   const scrollToBottom = useCallback(
     (smooth: boolean) => {
@@ -244,6 +245,7 @@ export function ChatPage() {
     }
     if (a) {
       useChatStore.getState().addAttachment(a);
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- one-shot ?tag= URL command (also writes the chat store and navigates); the bump asks the composer to focus, even if it mounts later
       setFocusKey((k) => k + 1);
     }
     void navigate({ to: '/chat', search: {}, replace: true });

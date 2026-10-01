@@ -23,6 +23,9 @@ export interface SheetProps {
   style?: CSSProperties;
 }
 
+/** Exiting overlays stop catching taps at once, so the page underneath is usable while they animate away. */
+const RELEASE = { pointerEvents: 'none' as const };
+
 /** Bottom sheet (SYS-PWA-04): springs up, drag down or tap the backdrop to dismiss, focus trapped. */
 export function Sheet({ open, onClose, title, label, children, className = '', backdropClassName = '', handleClassName = '', maxHeight = '88dvh', style }: SheetProps) {
   const ref = useRef<HTMLDivElement>(null);
@@ -39,13 +42,13 @@ export function Sheet({ open, onClose, title, label, children, className = '', b
     <Portal>
       <AnimatePresence>
         {open && (
-          <div style={{ position: 'fixed', inset: 0, zIndex: 900, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+          <motion.div exit={RELEASE} style={{ position: 'fixed', inset: 0, zIndex: 900, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
             <motion.div
               className={backdropClassName}
               onClick={onClose}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1, transition: { duration: duration.base } }}
-              exit={{ opacity: 0, transition: { duration: duration.fast } }}
+              exit={{ opacity: 0, pointerEvents: 'none', transition: { duration: duration.fast } }}
               style={{ position: 'absolute', inset: 0 }}
               aria-hidden
             />
@@ -78,7 +81,7 @@ export function Sheet({ open, onClose, title, label, children, className = '', b
               )}
               {children}
             </motion.div>
-          </div>
+          </motion.div>
         )}
       </AnimatePresence>
     </Portal>
@@ -106,8 +109,8 @@ export function Dialog({ open, onClose, children, className = '', backdropClassN
     <Portal>
       <AnimatePresence>
         {open && (
-          <div style={{ position: 'fixed', inset: 0, zIndex: 950, display: 'grid', placeItems: 'center', padding: 16 }}>
-            <motion.div className={backdropClassName} onClick={() => dismissible && onClose()} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'absolute', inset: 0 }} aria-hidden />
+          <motion.div exit={RELEASE} style={{ position: 'fixed', inset: 0, zIndex: 950, display: 'grid', placeItems: 'center', padding: 16 }}>
+            <motion.div className={backdropClassName} onClick={() => dismissible && onClose()} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, pointerEvents: 'none' }} style={{ position: 'absolute', inset: 0 }} aria-hidden />
             <motion.div
               ref={ref}
               role="dialog"
@@ -122,7 +125,7 @@ export function Dialog({ open, onClose, children, className = '', backdropClassN
             >
               {children}
             </motion.div>
-          </div>
+          </motion.div>
         )}
       </AnimatePresence>
     </Portal>
@@ -152,8 +155,8 @@ export function Drawer({ open, onClose, children, className = '', backdropClassN
     <Portal>
       <AnimatePresence>
         {open && (
-          <div style={{ position: 'fixed', inset: 0, zIndex: 940 }}>
-            <motion.div className={backdropClassName} onClick={onClose} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'absolute', inset: 0 }} aria-hidden />
+          <motion.div exit={RELEASE} style={{ position: 'fixed', inset: 0, zIndex: 940 }}>
+            <motion.div className={backdropClassName} onClick={onClose} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, pointerEvents: 'none' }} style={{ position: 'absolute', inset: 0 }} aria-hidden />
             <motion.aside
               ref={ref}
               role="dialog"
@@ -168,7 +171,7 @@ export function Drawer({ open, onClose, children, className = '', backdropClassN
             >
               {children}
             </motion.aside>
-          </div>
+          </motion.div>
         )}
       </AnimatePresence>
     </Portal>

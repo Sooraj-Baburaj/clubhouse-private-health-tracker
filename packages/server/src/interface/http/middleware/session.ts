@@ -58,6 +58,16 @@ export const sessionMiddleware = createMiddleware<AppEnv>(async (ctx, next) => {
   await next();
 });
 
+/** Same-origin when the browser's Origin host matches the host the request was sent to (LAN IPs, tunnels, preview URLs). */
+function isSameOrigin(origin: string, host: string | undefined): boolean {
+  if (!host) return false;
+  try {
+    return new URL(origin).host === host.split(',')[0]!.trim();
+  } catch {
+    return false;
+  }
+}
+
 /** Mutations need the custom client header and, when present, a same-origin Origin (NFR-SEC-02). */
 export const csrfMiddleware = createMiddleware<AppEnv>(async (ctx, next) => {
   const method = ctx.req.method;
@@ -68,7 +78,9 @@ export const csrfMiddleware = createMiddleware<AppEnv>(async (ctx, next) => {
       if (!ctx.req.header('x-clubhouse-client')) throw new AppError(403, 'csrf', 'Missing client header.');
       const origin = ctx.req.header('origin');
       const c = ctx.get('c');
-      if (origin && !c.env.allowedOrigins.includes(origin)) throw new AppError(403, 'csrf', 'Cross-origin request blocked.');
+      if (origin && !c.env.allowedOrigins.includes(origin) && !isSameOrigin(origin, ctx.req.header('x-forwarded-host') ?? ctx.req.header('host'))) {
+        throw new AppError(403, 'csrf', 'Cross-origin request blocked.');
+      }
     }
   }
   await next();

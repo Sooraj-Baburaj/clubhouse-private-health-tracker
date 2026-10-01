@@ -137,7 +137,10 @@
     border-radius: var(--radius-md);
   }
   .snap-x-chips {
-    scroll-snap-type: x mandatory;
+    /* proximity, not mandatory: rows that reorder (crew, chips) must not jump to the next snap point. */
+    scroll-snap-type: x proximity;
+    /* Snap to the row's own padding, not the scrollport edge, so the first chip never sits flush against the screen. */
+    scroll-padding-inline: 22px;
   }
   .snap-x-chips > * {
     scroll-snap-align: start;

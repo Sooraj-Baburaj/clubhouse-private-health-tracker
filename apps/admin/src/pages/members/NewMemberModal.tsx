@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { CreateMemberRequest, type AdminMemberRow, type Role } from '@clubhouse/contracts';
 import { useTeamSettings } from '@/features/directory';
 import { useRole } from '@/features/me';
@@ -22,19 +22,22 @@ export function NewMemberModal({ open, onClose }: { open: boolean; onClose: () =
   const [formError, setFormError] = useState<string | null>(null);
   const [created, setCreated] = useState<{ member: AdminMemberRow; tempPassword: string } | null>(null);
 
-  // Fresh form every time it opens.
-  useEffect(() => {
-    if (!open) return;
-    setDisplayName('');
-    setUsername('');
-    setUsernameTouched(false);
-    setEmail('');
-    setRole('member');
-    setTz('');
-    setErrors({});
-    setFormError(null);
-    setCreated(null);
-  }, [open]);
+  // Fresh form every time it opens (adjust state during render on the open transition).
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
+    if (open) {
+      setDisplayName('');
+      setUsername('');
+      setUsernameTouched(false);
+      setEmail('');
+      setRole('member');
+      setTz('');
+      setErrors({});
+      setFormError(null);
+      setCreated(null);
+    }
+  }
 
   const suggestUsername = (name: string) =>
     name

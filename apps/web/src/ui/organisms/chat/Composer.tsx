@@ -47,7 +47,12 @@ export function Composer({ members, myId, muted, onSend, onAttach, newCount, onJ
     () => (query === null || query === dismissed ? [] : members.filter((m) => m.id !== myId && (m.username.toLowerCase().startsWith(query) || m.name.toLowerCase().includes(query))).slice(0, 5)),
     [query, dismissed, members, myId],
   );
-  useEffect(() => setActive(0), [query]);
+  // Reset the highlighted suggestion when the @query changes (adjust state during render).
+  const [prevQuery, setPrevQuery] = useState(query);
+  if (query !== prevQuery) {
+    setPrevQuery(query);
+    setActive(0);
+  }
 
   const pick = (m: ChatMemberDto) => {
     const before = draft.slice(0, caret).replace(/@([\w.]{0,30})$/, `@${m.username} `);

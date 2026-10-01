@@ -1,4 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { eq } from 'drizzle-orm';
+import { schema as s } from '@clubhouse/db';
 import { createHarness, uuid, type Client, type Harness } from './harness';
 
 let h: Harness;
@@ -54,6 +56,18 @@ describe('logging and sync', () => {
     expect(b.json.results.map((r: { status: string }) => r.status)).toEqual(['stale', 'stale']);
     const day = await cl.req('GET', `/logs?date=${date}`);
     expect(day.json.foodLogs.filter((f: { items: { name: string }[] }) => f.items[0]!.name.startsWith('Thali')).length).toBe(2);
+  });
+
+  it('keeps the photo when an edit omits imageId and removes it on null', async () => {
+    const me = (await cl.req('GET', '/me')).json;
+    const [img] = await h.c.db.insert(s.images).values({ teamId: me.team.id, ownerId: me.user.id, kind: 'food', storageKey: 'test/photo.webp', contentType: 'image/webp', bytes: 10, width: 10, height: 10 }).returning();
+    const id = uuid();
+    const base = { date, mealSlot: 'dinner', items: [{ foodId: null, name: 'Plate', grams: 300, servings: 1, source: 'quick_add', nutrition: { kcal: 400, protein: 20, carbs: 40, fat: 15, fibre: 5 } }] };
+    await cl.req('PUT', `/logs/food/${id}`, { ...base, loggedAt: '2026-09-30T05:00:00.000Z', clientUpdatedAt: '2026-09-30T05:00:00.000Z', imageId: img!.id });
+    await cl.req('PUT', `/logs/food/${id}`, { ...base, loggedAt: '2026-09-30T05:00:00.000Z', clientUpdatedAt: '2026-09-30T05:05:00.000Z' });
+    expect((await h.c.db.query.foodLogs.findFirst({ where: eq(s.foodLogs.id, id) }))!.imageId).toBe(img!.id);
+    await cl.req('PUT', `/logs/food/${id}`, { ...base, loggedAt: '2026-09-30T05:00:00.000Z', clientUpdatedAt: '2026-09-30T05:10:00.000Z', imageId: null });
+    expect((await h.c.db.query.foodLogs.findFirst({ where: eq(s.foodLogs.id, id) }))!.imageId).toBeNull();
   });
 
   it('rejects future dates', async () => {

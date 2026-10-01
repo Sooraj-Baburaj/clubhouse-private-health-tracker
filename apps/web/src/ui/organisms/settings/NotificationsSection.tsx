@@ -22,6 +22,12 @@ const GROUP_TITLES: Record<NotificationPrefDto['group'], string> = { meals: 'Mea
 const GROUP_ORDER: NotificationPrefDto['group'][] = ['meals', 'activity', 'momentum', 'chat', 'team', 'system'];
 type Mute = 'off' | '1h' | '8h' | '1w';
 
+/** Which mute option matches the time left until `until` (reads the clock, like `relativeTime`). */
+function muteBucket(until: string | null | undefined): Mute {
+  const left = until ? Date.parse(until) - Date.now() : 0;
+  return left <= 0 ? 'off' : left <= 3600_000 ? '1h' : left <= 8 * 3600_000 ? '8h' : '1w';
+}
+
 export function NotificationsSection() {
   const me = useMeData();
   const p = me.profile;
@@ -29,8 +35,7 @@ export function NotificationsSection() {
   const updatePref = useUpdateNotificationPref();
   const updatePrefs = useUpdatePreferences({ quiet: true });
   const master = p.notificationsMaster;
-  const muteLeft = p.chatMutedUntil ? Date.parse(p.chatMutedUntil) - Date.now() : 0;
-  const mute: Mute = muteLeft <= 0 ? 'off' : muteLeft <= 3600_000 ? '1h' : muteLeft <= 8 * 3600_000 ? '8h' : '1w';
+  const mute = muteBucket(p.chatMutedUntil);
 
   const change = (type: string, patch: Partial<Pick<NotificationPrefDto, 'enabled' | 'time' | 'days' | 'smartTime'>>) => updatePref.mutate({ type: type as NotificationType, ...patch });
 

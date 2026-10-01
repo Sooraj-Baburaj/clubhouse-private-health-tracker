@@ -1,6 +1,6 @@
 import { AlertTriangle, Download, FileUp } from 'lucide-react';
 import Papa from 'papaparse';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import type { ImportMembersResult } from '@clubhouse/contracts';
 import { toast } from '@clubhouse/ui';
 import { useImportMembers } from '@/features/members';
@@ -46,15 +46,19 @@ export function ImportMembersModal({ open, onClose }: { open: boolean; onClose: 
   const [result, setResult] = useState<ImportMembersResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!open) return;
-    setStep('input');
-    setCsv('');
-    setFileName(null);
-    setPreview(null);
-    setResult(null);
-    setError(null);
-  }, [open]);
+  // Reset each time the modal opens (adjust state during render on the open transition).
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
+    if (open) {
+      setStep('input');
+      setCsv('');
+      setFileName(null);
+      setPreview(null);
+      setResult(null);
+      setError(null);
+    }
+  }
 
   const local = useMemo(() => checkLocally(csv), [csv]);
   const okCount = preview ? preview.rows.filter((r) => r.status === 'ok').length : 0;

@@ -73,7 +73,8 @@ export async function upsertFoodLog(c: Container, user: AuthUser, id: string, in
     loggedAt: new Date(input.loggedAt),
     items,
     totals,
-    imageId: input.imageId ?? null,
+    // Omitted imageId keeps the saved photo; null removes it (edits don't resend the photo).
+    imageId: input.imageId !== undefined ? input.imageId : (existing?.imageId ?? null),
     aiCallId: input.aiCallId ?? null,
     aiGenerated: items.some((i) => i.source === 'ai'),
     confidence: items.some((i) => i.confidence != null) ? Math.min(...items.map((i) => i.confidence ?? 1)) : null,
@@ -137,7 +138,8 @@ export async function upsertActivityLog(c: Container, user: AuthUser, id: string
     kcalOverridden: input.kcalOverride != null,
     met: burn.met,
     planItemId,
-    imageId: input.imageId ?? null,
+    // Omitted imageId keeps the saved photo; null removes it (edits don't resend the photo).
+    imageId: input.imageId !== undefined ? input.imageId : (existing?.imageId ?? null),
     note: input.note ?? null,
     addedLate: existing?.addedLate ?? isAddedLate(input.date, user.timezone, now),
     clientUpdatedAt,

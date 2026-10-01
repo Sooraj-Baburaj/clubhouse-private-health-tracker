@@ -88,7 +88,12 @@ export function WeekdayChips({ value, onChange, label, hint = [], disabled }: { 
 
 export function TimeInput({ value, onChange, label, disabled }: { value: string; onChange: (v: string) => void; label: string; disabled?: boolean }) {
   const [local, setLocal] = useState(value);
-  useEffect(() => setLocal(value), [value]);
+  // Follow outside changes (adjust state during render when the value changes).
+  const [synced, setSynced] = useState(value);
+  if (value !== synced) {
+    setSynced(value);
+    setLocal(value);
+  }
   // Commit after a short pause so typing "0", "7", "3", "0" saves once.
   useEffect(() => {
     if (!local || local === value) return;

@@ -19,7 +19,7 @@ export function UploadMemeModal({ open, onClose, tagSuggestions }: { open: boole
   const inputId = useId();
   const fileRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
+  const [previewFor, setPreviewFor] = useState<{ file: File; url: string } | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
   const [caption, setCaption] = useState('');
   const [tags, setTags] = useState<string[]>([]);
@@ -29,27 +29,31 @@ export function UploadMemeModal({ open, onClose, tagSuggestions }: { open: boole
   const [dragOver, setDragOver] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!open) return;
-    setFile(null);
-    setFileError(null);
-    setCaption('');
-    setTags([]);
-    setTone('celebrate');
-    setEnabled(true);
-    setSubmitted(false);
-    setApiError(null);
-  }, [open]);
-
-  useEffect(() => {
-    if (!file) {
-      setPreview(null);
-      return;
+  // Reset each time the modal opens (adjust state during render on the open transition).
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
+    if (open) {
+      setFile(null);
+      setFileError(null);
+      setCaption('');
+      setTags([]);
+      setTone('celebrate');
+      setEnabled(true);
+      setSubmitted(false);
+      setApiError(null);
     }
+  }
+
+  // Object URL for the picked file; revoked when the file changes or the modal unmounts.
+  useEffect(() => {
+    if (!file) return;
     const url = URL.createObjectURL(file);
-    setPreview(url);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- object URL is an external resource that needs effect cleanup (revoke); StrictMode-safe unlike useMemo
+    setPreviewFor({ file, url });
     return () => URL.revokeObjectURL(url);
   }, [file]);
+  const preview = file && previewFor?.file === file ? previewFor.url : null;
 
   const pick = (f: File | undefined | null) => {
     if (!f) return;
@@ -262,9 +266,12 @@ export function EditMemeModal({ meme, onClose, onDelete, tagSuggestions }: { mem
 
 export function BulkTagsModal({ mode, count, onClose, onApply, suggestions, busy }: { mode: 'add_tags' | 'remove_tags' | null; count: number; onClose: () => void; onApply: (tags: string[]) => Promise<void>; suggestions: string[]; busy: boolean }) {
   const [tags, setTags] = useState<string[]>([]);
-  useEffect(() => {
+  // Clear the tags each time the modal opens in a mode (adjust state during render on change).
+  const [prevMode, setPrevMode] = useState(mode);
+  if (mode !== prevMode) {
+    setPrevMode(mode);
     if (mode) setTags([]);
-  }, [mode]);
+  }
   const adding = mode === 'add_tags';
   return (
     <Modal open={!!mode} onClose={() => !busy && onClose()} eyebrow={`${fmtInt(count)} selected`} title={adding ? 'Add tags' : 'Remove tags'} width={460}>

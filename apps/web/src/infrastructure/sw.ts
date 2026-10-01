@@ -13,7 +13,11 @@ export function registerServiceWorker() {
     updateReady = true;
     listeners.forEach((l) => l(true));
   });
-  wb.addEventListener('controlling', () => window.location.reload());
+  // Only reload when a new version replaced an old one (after "apply"). On the very first visit the new worker
+  // claims the page too (clientsClaim) and a reload there would wipe whatever the person is typing.
+  wb.addEventListener('controlling', (e) => {
+    if (e.isUpdate) window.location.reload();
+  });
   void wb.register();
   setInterval(() => void wb?.update(), 60 * 60_000);
 }

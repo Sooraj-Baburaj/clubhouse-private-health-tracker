@@ -1,5 +1,5 @@
 import { Eye, Heart, ThumbsDown } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import type { DietOptionDto } from '@clubhouse/contracts';
 import { AnimatedNumber } from '@clubhouse/ui';
 import { dateLabel, fmt } from '@/features/format';
@@ -17,9 +17,12 @@ const factorLabel = (v: number) => (v === 1 ? 'as planned' : v === 0 ? 'skip' : 
 /** "Log this" → adjust each item's portion, then log (APP-DIET-04). */
 export function PortionSheet({ option, slotLabel, onClose, onConfirm, busy }: { option: DietOptionDto | null; slotLabel: string; onClose: () => void; onConfirm: (portions: number[] | undefined) => void; busy: boolean }) {
   const [portions, setPortions] = useState<number[]>([]);
-  useEffect(() => {
+  // Start every option at 1× (adjust state during render when the option changes).
+  const [forOption, setForOption] = useState<DietOptionDto | null>(null);
+  if (option !== forOption) {
+    setForOption(option);
     if (option) setPortions(option.items.map(() => 1));
-  }, [option]);
+  }
   const changed = portions.some((p) => p !== 1);
   const total = option ? optionTotals(option, portions.length ? portions : undefined) : null;
   return (

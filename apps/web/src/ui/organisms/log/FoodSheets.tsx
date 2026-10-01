@@ -1,6 +1,6 @@
 import { Plus } from 'lucide-react';
 import { motion } from 'motion/react';
-import { useEffect, useState, type FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import { ApiError } from '@clubhouse/client';
 import { CreateFoodRequest, type FoodSearchResult, type Nutrients, type RecipeDto } from '@clubhouse/contracts';
 import { toast } from '@clubhouse/ui';
@@ -23,12 +23,15 @@ const numOrNull = (s: string) => {
 export function QuickAddSheet({ open, onClose, onAdd }: { open: boolean; onClose: () => void; onAdd: (name: string, n: Nutrients) => void }) {
   const [f, setF] = useState({ name: '', kcal: '', protein: '', carbs: '', fat: '' });
   const [error, setError] = useState<string | null>(null);
-  useEffect(() => {
+  // Fresh form each time it opens (adjust state during render on the open transition).
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
     if (open) {
       setF({ name: '', kcal: '', protein: '', carbs: '', fat: '' });
       setError(null);
     }
-  }, [open]);
+  }
   const submit = (e: FormEvent) => {
     e.preventDefault();
     const kcal = numOrNull(f.kcal);
@@ -65,12 +68,16 @@ export function CreateFoodSheet({ open, onClose, onCreated, initialName = '' }: 
   const create = useCreateFood();
   const [f, setF] = useState(() => blankFood(initialName));
   const [errors, setErrors] = useState<Record<string, string>>({});
-  useEffect(() => {
+  // Fresh form on open, or when the prefilled name changes while open (adjust state during render).
+  const resetKey = open ? initialName : null;
+  const [resetFor, setResetFor] = useState<string | null>(null);
+  if (resetKey !== resetFor) {
+    setResetFor(resetKey);
     if (open) {
       setF(blankFood(initialName));
       setErrors({});
     }
-  }, [open, initialName]);
+  }
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement>) => setF({ ...f, [k]: e.target.value });
   const submit = (e: FormEvent) => {
     e.preventDefault();

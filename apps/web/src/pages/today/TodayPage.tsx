@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useLocation, useNavigate, useSearch } from '@tanstack/react-router';
 import { motion } from 'motion/react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { api } from '@clubhouse/client';
 import type { Nutrient } from '@clubhouse/contracts';
 import { addDays } from '@clubhouse/domain';
@@ -35,9 +35,9 @@ function useViewedDate(today: string): string {
   const onToday = loc.pathname === '/';
   const param = onToday && typeof search.date === 'string' ? search.date : undefined;
   const [date, setDate] = useState(param ?? today);
-  useEffect(() => {
-    if (onToday) setDate(param && param <= today ? param : today);
-  }, [onToday, param, today]);
+  // Follow the URL while on '/' (adjust state during render); keep the last value elsewhere.
+  const wanted = param && param <= today ? param : today;
+  if (onToday && date !== wanted) setDate(wanted);
   return date;
 }
 
@@ -52,7 +52,7 @@ export function TodayPage() {
   const q = useToday(isToday ? undefined : date);
   const t = q.data;
   const unread = useQuery({ queryKey: qk.unread, queryFn: () => api.chat.unread(), staleTime: 30_000 });
-  const ai = useAiSummary(isToday ? undefined : date, me.ai.summaryAvailable && !!t);
+  const ai = useAiSummary(isToday ? undefined : date, me.ai.summaryAvailable && !!t, t ? `${Math.round(t.eaten.kcal)}:${t.burned}:${t.foodLogs.length}:${t.activityLogs.length}` : '');
   const recent = useMoments((s) => s.recent);
   const dismissed = useMoments((s) => s.dismissed);
   const [nutrient, setNutrient] = useState<Nutrient | null>(null);

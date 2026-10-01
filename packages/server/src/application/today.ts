@@ -125,7 +125,9 @@ export async function getToday(c: Container, user: AuthUser, dateIn?: string): P
   const ai = await c.db.query.aiSettings.findFirst({ where: eq(s.aiSettings.teamId, user.teamId) });
   const summaryOn = !!ai?.globalOn && !!ai.features['home.summary']?.on && c.ai.mode !== 'off' && !d.profile.aiOptOuts.summary;
   const cachedOut = cached?.output as { sentences?: string[]; swapIdea?: string } | undefined;
-  const useAi = summaryOn && !!cachedOut?.sentences?.length;
+  // AI text written before the day's latest change would contradict the numbers above it: show the logic text then.
+  const latestChange = Math.max(0, ...d.logs.raw.foods.map((f) => f.serverUpdatedAt.getTime()), ...d.logs.raw.acts.map((a) => a.serverUpdatedAt.getTime()));
+  const useAi = summaryOn && !!cachedOut?.sentences?.length && !!cached && cached.createdAt.getTime() >= latestChange;
 
   const labels = d.team.settings.mealSlots;
   return {

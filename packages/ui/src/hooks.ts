@@ -126,7 +126,9 @@ export function useDebounced<T>(value: T, ms: number): T {
 
 export function useInterval(fn: () => void, ms: number | null) {
   const saved = useRef(fn);
-  saved.current = fn;
+  useLayoutEffect(() => {
+    saved.current = fn;
+  }, [fn]);
   useEffect(() => {
     if (ms == null) return;
     const id = setInterval(() => saved.current(), ms);
