@@ -4,6 +4,7 @@ import { AdminFoodUpdate, ImportFoodsRequest, MergeFoodsRequest } from '@clubhou
 import * as foods from '../../../../application/admin/foods';
 import type { AppEnv } from '../../types';
 import { body, param, query } from '../../validate';
+import { signalTeam } from '../../../../application/realtime';
 import { actor, OK } from './util';
 
 const FoodQuery = z.object({
@@ -14,6 +15,11 @@ const FoodQuery = z.object({
 });
 
 export const foodRoutes = new Hono<AppEnv>()
+  // Any successful catalogue write tells browsers to pull the food delta now instead of within the 6 h TTL.
+  .use('/foods/*', async (ctx, next) => {
+    await next();
+    if (ctx.req.method !== 'GET' && ctx.res.ok) await signalTeam(ctx.get('c'), actor(ctx).user.teamId, 'foods.changed').catch(() => undefined);
+  })
   .get('/foods', async (ctx) => ctx.json(await foods.listFoods(ctx.get('c'), actor(ctx), query(ctx, FoodQuery))))
   .post('/foods/merge', async (ctx) => {
     const input = await body(ctx, MergeFoodsRequest);

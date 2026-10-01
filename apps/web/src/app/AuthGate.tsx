@@ -2,6 +2,7 @@ import { useNavigate } from '@tanstack/react-router';
 import { useEffect, type ReactNode } from 'react';
 import { ApiError } from '@clubhouse/client';
 import { setUnauthorizedHandler } from '@/infrastructure/api';
+import { bindCacheSession, clearCaches } from '@/infrastructure/cache';
 import { queryClient } from '@/infrastructure/queryClient';
 import { resyncPush } from '@/infrastructure/push';
 import { live } from '@/infrastructure/realtime';
@@ -16,6 +17,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
     setUnauthorizedHandler(() => {
       queryClient.clear();
       live.stop();
+      void clearCaches();
       void navigate({ to: '/login' });
     });
   }, [navigate]);
@@ -35,6 +37,13 @@ export function AuthGate({ children }: { children: ReactNode }) {
     if (me.data?.realtime) void live.start(me.data.realtime);
     if (me.data) void resyncPush();
   }, [me.data]);
+  // Offline datasets (food catalogue, chat history) belong to this person; binding a different one drops them.
+  const userId = me.data?.user.id;
+  const teamId = me.data?.team.id;
+  const ready = !!me.data && !me.data.mfaPending && !me.data.user.mustChangePassword && me.data.user.onboarded;
+  useEffect(() => {
+    if (ready && userId && teamId) void bindCacheSession(userId, teamId);
+  }, [ready, userId, teamId]);
   if (!me.data || me.data.mfaPending || me.data.user.mustChangePassword || !me.data.user.onboarded) return <Splash offline={!!me.error && status == null} />;
   return <>{children}</>;
 }

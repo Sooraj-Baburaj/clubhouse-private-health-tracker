@@ -7,7 +7,7 @@ import type { z } from 'zod';
 import type { Container } from '../../container';
 import { log } from '../../lib/log';
 import { badRequest, notFound } from '../../lib/errors';
-import { postSystemMessage, renderMessages, teamChannel } from '../chat';
+import { bumpChatEpoch, postSystemMessage, renderMessages, teamChannel } from '../chat';
 import { notifyUser } from '../notify';
 import { signalTeam, signalUser } from '../realtime';
 import { getTeam, invalidateTeam } from '../team';
@@ -213,6 +213,8 @@ export async function clearChat(c: Container, a: Actor, input: z.infer<typeof Cl
       await tx.delete(s.messageReports).where(inArray(s.messageReports.messageId, chunk));
       await tx.delete(s.messages).where(inArray(s.messages.id, chunk));
     }
+    // Browsers cache chat history; hard-deleted rows can't appear in a delta, so move the epoch to make caches reset.
+    await bumpChatEpoch({ db: tx as unknown as Container['db'] }, a.user.teamId, a.user.id);
     await tx.insert(s.messages).values({
       id: randomUUID(),
       channelId: ch.id,

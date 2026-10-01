@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
-import { ReactRequest, ReportRequest, SendMessageRequest } from '@clubhouse/contracts';
+import { ChatChangesQuery, ReactRequest, ReportRequest, SendMessageRequest } from '@clubhouse/contracts';
+import { compress } from 'hono/compress';
 import * as chat from '../../../application/chat';
 import * as moments from '../../../application/memeEngine';
 import { unreadCount } from '../../../application/notify';
@@ -19,6 +20,11 @@ export const chatRoutes = new Hono<AppEnv>()
       z.object({ after: z.coerce.number().int().min(0).optional(), before: z.coerce.number().int().min(0).optional(), limit: z.coerce.number().int().min(1).max(100).default(40) }),
     );
     return ctx.json(await chat.listMessages(ctx.get('c'), a.user, q));
+  })
+  .use('/chat/changes', compress())
+  .get('/chat/changes', async (ctx) => {
+    const a = currentAuth(ctx);
+    return ctx.json(await chat.chatChanges(ctx.get('c'), a.user, query(ctx, ChatChangesQuery)));
   })
   .put('/chat/messages/:id', async (ctx) => {
     const a = currentAuth(ctx);

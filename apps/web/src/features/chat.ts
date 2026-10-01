@@ -1,60 +1,46 @@
-import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { create } from 'zustand';
 import { api, ApiError, NetworkError } from '@clubhouse/client';
 import type { AttachmentInput, ChatMessageDto, ChatPageResponse, SendMessageRequest } from '@clubhouse/contracts';
 import { haptic, toast } from '@clubhouse/ui';
+import { CHAT_FEED_KEY, useCollectionStatus } from '@/infrastructure/cache';
+import { cachedMessage, chatFeed, chatHistory, loadOlder, patchMessage, setLastRead, upsertMessage } from '@/infrastructure/cache/chatHistory';
 import { compressImage } from '@/infrastructure/images';
 import { outbox } from '@/infrastructure/outbox';
 import { nowIso, uuid } from '@/lib/ids';
 import { qk } from './keys';
 import { errorText } from './settings';
 
-export const FEED_KEY = [...qk.chat, 'feed'] as const;
-const PAGE = 50;
-
+export const FEED_KEY = CHAT_FEED_KEY;
 export type ChatFeed = ChatPageResponse;
 
-const bySeq = (a: ChatMessageDto, b: ChatMessageDto) => a.seq - b.seq;
-function dedupe(list: ChatMessageDto[]): ChatMessageDto[] {
-  const m = new Map<string, ChatMessageDto>();
-  for (const x of list) m.set(x.id, x);
-  return [...m.values()].sort(bySeq);
-}
-
 /**
- * Merge the latest page into what we already hold. The latest window is replaced (fresh reactions, deletions),
- * older pages loaded by scrolling up are kept unless a gap opened between them and the new window.
+ * The chat feed is a view over the IndexedDB-backed chat history (infrastructure/cache/chatHistory.ts): it renders
+ * instantly from the cache and refreshes with delta pulls. Invalidating ['chat'] (realtime hints, polling, focus)
+ * refetches, which revalidates the cache; cache changes are pushed into this query by the cache manager.
  */
-export function mergeLatest(prev: ChatFeed | undefined, page: ChatPageResponse): ChatFeed {
-  if (!prev || !page.messages.length) return page;
-  const oldestNew = page.messages[0]!.seq;
-  const prevMax = prev.messages.length ? prev.messages[prev.messages.length - 1]!.seq : -1;
-  if (prevMax < oldestNew - 1) return page;
-  const older = prev.messages.filter((m) => m.seq < oldestNew);
-  return { ...page, messages: dedupe([...older, ...page.messages]), hasMoreBefore: older.length ? prev.hasMoreBefore : page.hasMoreBefore };
-}
-
 export function useChatFeed() {
-  const qc = useQueryClient();
+  const status = useCollectionStatus(chatHistory);
   return useQuery({
     queryKey: FEED_KEY,
-    queryFn: async () => mergeLatest(qc.getQueryData<ChatFeed>(FEED_KEY), await api.chat.list({ limit: PAGE })),
+    queryFn: async () => {
+      await chatHistory.revalidate('manual');
+      const s = chatHistory.getStatus();
+      // Nothing cached and the pull failed: surface the error instead of an empty chat.
+      if (!s.ready && s.state === 'error') throw new Error(s.error ?? 'Couldn’t load the chat');
+      return chatFeed();
+    },
+    initialData: status.hydrated && status.count > 0 ? chatFeed() : undefined,
+    initialDataUpdatedAt: status.syncedAt ?? 0,
     staleTime: 4_000,
-    refetchInterval: 60_000,
+    networkMode: 'always',
   });
 }
 
-/** Infinite scroll up (before=seq). */
+/** Infinite scroll up: cached history first, then older pages from the server (stored in the cache). */
 export function useLoadOlder() {
-  const qc = useQueryClient();
   return useMutation({
-    mutationFn: async () => {
-      const feed = qc.getQueryData<ChatFeed>(FEED_KEY);
-      if (!feed?.hasMoreBefore || !feed.messages.length) return 0;
-      const page = await api.chat.list({ before: feed.messages[0]!.seq, limit: PAGE });
-      qc.setQueryData<ChatFeed>(FEED_KEY, (cur) => (cur ? { ...cur, messages: dedupe([...page.messages, ...cur.messages]), hasMoreBefore: page.hasMoreBefore } : cur));
-      return page.messages.length;
-    },
+    mutationFn: () => loadOlder(),
     onError: (err) => toast.error(errorText(err, 'Couldn’t load older messages.')),
   });
 }
@@ -67,9 +53,6 @@ export function useMemes(enabled = true) {
   return useQuery({ queryKey: qk.memes, queryFn: () => api.chat.memes(), staleTime: 10 * 60_000, enabled });
 }
 
-function patchMessage(qc: QueryClient, id: string, fn: (m: ChatMessageDto) => ChatMessageDto) {
-  qc.setQueryData<ChatFeed>(FEED_KEY, (cur) => (cur ? { ...cur, messages: cur.messages.map((m) => (m.id === id ? fn(m) : m)), pinned: cur.pinned.map((m) => (m.id === id ? fn(m) : m)) } : cur));
-}
 
 export function applyReaction(m: ChatMessageDto, emoji: string, on: boolean, myName: string): ChatMessageDto {
   const existing = m.reactions.find((r) => r.emoji === emoji);
@@ -85,37 +68,36 @@ export function applyReaction(m: ChatMessageDto, emoji: string, on: boolean, myN
 }
 
 export function useReact(myName: string) {
-  const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ id, emoji, on }: { id: string; emoji: string; on: boolean }) => api.chat.react(id, emoji, on),
     onMutate: async ({ id, emoji, on }) => {
-      await qc.cancelQueries({ queryKey: FEED_KEY });
-      const prev = qc.getQueryData<ChatFeed>(FEED_KEY);
-      patchMessage(qc, id, (m) => applyReaction(m, emoji, on, myName));
+      const prev = cachedMessage(id);
+      await patchMessage(id, (m) => applyReaction(m, emoji, on, myName));
       haptic(6);
       return { prev };
     },
     onError: (err, _v, ctx) => {
-      if (ctx?.prev) qc.setQueryData(FEED_KEY, ctx.prev);
+      if (ctx?.prev) void patchMessage(ctx.prev.id, () => ctx.prev!);
       toast.error(errorText(err, 'Couldn’t react just now.'));
     },
+    onSettled: () => void chatHistory.revalidate('write'),
   });
 }
 
 export function useDeleteMessage() {
-  const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => api.chat.delete(id),
     onMutate: async (id) => {
-      const prev = qc.getQueryData<ChatFeed>(FEED_KEY);
-      patchMessage(qc, id, (m) => ({ ...m, deleted: true, body: '', attachments: [] }));
+      const prev = cachedMessage(id);
+      await patchMessage(id, (m) => ({ ...m, deleted: true, body: '', attachments: [] }));
       return { prev };
     },
     onError: (err, _id, ctx) => {
-      if (ctx?.prev) qc.setQueryData(FEED_KEY, ctx.prev);
+      if (ctx?.prev) void patchMessage(ctx.prev.id, () => ctx.prev!);
       toast.error(errorText(err, 'Couldn’t delete that message.'));
     },
     onSuccess: () => toast.show('Message deleted'),
+    onSettled: () => void chatHistory.revalidate('write'),
   });
 }
 
@@ -132,7 +114,7 @@ export function useMarkChatRead() {
   return useMutation({
     mutationFn: (seq: number) => api.chat.read(seq),
     onMutate: (seq) => {
-      qc.setQueryData<ChatFeed>(FEED_KEY, (cur) => (cur && cur.lastReadSeq < seq ? { ...cur, lastReadSeq: seq } : cur));
+      void setLastRead(seq);
       qc.setQueryData<{ chat: number; inbox: number }>(qk.unread, (u) => (u ? { ...u, chat: 0 } : u));
     },
     onSettled: () => void qc.invalidateQueries({ queryKey: qk.unread }),
@@ -201,9 +183,6 @@ export function prefillChat(text: string, attachment?: DraftAttachment) {
   if (attachment) s.addAttachment(attachment);
 }
 
-function insertMessage(qc: QueryClient, message: ChatMessageDto) {
-  qc.setQueryData<ChatFeed>(FEED_KEY, (cur) => (cur ? { ...cur, messages: dedupe([...cur.messages, message]), latestSeq: Math.max(cur.latestSeq, message.seq), lastReadSeq: Math.max(cur.lastReadSeq, message.seq) } : cur));
-}
 
 /**
  * Send with an optimistic bubble (clock icon). Direct PUT first; on a network failure the message goes to the
@@ -230,8 +209,8 @@ export function useSendMessage() {
     },
     onSuccess: (r, p) => {
       if (r.queued) return store.getState().patchPending(p.id, { status: 'queued' });
-      if (r.message) insertMessage(qc, r.message);
-      else void qc.invalidateQueries({ queryKey: FEED_KEY });
+      if (r.message) void upsertMessage(r.message);
+      else void chatHistory.revalidate('write');
       store.getState().dropPending([p.id]);
       haptic(8);
     },

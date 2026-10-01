@@ -7,16 +7,22 @@ import { CacheFirst, NetworkFirst, StaleWhileRevalidate } from 'workbox-strategi
 
 declare const self: ServiceWorkerGlobalScope & { __WB_MANIFEST: (string | { url: string; revision: string | null })[] };
 
-precacheAndRoute(self.__WB_MANIFEST);
+const manifest = self.__WB_MANIFEST;
+precacheAndRoute(manifest);
 cleanupOutdatedCaches();
 clientsClaim();
 
 // App shell for every in-app navigation (SYS-PWA-02); the admin panel and the API are never served from here.
-registerRoute(new NavigationRoute(createHandlerBoundToURL('/index.html'), { denylist: [/^\/api\//, /^\/admin/, /^\/share-target/] }));
+// In dev the precache list is empty (Vite serves fresh HTML), so the shell route only exists in real builds.
+const shellPrecached = manifest.some((e) => (typeof e === 'string' ? e : e.url).replace(/^\//, '') === 'index.html');
+if (shellPrecached) {
+  registerRoute(new NavigationRoute(createHandlerBoundToURL('/index.html'), { denylist: [/^\/api\//, /^\/admin/, /^\/share-target/] }));
+}
 
-// Offline reads for Today, Diet, Progress, chat and /me: network first, cache as fallback.
+// Offline reads for Today, Diet, Progress and /me: network first, cache as fallback. The food catalogue and chat
+// history are NOT cached here: they live in IndexedDB with delta sync (src/infrastructure/cache).
 registerRoute(
-  ({ url, request }) => request.method === 'GET' && url.pathname.startsWith('/api/') && /^\/api\/(me|today|diet|progress|momentum|chat\/messages|activity-types|activity-plan|foods\/usuals|team\/summary|inbox)/.test(url.pathname),
+  ({ url, request }) => request.method === 'GET' && url.pathname.startsWith('/api/') && /^\/api\/(me|today|diet|progress|momentum|activity-types|activity-plan|foods\/usuals|team\/summary|inbox)/.test(url.pathname),
   new NetworkFirst({ cacheName: 'api-reads', networkTimeoutSeconds: 4, plugins: [new ExpirationPlugin({ maxEntries: 200, maxAgeSeconds: 7 * 24 * 3600 })] }),
 );
 

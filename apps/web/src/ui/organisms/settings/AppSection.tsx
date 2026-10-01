@@ -7,7 +7,8 @@ import type { Palette, Theme } from '@clubhouse/contracts';
 import { toast } from '@clubhouse/ui';
 import { useMeData } from '@/features/me';
 import { clearLocalCache, errorText, useUpdatePreferences } from '@/features/settings';
-import { isIos, isStandalone } from '@/infrastructure/push';
+import { promptInstall, useInstall } from '@/infrastructure/install';
+import { OfflineData } from './OfflineData';
 import { Button } from '@/ui/atoms/Button';
 import { Segmented } from '@/ui/atoms/Segmented';
 import { ConfirmDialog } from '@/ui/molecules/ConfirmDialog';
@@ -40,7 +41,7 @@ export function AppSection() {
     },
     onError: (e) => toast.error(errorText(e, 'Couldn’t send that request.')),
   });
-  const installed = isStandalone();
+  const install = useInstall();
 
   return (
     <div className="flex flex-col gap-3.5">
@@ -91,25 +92,41 @@ export function AppSection() {
       </div>
 
       <ListGroup title="Install">
-        {installed ? (
-          <ListRow title="Installed" sub="You’re using Clubhouse from your Home Screen" right={<Check aria-hidden className="h-5 w-5 text-accent-2-700" strokeWidth={3} />} />
+        {install.installed ? (
+          <ListRow title="Installed" sub="You’re using Clubhouse as an app on this device" right={<Check aria-hidden className="h-5 w-5 text-accent-2-700" strokeWidth={3} />} />
         ) : (
           <div className="flex flex-col gap-2.5 px-4 py-3.5 text-[13px]">
-            <span className="text-neutral-700">Install Clubhouse for full-screen, faster opens and reminders{isIos() ? ' (needed on iPhone)' : ''}.</span>
-            {isIos() ? (
+            <span className="text-neutral-700">Install Clubhouse for full-screen, faster opens and reminders{install.platform === 'ios' ? ' (needed on iPhone)' : ''}.</span>
+            {install.canPrompt ? (
+              <Button variant="dark" block icon={<HardDriveDownload aria-hidden className="h-5 w-5" strokeWidth={2.75} />} onClick={() => void promptInstall()}>
+                Install Clubhouse
+              </Button>
+            ) : install.platform === 'ios' ? (
               <>
                 <InstallStep icon={<Share className="h-4 w-4" strokeWidth={2.75} />}>In Safari, tap <b>Share</b></InstallStep>
                 <InstallStep icon={<PlusSquare className="h-4 w-4" strokeWidth={2.75} />}>Choose <b>Add to Home Screen</b>, then <b>Add</b></InstallStep>
               </>
-            ) : (
+            ) : install.platform === 'mac-safari' ? (
+              <InstallStep icon={<PlusSquare className="h-4 w-4" strokeWidth={2.75} />}>In Safari’s menu bar choose <b>File › Add to Dock</b></InstallStep>
+            ) : install.platform === 'android' ? (
               <>
                 <InstallStep icon={<MoreVertical className="h-4 w-4" strokeWidth={2.75} />}>Open the browser menu (<b>⋮</b>)</InstallStep>
                 <InstallStep icon={<HardDriveDownload className="h-4 w-4" strokeWidth={2.75} />}>Tap <b>Install app</b> or <b>Add to Home screen</b></InstallStep>
+              </>
+            ) : (
+              <>
+                <InstallStep icon={<HardDriveDownload className="h-4 w-4" strokeWidth={2.75} />}>Click the <b>install icon</b> at the right of the address bar</InstallStep>
+                <InstallStep icon={<MoreVertical className="h-4 w-4" strokeWidth={2.75} />}>
+                  Or open the menu (<b>⋮</b>) › <b>Cast, save and share</b> › <b>Install Clubhouse</b>
+                </InstallStep>
+                <span className="text-neutral-700">Use Chrome or Edge; Firefox can’t install web apps on desktop.</span>
               </>
             )}
           </div>
         )}
       </ListGroup>
+
+      <OfflineData />
 
       <ListGroup title="Your data">
         <div className="flex gap-2 px-4 py-3">

@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { and, asc, desc, eq, gt, inArray, isNull, lt, ne, sql } from 'drizzle-orm';
-import type { AttachmentDto, AttachmentInput, ChatMemberDto, ChatMessageDto, ChatPageResponse, MemeDto, SendMessageRequest } from '@clubhouse/contracts';
+import type { AttachmentDto, AttachmentInput, ChatChangesResponse, ChatMemberDto, ChatMessageDto, ChatPageResponse, MemeDto, SendMessageRequest } from '@clubhouse/contracts';
 import { bandFor, messageContains } from '@clubhouse/domain';
 import { schema as s, type AttachmentJson } from '@clubhouse/db';
 import type { Container } from '../container';
@@ -182,18 +182,64 @@ export async function listMessages(c: Container, user: AuthUser, opts: { after?:
   }
   const hasMoreBefore = opts.after == null && rows.length > limit;
   if (hasMoreBefore) rows = rows.slice(1);
-  const pinnedRows = await c.db.query.messages.findMany({ where: and(eq(s.messages.channelId, ch.id), eq(s.messages.pinned, true), isNull(s.messages.deletedAt)), orderBy: [desc(s.messages.seq)], limit: 3 });
-  const read = await c.db.query.chatReads.findFirst({ where: eq(s.chatReads.userId, user.id) });
-  const [latest] = await c.db.select({ seq: sql<number>`coalesce(max(${s.messages.seq}), 0)::bigint` }).from(s.messages).where(eq(s.messages.channelId, ch.id));
-  const mute = await c.db.query.chatMutes.findFirst({ where: eq(s.chatMutes.userId, user.id) });
+  return { messages: await renderMessages(c, user, rows), hasMoreBefore, ...(await chatMeta(c, user, ch.id)) };
+}
+
+/** Everything about the channel besides the messages themselves: pins, read position, latest seq, mute. */
+async function chatMeta(c: Container, user: AuthUser, channelId: string) {
+  const [pinnedRows, read, [latest], mute] = await Promise.all([
+    c.db.query.messages.findMany({ where: and(eq(s.messages.channelId, channelId), eq(s.messages.pinned, true), isNull(s.messages.deletedAt)), orderBy: [desc(s.messages.seq)], limit: 3 }),
+    c.db.query.chatReads.findFirst({ where: eq(s.chatReads.userId, user.id) }),
+    c.db.select({ seq: sql<number>`coalesce(max(${s.messages.seq}), 0)::bigint` }).from(s.messages).where(eq(s.messages.channelId, channelId)),
+    c.db.query.chatMutes.findFirst({ where: eq(s.chatMutes.userId, user.id) }),
+  ]);
   return {
-    messages: await renderMessages(c, user, rows),
     pinned: await renderMessages(c, user, pinnedRows),
     lastReadSeq: read?.lastReadSeq ?? 0,
     latestSeq: Number(latest?.seq ?? 0),
-    hasMoreBefore,
     muted: mute && mute.until > c.clock.now() ? { until: mute.until.toISOString(), reason: mute.reason } : null,
   };
+}
+
+/* ───────── Browser cache revalidation (delta feed) ───────── */
+
+const CHAT_OVERLAP_MS = 2 * 60_000;
+/** More changes than this since the client's last sync: cheaper to reload the latest page than to stream them. */
+const CHAT_MAX_DELTA = 400;
+const epochKey = (teamId: string) => `chat.epoch:${teamId}`;
+
+/** The chat epoch moves whenever messages are hard-deleted (admin "clear by period"); caches must then reset. */
+export async function chatEpoch(c: Container, teamId: string): Promise<string> {
+  const row = await c.db.query.settingsKv.findFirst({ where: eq(s.settingsKv.key, epochKey(teamId)) });
+  return typeof row?.value === 'string' ? row.value : '0';
+}
+
+export async function bumpChatEpoch(c: Pick<Container, 'db'>, teamId: string, by: string | null) {
+  const value = `${Date.now().toString(36)}`;
+  await c.db
+    .insert(s.settingsKv)
+    .values({ key: epochKey(teamId), value, updatedBy: by })
+    .onConflictDoUpdate({ target: s.settingsKv.key, set: { value, updatedBy: by, updatedAt: new Date() } });
+}
+
+/** See ChatChangesResponse: latest page on first load, then everything created or changed since `since`. */
+export async function chatChanges(c: Container, user: AuthUser, q: { since?: string; epoch?: string; limit: number }): Promise<ChatChangesResponse> {
+  const ch = await teamChannel(c, user.teamId);
+  const [{ now }] = (await c.db.execute<{ now: string }>(sql`select now()::text as now`)) as unknown as [{ now: string }];
+  const syncedAt = new Date(now).toISOString();
+  const epoch = await chatEpoch(c, user.teamId);
+  const fresh = async (reset: boolean): Promise<ChatChangesResponse> => ({ ...(await listMessages(c, user, { limit: q.limit })), epoch, reset, syncedAt });
+  if (!q.since) return fresh(false);
+  if (q.epoch && q.epoch !== epoch) return fresh(true);
+  const from = new Date(new Date(q.since).getTime() - CHAT_OVERLAP_MS);
+  const rows = await c.db.query.messages.findMany({
+    where: and(eq(s.messages.channelId, ch.id), sql`${s.messages.updatedAt} > ${from.toISOString()}::timestamptz`),
+    orderBy: [asc(s.messages.seq)],
+    limit: CHAT_MAX_DELTA + 1,
+  });
+  if (rows.length > CHAT_MAX_DELTA) return fresh(true);
+  // hasMoreBefore is a property of the initial page; a delta never changes it (the client keeps its own).
+  return { messages: await renderMessages(c, user, rows), hasMoreBefore: true, ...(await chatMeta(c, user, ch.id)), epoch, reset: false, syncedAt };
 }
 
 export async function renderOne(c: Container, user: AuthUser, id: string) {

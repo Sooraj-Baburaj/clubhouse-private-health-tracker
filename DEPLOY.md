@@ -9,13 +9,17 @@ Nothing here commits or pushes for you: review the changes, commit, and push `ma
 ## 1. Supabase
 
 1. Create a project in **ap-south-1 (Mumbai)**. Save the database password.
-2. **Database › Connection pooling**: copy two URLs.
+2. Click **Connect** (top bar of the project dashboard) › **Connection String** › Type **URI**, and copy two URLs.
+   (The Database › Connection pooling settings page only holds pool sizes; the defaults are fine.)
    - Transaction pooler, port **6543** → `DATABASE_URL` (the app; prepared statements are already disabled).
    - Session pooler, port **5432** → `DATABASE_URL_MIGRATE` (migrations, seeds, backups).
-   Append `?sslmode=require` to both.
+   Skip "Direct connection": it is IPv6-only on the free tier. The pooler username is `postgres.<project-ref>`;
+   substitute your password (URL-encode any `@ # / ? :`) and append `?sslmode=require` to both.
 3. **Storage**: create a **private** bucket `clubhouse-media`. Under **Storage › Settings › S3 connection** enable the S3
    protocol and create an access key. Note the endpoint (`https://<ref>.storage.supabase.co/storage/v1/s3`) and region.
-4. **Project settings › API**: copy the project URL, the `anon` key and the `service_role` key (server only).
+4. **Project settings › API Keys** › **Legacy anon, service_role API keys** tab: copy the `anon` key and the
+   `service_role` key (server only). The project URL (`https://<ref>.supabase.co`) is under **Project settings › Data API**.
+   The newer `sb_publishable_…` / `sb_secret_…` keys are untested with the Realtime code; use the legacy ones.
 5. Apply the schema from your machine once (later changes go through the migrate workflow):
 
    ```bash

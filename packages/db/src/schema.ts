@@ -239,6 +239,7 @@ export const foodItems = pgTable(
     uniqueIndex('food_items_external_uq').on(t.source, t.externalId).where(sql`${t.externalId} is not null`),
     index('food_items_team_idx').on(t.teamId),
     index('food_items_owner_idx').on(t.ownerId),
+    index('food_items_updated_idx').on(t.updatedAt),
   ],
 );
 
@@ -680,10 +681,12 @@ export const messages = pgTable(
     clientCreatedAt: tstz('client_created_at'),
     createdAt: created(),
     editedAt: tstz('edited_at'),
+    /** Bumped by a DB trigger on every change to the message or its reactions; drives the chat delta feed. */
+    updatedAt: tstz('updated_at').notNull().defaultNow(),
     deletedAt: tstz('deleted_at'),
     deletedBy: uuid('deleted_by'),
   },
-  (t) => [uniqueIndex('messages_seq_uq').on(t.seq), index('messages_channel_seq_idx').on(t.channelId, t.seq), index('messages_channel_created_idx').on(t.channelId, t.createdAt)],
+  (t) => [uniqueIndex('messages_seq_uq').on(t.seq), index('messages_channel_seq_idx').on(t.channelId, t.seq), index('messages_channel_created_idx').on(t.channelId, t.createdAt), index('messages_channel_updated_idx').on(t.channelId, t.updatedAt)],
 );
 
 export const reactions = pgTable(

@@ -1,10 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, ApiError, NetworkError } from '@clubhouse/client';
 import type {
+  CatalogFood,
   DietOptionDto,
+  FoodDetail,
   FoodLogDto,
   FoodLogItemInput,
   FoodLogUpsert,
+  FoodSearchResponse,
   FoodSearchResult,
   MealSlot,
   Nutrients,
@@ -14,7 +17,10 @@ import type {
   UsualFood,
 } from '@clubhouse/contracts';
 import { nutritionFor, round1 } from '@clubhouse/domain';
-import { useDebounced } from '@clubhouse/ui';
+import { useDebounced, useOnline } from '@clubhouse/ui';
+import { useMemo } from 'react';
+import { useCollectionStatus } from '@/infrastructure/cache';
+import { catalogFood, foodCatalog, searchCatalog, toSearchResult } from '@/infrastructure/cache/foodCatalog';
 import { outbox } from '@/infrastructure/outbox';
 import { nowIso, uuid } from '@/lib/ids';
 import { qk } from './keys';
@@ -228,15 +234,46 @@ export const looksLikeMeal = (q: string) => q.trim().length >= 3 && (/\d/.test(q
 
 // ── queries ────────────────────────────────────────────────────────────────
 
+/**
+ * Food search, local-first: every keystroke searches the cached catalogue in memory (instant, works offline); when
+ * online, the server's answer (typo-tolerant ranking plus recents and favourites) replaces the order once it arrives
+ * for the current query, with any local-only matches appended. An empty query shows the server's recents.
+ */
 export function useFoodSearch(query: string, slot: MealSlot) {
-  const q = useDebounced(query.trim(), 220);
-  const res = useQuery({
+  const raw = query.trim();
+  const q = useDebounced(raw, 220);
+  const online = useOnline();
+  const catalog = useCollectionStatus(foodCatalog);
+  const usuals = useUsuals();
+  const boost = useMemo(() => new Map((usuals.data ?? []).map((u, i) => [u.id, Math.max(1, 4 - i / 2)])), [usuals.data]);
+  const catalogVersion = catalog.version;
+  const local = useMemo(
+    () => (raw && catalog.ready && catalogVersion >= 0 ? searchCatalog(raw, { boost, limit: 25 }).map((f) => toLocalResult(f)) : null),
+    [raw, catalog.ready, catalogVersion, boost],
+  );
+  const server = useQuery({
     queryKey: [...qk.foodSearch(q), slot],
     queryFn: ({ signal }) => api.foods.search(q, slot, signal),
     staleTime: 60_000,
     placeholderData: (prev) => prev,
+    enabled: online,
   });
-  return { ...res, debouncedQuery: q, settling: q !== query.trim() };
+  const data = useMemo<FoodSearchResponse | undefined>(() => {
+    if (!raw) return server.data;
+    const fresh = server.data && q === raw && !server.isPlaceholderData ? server.data : null;
+    if (fresh) {
+      const ids = new Set(fresh.results.map((r) => r.id));
+      return { ...fresh, results: [...fresh.results, ...(local ?? []).filter((r) => !ids.has(r.id))].slice(0, 30) };
+    }
+    if (local) return { query: raw, results: local, tookMs: 0 };
+    return server.data;
+  }, [raw, q, server.data, server.isPlaceholderData, local]);
+  return { ...server, data, isPending: server.isPending && !local, isError: server.isError && !local, debouncedQuery: q, settling: !local && q !== raw };
+}
+
+/** Local catalogue hit, labelled like the server would (usage-based "Recent" comes from the server answer). */
+function toLocalResult(f: CatalogFood): FoodSearchResult {
+  return toSearchResult(f);
 }
 
 export function useUsuals() {
@@ -253,7 +290,21 @@ export function useFoodLogById(id: string | undefined) {
 
 export function useFoodDetail() {
   const qc = useQueryClient();
-  return (id: string) => qc.fetchQuery({ queryKey: qk.food(id), queryFn: () => api.foods.get(id), staleTime: 10 * 60_000 });
+  return (id: string) =>
+    qc.fetchQuery({
+      queryKey: qk.food(id),
+      queryFn: async (): Promise<FoodDetail> => {
+        try {
+          return await api.foods.get(id);
+        } catch (e) {
+          // Offline: the cached catalogue has everything needed to log the food.
+          const f = e instanceof NetworkError ? catalogFood(id) : undefined;
+          if (!f) throw e;
+          return { ...toSearchResult(f), category: null, source: f.scope === 'global' ? 'seed' : f.scope, createdByMe: f.scope === 'mine' };
+        }
+      },
+      staleTime: 10 * 60_000,
+    });
 }
 
 export function useCreateFood() {
@@ -263,6 +314,8 @@ export function useCreateFood() {
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: qk.myFoods });
       void qc.invalidateQueries({ queryKey: ['food-search'] });
+      // The new food joins the offline catalogue straight away.
+      void foodCatalog.revalidate('write');
     },
   });
 }

@@ -1,27 +1,20 @@
 import { CheckCircle2, EllipsisVertical, MonitorDown, Share, SquarePlus, type LucideIcon } from 'lucide-react';
 import { motion } from 'motion/react';
-import { useEffect, useState } from 'react';
-import { isIos, isStandalone } from '@/infrastructure/push';
+import { promptInstall, useInstall, type InstallPlatform } from '@/infrastructure/install';
 import { AIBadge } from '@/ui/atoms/Badges';
 import { Button } from '@/ui/atoms/Button';
 import { Toggle } from '@/ui/atoms/Toggle';
 import { useListMotion } from '@/ui/organisms/today/motion';
 
-type Platform = 'installed' | 'ios' | 'android' | 'desktop';
+type Platform = 'ios' | 'android' | 'desktop';
 
-interface InstallPromptEvent extends Event {
-  prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
-}
-
-function detect(): Platform {
-  if (isStandalone()) return 'installed';
-  if (isIos()) return 'ios';
-  if (/Android/i.test(navigator.userAgent)) return 'android';
+function stepsFor(p: InstallPlatform): Platform {
+  if (p === 'ios' || p === 'mac-safari') return 'ios';
+  if (p === 'android') return 'android';
   return 'desktop';
 }
 
-const STEPS: Record<Exclude<Platform, 'installed'>, { icon: LucideIcon; text: string }[]> = {
+const STEPS: Record<Platform, { icon: LucideIcon; text: string }[]> = {
   ios: [
     { icon: Share, text: 'Tap the Share button at the bottom of Safari.' },
     { icon: SquarePlus, text: 'Scroll down and tap “Add to Home Screen”.' },
@@ -46,23 +39,10 @@ export interface AiChoices {
 
 /** Step 4: Add-to-Home-Screen pictures for this browser, plus the AI notice with opt-outs when team AI is on. */
 export function StepInstall({ aiOn, ai, onAiChange }: { aiOn: boolean; ai: AiChoices; onAiChange: (a: AiChoices) => void }) {
-  const [platform] = useState(detect);
-  const [prompt, setPrompt] = useState<InstallPromptEvent | null>(null);
-  const [installed, setInstalled] = useState(platform === 'installed');
+  const install = useInstall();
+  const platform = stepsFor(install.platform);
+  const installed = install.installed;
   const m = useListMotion(0.08, 0.1);
-  useEffect(() => {
-    const onPrompt = (e: Event) => {
-      e.preventDefault();
-      setPrompt(e as InstallPromptEvent);
-    };
-    const onInstalled = () => setInstalled(true);
-    window.addEventListener('beforeinstallprompt', onPrompt);
-    window.addEventListener('appinstalled', onInstalled);
-    return () => {
-      window.removeEventListener('beforeinstallprompt', onPrompt);
-      window.removeEventListener('appinstalled', onInstalled);
-    };
-  }, []);
 
   return (
     <div className="flex flex-col gap-5">
@@ -73,7 +53,7 @@ export function StepInstall({ aiOn, ai, onAiChange }: { aiOn: boolean; ai: AiCho
         </div>
       ) : (
         <motion.ol variants={m.container} initial="hidden" animate="show" className="m-0 flex list-none flex-col gap-2.5 p-0">
-          {STEPS[platform as Exclude<Platform, 'installed'>].map((s, i) => (
+          {STEPS[platform].map((s, i) => (
             <motion.li key={i} variants={m.item} className="flex items-center gap-3.5 rounded-[26px] bg-surface px-4 py-3.5">
               <span className="relative grid h-11 w-11 shrink-0 place-items-center rounded-full bg-bg">
                 <s.icon className="h-5 w-5 text-accent-700" strokeWidth={2.75} aria-hidden />
@@ -84,17 +64,8 @@ export function StepInstall({ aiOn, ai, onAiChange }: { aiOn: boolean; ai: AiCho
           ))}
         </motion.ol>
       )}
-      {prompt && !installed && (
-        <Button
-          variant="dark"
-          block
-          icon={<MonitorDown className="h-5 w-5" strokeWidth={2.75} aria-hidden />}
-          onClick={() => {
-            void prompt.prompt();
-            void prompt.userChoice.then((c) => c.outcome === 'accepted' && setInstalled(true));
-            setPrompt(null);
-          }}
-        >
+      {install.canPrompt && !installed && (
+        <Button variant="dark" block icon={<MonitorDown className="h-5 w-5" strokeWidth={2.75} aria-hidden />} onClick={() => void promptInstall()}>
           Install now
         </Button>
       )}

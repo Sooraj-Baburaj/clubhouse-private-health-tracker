@@ -80,3 +80,23 @@ export interface MemeDto {
   reactions: number;
   suggestedBy: PersonRef | null;
 }
+
+/**
+ * GET /chat/changes — the browser chat cache's revalidation feed. Without `since`: the latest page (like
+ * /chat/messages). With `since`: every message created or changed after it (edits, deletions, pins, reactions), with
+ * a safety overlap. `reset` means the cache must be dropped and reloaded (too many changes, or `epoch` moved because
+ * an admin cleared a period). `syncedAt` is the `since` for the next call.
+ */
+export interface ChatChangesResponse {
+  epoch: string;
+  reset: boolean;
+  messages: ChatMessageDto[];
+  pinned: ChatMessageDto[];
+  lastReadSeq: number;
+  latestSeq: number;
+  hasMoreBefore: boolean;
+  muted: { until: string; reason: string } | null;
+  syncedAt: string;
+}
+
+export const ChatChangesQuery = z.object({ since: IsoDateTime.optional(), epoch: z.string().max(64).optional(), limit: z.coerce.number().int().min(10).max(100).default(60) });

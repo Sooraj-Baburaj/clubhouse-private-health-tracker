@@ -107,6 +107,32 @@ apps/admin (admin SPA)  ─┘                         └─ /api/admin/*  admi
   Background work uses lease rows, so any number of instances can receive the scheduler tick safely. The first limits
   you would meet are Postgres connections and the free-tier quotas, long before the API design itself.
 
+## Offline data and caching
+
+Three layers, each with one job:
+
+| Layer | Holds | Revalidation |
+|---|---|---|
+| **Service worker** (`apps/web/src/sw.ts`) | App shell, fonts, photos; network-first copies of screen endpoints | New app version → update prompt; photos stale-while-revalidate |
+| **Query cache** (TanStack Query, persisted to IndexedDB) | Screen data: Today, Diet, Progress, Inbox, profile | Stale-time per query, refetch on focus/reconnect, realtime hints |
+| **Synced collections** (`apps/web/src/infrastructure/cache`) | Large datasets: the food catalogue (~2,100 foods) and chat history (up to 2,000 messages) | Delta sync (below) |
+
+Synced collections live in IndexedDB and memory, so food search and chat open instantly and work offline. Each one
+pulls only what changed since its last sync (`GET /api/foods/catalog?since=`, `GET /api/chat/changes?since=`); database
+triggers keep `updated_at` current on every edit and reaction, and each delta re-reads a two-minute overlap so late
+commits are never missed. The shared engine (`cache/engine.ts`) handles:
+
+- **Scope:** data belongs to one person on one team; another sign-in, sign-out or a new payload format drops it.
+- **Triggers:** session start, tab focus, back online, realtime hints (`chat.*`, `foods.changed`), local writes,
+  a 60 s chat interval as a realtime fallback, and "Refresh now" in Settings › App.
+- **Freshness:** foods are considered fresh for 6 h, chat for 15 s; forced triggers ignore that.
+- **Robustness:** one pull at a time, a Web Lock so only one tab syncs, BroadcastChannel so other tabs re-read,
+  exponential backoff on errors (data is never thrown away on failure), a full re-download every few days and
+  whenever the server says `reset` (e.g. after an admin clears chat), quota handling, and persistent-storage requests.
+
+Food search is local-first: results appear on every keystroke from the cached catalogue, and when online the server's
+ranking (with recents and favourites) is merged in for the same query.
+
 ## Architecture notes
 
 - **Clean architecture.** Routes (`packages/server/src/interface/http`) validate input and call use cases in

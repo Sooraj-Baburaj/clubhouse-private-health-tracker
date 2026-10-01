@@ -3,6 +3,7 @@ import { useNavigate } from '@tanstack/react-router';
 import { api, ApiError } from '@clubhouse/client';
 import type { GoalUpdateRequest, PreferencesUpdateRequest, ProfileDto, ProfileUpdateRequest, TargetsDto } from '@clubhouse/contracts';
 import { toast } from '@clubhouse/ui';
+import { clearCaches } from '@/infrastructure/cache';
 import { db } from '@/infrastructure/idb';
 import { compressImage } from '@/infrastructure/images';
 import { persister, queryClient } from '@/infrastructure/queryClient';
@@ -147,6 +148,7 @@ async function clearSession() {
   live.stop();
   queryClient.clear();
   await persister.removeClient();
+  await clearCaches();
 }
 
 /** Log out (this device or everywhere), wipe cached data and go to sign-in. */
@@ -172,6 +174,8 @@ export function useLogout() {
 export async function clearLocalCache() {
   queryClient.clear();
   await persister.removeClient();
+  // Food catalogue and chat history re-download on the next start; the offline outbox is kept.
+  await clearCaches();
   const d = await db();
   await d.clear('kv');
   await d.clear('shared');

@@ -17,7 +17,9 @@ export default defineConfig({
       registerType: 'prompt',
       injectRegister: false,
       injectManifest: { globPatterns: ['**/*.{js,css,html,svg,png,woff2,webmanifest}'], maximumFileSizeToCacheInBytes: 3 * 1024 * 1024 },
-      devOptions: { enabled: false, type: 'module' },
+      // On in dev too: Chrome/Edge only offer "Install" when the manifest and a service worker are served, and push
+      // notifications need the worker. Dev precaches nothing, so Vite's live reload is unaffected.
+      devOptions: { enabled: true, type: 'module' },
       manifest: {
         id: '/',
         name: 'Clubhouse',

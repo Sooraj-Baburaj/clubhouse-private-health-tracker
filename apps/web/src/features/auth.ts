@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api, ApiError, NetworkError } from '@clubhouse/client';
 import type { ChangePasswordRequest, LoginRequest } from '@clubhouse/contracts';
+import { clearCaches } from '@/infrastructure/cache';
 import { live } from '@/infrastructure/realtime';
 import { qk } from './keys';
 import type { Me } from './me';
@@ -65,6 +66,7 @@ export function useSignOut() {
     onSettled: () => {
       qc.clear();
       live.stop();
+      void clearCaches();
     },
   });
 }

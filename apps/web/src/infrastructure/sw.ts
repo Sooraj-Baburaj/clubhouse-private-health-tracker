@@ -7,7 +7,12 @@ const listeners = new Set<Listener>();
 
 /** SYS-PWA-06: a new version downloads in the background; the member reloads when ready (never mid-entry). */
 export function registerServiceWorker() {
-  if (!('serviceWorker' in navigator) || import.meta.env.DEV) return;
+  if (!('serviceWorker' in navigator)) return;
+  if (import.meta.env.DEV) {
+    // vite-plugin-pwa serves the dev build of src/sw.ts here (module worker). No update prompts in dev.
+    void navigator.serviceWorker.register('/dev-sw.js?dev-sw', { type: 'module', scope: '/' }).catch(() => undefined);
+    return;
+  }
   wb = new Workbox('/sw.js', { scope: '/' });
   wb.addEventListener('waiting', () => {
     updateReady = true;

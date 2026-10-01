@@ -34,6 +34,7 @@ export const api = {
   foods: {
     search: (q: string, slot?: C.MealSlot, signal?: AbortSignal) => get<C.FoodSearchResponse>('/foods/search', { q, slot }, signal),
     usuals: () => get<C.UsualFood[]>('/foods/usuals'),
+    catalog: (q: { since?: string; after?: string; limit?: number }, signal?: AbortSignal) => get<C.FoodCatalogPage>('/foods/catalog', q, signal),
     get: (id: string) => get<C.FoodDetail>(`/foods/${id}`),
     create: (b: C.CreateFoodRequest) => post<C.FoodSearchResult>('/foods', b),
     favourite: (id: string, on: boolean) => post<Ok>(`/foods/${id}/favourite`, { on }),
@@ -90,6 +91,7 @@ export const api = {
   },
   chat: {
     list: (q: { after?: number; before?: number; limit?: number }) => get<C.ChatPageResponse>('/chat/messages', q),
+    changes: (q: { since?: string; epoch?: string; limit?: number }, signal?: AbortSignal) => get<C.ChatChangesResponse>('/chat/changes', q, signal),
     send: (id: string, b: C.SendMessageRequest) => put<{ message: C.ChatMessageDto; duplicate: boolean }>(`/chat/messages/${id}`, b),
     delete: (id: string) => del<Ok>(`/chat/messages/${id}`),
     react: (id: string, emoji: string, on: boolean) => post<Ok>(`/chat/messages/${id}/reactions`, { emoji, on }),
