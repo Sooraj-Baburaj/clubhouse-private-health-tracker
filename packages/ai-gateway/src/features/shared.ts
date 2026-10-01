@@ -17,7 +17,9 @@ export const RecognisedItemWire = z.object({
   quantity: z.number().describe('Count in the household measure, e.g. 2 for "2 rotis"; 1 when not countable.'),
   confidence: z.number().describe('0 to 1: how sure you are about the identity and portion of this item.'),
   estimatePer100g: Per100gWire.describe('Typical nutrition per 100 g for this item as prepared. Used only if the database has no match.'),
-  tags: z.array(z.enum(FOOD_TAGS)).describe('Applicable tags only.'),
+  // Plain strings on the wire: the SDK can't send `enum` as a constraint (it moves it into the description), so one
+  // unlisted tag would fail the whole parse. Unknown tags are dropped in sanitiseRecognition instead.
+  tags: z.array(z.string()).describe(`Applicable tags only, from: ${FOOD_TAGS.join(', ')}.`),
 });
 export type RecognisedItem = z.infer<typeof RecognisedItemWire>;
 
@@ -28,6 +30,8 @@ export const RecognitionWire = z.object({
   note: z.string().describe('One short sentence for the member, or an empty string.'),
 });
 export type Recognition = z.infer<typeof RecognitionWire>;
+
+const KNOWN_TAGS = new Set<string>(FOOD_TAGS);
 
 const clamp = (n: number, lo: number, hi: number) => (Number.isFinite(n) ? Math.max(lo, Math.min(hi, n)) : lo);
 
@@ -44,6 +48,7 @@ export function sanitiseRecognition(r: Recognition): Recognition {
       quantity: clamp(i.quantity || 1, 0.25, 20),
       confidence: clamp(i.confidence, 0, 1),
       householdMeasure: i.householdMeasure.trim().slice(0, 40) || `${Math.round(i.portionGrams)} g`,
+      tags: [...new Set(i.tags.map((t) => t.trim().toLowerCase()).filter((t) => KNOWN_TAGS.has(t)))],
       estimatePer100g: {
         kcal: clamp(i.estimatePer100g.kcal, 0, 900),
         protein: clamp(i.estimatePer100g.protein, 0, 100),

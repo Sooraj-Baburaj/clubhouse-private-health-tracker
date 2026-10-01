@@ -29,6 +29,13 @@
       "when": 1790870319987,
       "tag": "0003_delta_sync",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1790879888103,
+      "tag": "0004_habits",
+      "breakpoints": true
     }
   ]
 }

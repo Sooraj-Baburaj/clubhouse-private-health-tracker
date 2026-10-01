@@ -21,7 +21,7 @@ function addTotals(t: TodayResponse, log: { totals: { kcal: number; protein: num
  * Save through the API when online (so effects like meme moments come back immediately); on a network failure queue
  * it in the outbox and apply an optimistic update so the member keeps going offline (NFR-REL-03).
  */
-async function saveWithFallback<T>(direct: () => Promise<UpsertResult<T>>, queue: () => Promise<void>): Promise<SaveOutcome<T>> {
+export async function saveWithFallback<T>(direct: () => Promise<UpsertResult<T>>, queue: () => Promise<void>): Promise<SaveOutcome<T>> {
   try {
     const r = await direct();
     return { entity: r.entity, queued: false, effects: r.effects };

@@ -326,11 +326,18 @@ export function useCreateFood() {
 const IMAGE_FIELD = 'image';
 const fileName = (b: Blob) => (b.type === 'image/jpeg' ? 'photo.jpg' : 'photo.webp');
 
+/** A compressed photo plus the clientId the server dedupes on, so retries and fallbacks never store it twice. */
+export interface Shot {
+  blob: Blob;
+  clientId: string;
+}
+
 export function useRecognisePhoto() {
   return useMutation({
-    mutationFn: ({ blob, slot, hint }: { blob: Blob; slot: MealSlot; hint?: string }) => {
+    mutationFn: ({ blob, clientId, slot, hint }: Shot & { slot: MealSlot; hint?: string }) => {
       const form = new FormData();
       form.append(IMAGE_FIELD, blob, fileName(blob));
+      form.append('clientId', clientId);
       form.append('slot', slot);
       if (hint?.trim()) form.append('hint', hint.trim());
       return api.ai.foodPhoto(form);
@@ -344,9 +351,10 @@ export function useParseMealText() {
 
 export function useUploadFoodPhoto() {
   return useMutation({
-    mutationFn: (blob: Blob) => {
+    mutationFn: ({ blob, clientId }: Shot) => {
       const form = new FormData();
       form.append(IMAGE_FIELD, blob, fileName(blob));
+      form.append('clientId', clientId);
       form.append('kind', 'food');
       return api.media.upload(form);
     },

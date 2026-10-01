@@ -6,13 +6,14 @@ import type { Container } from '../../container';
 import { log } from '../../lib/log';
 import type { AuthUser } from '../../interface/http/types';
 import { teamChannel } from '../chat';
+import { habitsDueAt, openHabitIds } from '../habits';
 import { deliverDeferred, notifyUser } from '../notify';
 import { rescheduleUser } from '../scheduler';
 import { getTeam } from '../team';
 import { authUserFor, hasTime, type Stats, type StepCtx } from './shared';
 
 const SLOT_BY_TYPE = Object.fromEntries(Object.entries(SLOT_REMINDER).map(([slot, type]) => [type, slot])) as Partial<Record<NotificationType, MealSlot>>;
-const REMINDERS: NotificationType[] = [...Object.values(SLOT_REMINDER), 'activity_reminder', 'momentum_at_risk', 'weigh_in_reminder'];
+const REMINDERS: NotificationType[] = [...Object.values(SLOT_REMINDER), 'activity_reminder', 'momentum_at_risk', 'weigh_in_reminder', 'habit_reminder'];
 const STALE_MS = 2 * 3600_000;
 const BATCH = 50;
 const MAX_PER_TICK = 200;
@@ -43,6 +44,8 @@ interface ReminderContent {
   url: string;
   actions: { action: string; title: string }[];
   data: Record<string, unknown>;
+  /** Habit reminders with bundling off: one push per habit instead of the bundle. */
+  separate?: { title: string; body: string; data: Record<string, unknown> }[];
 }
 
 const SNOOZE = { action: 'snooze', title: 'Snooze 1 h' };
@@ -104,6 +107,27 @@ async function reminderContent(c: Container, u: AuthUser, type: NotificationType
     // Nothing at risk without a streak; nothing to do once today has a log.
     const alreadyLogged = streak === 0 || (await anyLogOn(c, u.id, today));
     return { alreadyLogged, title: `${streak}-day momentum`, vars: { name, streak }, url: '/', actions: [{ action: 'log', title: 'Log now' }], data: { localDate: today } };
+  }
+  if (type === 'habit_reminder') {
+    // One reminder per time slot: every habit set for this time that is still open today.
+    const at = localTimeOf(due, u.timezone);
+    const open = await habitsDueAt(c, u, today, at);
+    const profile = await c.db.query.profiles.findFirst({ where: eq(s.profiles.userId, u.id), columns: { habitPrefs: true } });
+    const names = open.map((h) => h.name);
+    const list = names.length <= 3 ? names.join(', ') : `${names.slice(0, 2).join(', ')} and ${names.length - 2} more`;
+    const data = { habitIds: open.map((h) => h.id), localDate: today, time: at };
+    return {
+      alreadyLogged: open.length === 0,
+      title: open.length === 1 ? `${open[0]!.icon} ${open[0]!.name}` : `${open.length} habits due`,
+      vars: { name, habits: list, count: open.length },
+      url: '/habits',
+      actions: [{ action: 'done', title: open.length === 1 ? 'Done' : 'All done' }, SNOOZE],
+      data,
+      separate:
+        profile?.habitPrefs?.bundle === false && open.length > 1
+          ? open.map((h) => ({ title: `${h.icon} ${h.name}`, body: h.note?.trim() || 'One tap to tick it off.', data: { habitIds: [h.id], localDate: today, time: at } }))
+          : undefined,
+    };
   }
   if (type === 'weigh_in_reminder') {
     const [w] = await c.db
@@ -217,6 +241,15 @@ async function deliverOne(c: Container, row: ClaimedRow, now: Date): Promise<Out
     await finish(c, u.id, type, { reason });
     return 'suppressed';
   }
+  if (content.separate) {
+    let pushed = 0;
+    for (const [i, one] of content.separate.entries()) {
+      const r1 = await notifyUser(c, u.id, { type, title: one.title, body: one.body, url: content.url, tag: `${type}:${i}`, actions: content.actions.map((a) => (a.action === 'done' ? { ...a, title: 'Done' } : a)), data: one.data, dedupeKey: `sched:${u.id}:${type}:${today}:${localTimeOf(due, u.timezone)}:${String(one.data.habitIds)}` });
+      if (r1.id) pushed++;
+    }
+    await finish(c, u.id, type, { reason: pushed ? 'sent' : 'duplicate', sentAt: now, sentLocalDate: today });
+    return 'sent';
+  }
   const body = copyFor(team, type, `${u.id}:${type}:${today}`, content.vars);
   const r = await notifyUser(c, u.id, {
     type,
@@ -251,7 +284,8 @@ async function releaseSnoozed(c: Container, now: Date, limit: number): Promise<{
         const u = await authUserFor(c, user);
         const today = localDateOf(now, u.timezone);
         const date = typeof n.data.localDate === 'string' ? n.data.localDate : today;
-        stillNeeded = date === today && !(await reminderContent(c, u, type, today, now)).alreadyLogged;
+        if (type === 'habit_reminder') stillNeeded = date === today && (await openHabitIds(c, u, today, Array.isArray(n.data.habitIds) ? (n.data.habitIds as string[]) : [])).length > 0;
+        else stillNeeded = date === today && !(await reminderContent(c, u, type, today, now)).alreadyLogged;
       }
     }
     if (stillNeeded) {

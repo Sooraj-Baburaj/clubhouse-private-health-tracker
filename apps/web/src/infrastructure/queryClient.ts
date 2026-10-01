@@ -21,14 +21,14 @@ export const queryClient = new QueryClient({
  * here: the food catalogue and chat history live in their own IndexedDB stores with delta sync (infrastructure/cache).
  * Bump CACHE_SCHEMA when a persisted response changes shape so old snapshots are discarded instead of mis-rendered.
  */
-export const CACHE_SCHEMA = 'v2';
+export const CACHE_SCHEMA = 'v3';
 export const persister = createAsyncStoragePersister({
   storage: { getItem: (k) => kv.get<string>(k).then((v) => v ?? null), setItem: (k, v) => kv.set(k, v), removeItem: (k) => kv.del(k) },
   key: 'ch:query-cache',
   throttleTime: 1500,
 });
 
-const PERSISTED = new Set(['me', 'today', 'diet', 'progress', 'momentum', 'inbox', 'activity-types', 'plan', 'usuals', 'team', 'chat-members', 'memes']);
+const PERSISTED = new Set(['me', 'today', 'diet', 'progress', 'momentum', 'inbox', 'activity-types', 'plan', 'usuals', 'team', 'chat-members', 'memes', 'habits']);
 export const persistOptions = {
   persister,
   maxAge: 7 * 24 * 3600_000,

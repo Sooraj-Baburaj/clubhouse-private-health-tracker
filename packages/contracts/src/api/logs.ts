@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { GymFocus, Intensity, MealSlot } from '../enums';
 import { IsoDateTime, LocalDateStr, Nutrients } from './common';
+import { HabitCheckinUpsert } from './habits';
 
 export const FoodLogItemInput = z.object({
   foodId: z.string().uuid().nullable(),
@@ -60,6 +61,7 @@ export const SyncOp = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('food_log'), id: z.string().uuid(), data: FoodLogUpsert }),
   z.object({ kind: z.literal('activity_log'), id: z.string().uuid(), data: ActivityLogUpsert }),
   z.object({ kind: z.literal('weight'), id: z.string().uuid(), data: WeightUpsert }),
+  z.object({ kind: z.literal('habit_checkin'), id: z.string().uuid(), data: HabitCheckinUpsert }),
 ]);
 export type SyncOp = z.infer<typeof SyncOp>;
 export const SyncRequest = z.object({ ops: z.array(SyncOp).min(1).max(50) });

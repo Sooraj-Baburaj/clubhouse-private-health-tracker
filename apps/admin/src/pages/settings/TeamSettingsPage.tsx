@@ -181,7 +181,7 @@ function SettingsEditor({ data }: { data: TeamSettingsData }) {
         {/* Member defaults */}
         <SettingsCard id="settings-defaults" title="Member defaults" description="Starting choices for new members. Each member can change these in their own settings." dirty={isDirty('defaults')}>
           <FormGrid min={240}>
-            <Field label="Teammates see" hint={<DefaultHint>daily summaries only</DefaultHint>} error={err('privacyDefault')}>
+            <Field label="Teammates see" hint={<DefaultHint>full food logs</DefaultHint>} error={err('privacyDefault')}>
               <Select value={form.privacyDefault} onChange={(e) => set('privacyDefault', e.target.value as SettingsForm['privacyDefault'])}>
                 <option value="summary">Daily summaries only</option>
                 <option value="full">Full food logs</option>

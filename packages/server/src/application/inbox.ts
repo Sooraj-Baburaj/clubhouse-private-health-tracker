@@ -93,6 +93,7 @@ export const NOTIFICATION_META: Record<NotificationType, TypeMeta> = {
   evening_snack_reminder: meal('Evening snack', 'Only if you like logging snacks.'),
   dinner_reminder: meal('Dinner', 'A nudge if dinner isn’t logged yet.'),
   activity_reminder: { label: 'Planned activity', hint: '30 minutes before each session in your plan.', group: 'activity', supportsTime: false, supportsDays: true, supportsSmartTime: false },
+  habit_reminder: { label: 'Habit reminders', hint: 'At the times your admin set. Change them per habit; skipped once done.', group: 'habits', supportsTime: false, supportsDays: true, supportsSmartTime: false },
   weigh_in_reminder: { label: 'Weigh-in', hint: 'Skipped if you weighed in during the last 6 days.', group: 'activity', supportsTime: true, supportsDays: true, supportsSmartTime: false },
   momentum_at_risk: { label: 'Momentum at risk', hint: 'An evening heads-up when today isn’t logged yet.', group: 'momentum', supportsTime: true, supportsDays: true, supportsSmartTime: false },
   milestone: { label: 'Milestones and badges', hint: 'When you hit a streak milestone.', group: 'momentum', supportsTime: false, supportsDays: false, supportsSmartTime: false },
@@ -263,6 +264,18 @@ export async function done(c: Container, user: AuthUser, id: string): Promise<{ 
       }
     } catch (e) {
       log.warn('notifications.done_log_failed', { id, error: (e as Error).message });
+    }
+  }
+  if (row.type === 'habit_reminder' && Array.isArray(row.data.habitIds)) {
+    try {
+      const { completingValue, memberHabits, openHabitIds, upsertCheckin } = await import('./habits');
+      const { today } = memberClock(c, user.timezone);
+      const date = typeof row.data.localDate === 'string' && row.data.localDate <= today ? row.data.localDate : today;
+      const open = await openHabitIds(c, user, date, row.data.habitIds as string[]);
+      const habits = (await memberHabits(c, user.id, user.teamId)).filter((h) => open.includes(h.id));
+      for (const h of habits) await upsertCheckin(c, user, stableUuid(`done:${row.id}:${h.id}`), { habitId: h.id, date, value: completingValue(h), clientUpdatedAt: now.toISOString() });
+    } catch (e) {
+      log.warn('notifications.done_habit_failed', { id, error: (e as Error).message });
     }
   }
   if (SCHEDULED_NOTIFICATION_TYPES.includes(row.type as NotificationType)) await rescheduleUser(c, user.id, row.type as NotificationType);

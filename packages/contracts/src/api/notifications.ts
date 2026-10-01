@@ -39,7 +39,7 @@ export interface NotificationPrefDto {
   type: string;
   label: string;
   hint: string;
-  group: 'meals' | 'activity' | 'momentum' | 'chat' | 'team' | 'system';
+  group: 'meals' | 'activity' | 'habits' | 'momentum' | 'chat' | 'team' | 'system';
   enabled: boolean;
   time: string | null;
   days: number[];

@@ -12,10 +12,12 @@ import { useMeData } from '@/features/me';
 import { mergeMoments, useMoments } from '@/features/moments';
 import { memberNow, useAiSummary } from '@/features/summary';
 import { useToday } from '@/features/today';
+import { useHabitDay } from '@/features/habits';
 import { Button } from '@/ui/atoms/Button';
 import { EmptyState } from '@/ui/molecules/EmptyState';
 import { CalorieHero, MacroTiles } from '@/ui/organisms/today/CalorieHero';
 import { CoachCard } from '@/ui/organisms/today/CoachCard';
+import { HabitsTodayCard } from '@/ui/organisms/habits/HabitPieces';
 import { CrewRow } from '@/ui/organisms/today/CrewRow';
 import { LogActionsSheet } from '@/ui/organisms/today/LogActionsSheet';
 import { buildEntries, LoggedList, type LogEntry } from '@/ui/organisms/today/LoggedList';
@@ -50,6 +52,7 @@ export function TodayPage() {
   const date = useViewedDate(today);
   const isToday = date === today;
   const q = useToday(isToday ? undefined : date);
+  const habits = useHabitDay();
   const t = q.data;
   const unread = useQuery({ queryKey: qk.unread, queryFn: () => api.chat.unread(), staleTime: 30_000 });
   const ai = useAiSummary(isToday ? undefined : date, me.ai.summaryAvailable && !!t, t ? `${Math.round(t.eaten.kcal)}:${t.burned}:${t.foodLogs.length}:${t.activityLogs.length}` : '');
@@ -106,6 +109,11 @@ export function TodayPage() {
           {isToday && t.nextUp && (
             <motion.div variants={m.item}>
               <NextUpCard next={t.nextUp} date={date} />
+            </motion.div>
+          )}
+          {isToday && habits.data && habits.data.total > 0 && (
+            <motion.div variants={m.item}>
+              <HabitsTodayCard day={habits.data} onOpen={() => void navigate({ to: '/habits' })} />
             </motion.div>
           )}
           <motion.div variants={m.item}>

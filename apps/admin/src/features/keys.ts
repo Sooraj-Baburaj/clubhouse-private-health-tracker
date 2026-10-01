@@ -11,6 +11,8 @@ export const qk = {
   dietFeedback: (userId: string) => ['admin', 'diets', 'feedback', userId] as const,
   foods: (q: Record<string, unknown>) => ['admin', 'foods', q] as const,
   foodsAll: ['admin', 'foods'] as const,
+  habits: ['admin', 'habits'] as const,
+  habitAdherence: ['admin', 'habits', 'adherence'] as const,
   plans: ['admin', 'plans'] as const,
   plan: (userId: string) => ['admin', 'plans', userId] as const,
   planRanking: ['admin', 'plans', 'ranking'] as const,

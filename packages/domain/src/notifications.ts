@@ -132,6 +132,7 @@ const REMINDER_TYPES: NotificationType[] = [
   'activity_reminder',
   'momentum_at_risk',
   'weigh_in_reminder',
+  'habit_reminder',
 ];
 
 /** SYS-NOTIF-05/06/07: decide whether a due notification is suppressed. `null` = send. */
@@ -144,7 +145,8 @@ export function suppressionReason(ctx: SuppressionContext): SuppressionReason | 
     if (ctx.onVacation) return 'vacation';
     if (ctx.alreadyLogged) return 'already_logged';
     if (ctx.lastActiveAt && ctx.now.getTime() - ctx.lastActiveAt.getTime() < 10 * 60_000) return 'active_in_app';
-    if (ctx.lastSameTypeSentAt && ctx.now.getTime() - ctx.lastSameTypeSentAt.getTime() < 4 * 3600_000) return 'recently_sent';
+    // Habit reminders fire at several times a day (one bundle per time slot), so they skip the 4-hour spacing.
+    if (ctx.type !== 'habit_reminder' && ctx.lastSameTypeSentAt && ctx.now.getTime() - ctx.lastSameTypeSentAt.getTime() < 4 * 3600_000) return 'recently_sent';
   }
   if (ctx.type === 'chat_digest' || ctx.type === 'chat_mention') {
     if (ctx.chatMutedUntil && ctx.chatMutedUntil > ctx.now) return 'muted';

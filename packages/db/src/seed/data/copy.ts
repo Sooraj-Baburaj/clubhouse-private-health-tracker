@@ -1,5 +1,6 @@
 /**
- * Reminder copy pool: 10 short, warm lines per type (SYS-NOTIF-12). Placeholders: {name}, {slot}, {activity}, {time}, {streak}.
+ * Reminder copy pool: 10 short, warm lines per type (SYS-NOTIF-12). Placeholders: {name}, {slot}, {activity}, {time}, {streak},
+ * {habits} (names, comma-separated) and {count}.
  * Never guilt-tripping; the banned-word test in packages/domain checks these.
  */
 export const DEFAULT_COPY_POOL: Record<string, string[]> = {
@@ -98,5 +99,17 @@ export const DEFAULT_COPY_POOL: Record<string, string[]> = {
     'One number for the trend line.',
     'Before breakfast: weigh-in.',
     'Your weekly weigh-in is here.',
+  ],
+  habit_reminder: [
+    'Up next: {habits}.',
+    '{habits}. Two minutes, then tick it.',
+    'Quick one, {name}: {habits}.',
+    'Habit time: {habits}.',
+    'Tick-tock: {habits}.',
+    'Waiting for a tap: {habits}.',
+    'Small things, every day: {habits}.',
+    'Ready when you are: {habits}.',
+    'A gentle nudge for {habits}.',
+    'Your list says {habits}. One tap each.',
   ],
 };

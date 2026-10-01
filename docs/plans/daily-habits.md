@@ -1,6 +1,14 @@
 # Daily Habits — feature plan
 
-Status: **planned, not designed, not built.** Next step is design (see "Before building" at the end).
+Status: **v1 built (2026-10-02)** from the Claude Design screens: member Habits 4b "Tap tiles", habit detail, Today /
+Progress / Momentum cards, log-sheet entry, settings rows; admin catalogue, templates, adherence heatmap and editor.
+
+Decisions taken while building (open questions below): Today card + screen; the habits streak is separate from the
+logging streak and computed on read with the shared momentum engine (grace and pauses); reminders are bundled per time
+slot by default, with a member toggle for one push per habit; admins see adherence percentages only.
+
+Not in v1 yet: meme trigger events (`habit_checked`, `all_habits_done`), a Habits tab on the admin member detail page,
+the phase 6 end-to-end test, and a `habits` summary in the Today payload (the card uses `GET /habits` instead).
 
 ## 1. What it is
 

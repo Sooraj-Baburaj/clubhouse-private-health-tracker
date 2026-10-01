@@ -1,4 +1,4 @@
-import type { ActivityLogUpsert, FoodLogUpsert, SendMessageRequest, SyncOp, WeightUpsert } from '@clubhouse/contracts';
+import type { ActivityLogUpsert, FoodLogUpsert, HabitCheckinUpsert, SendMessageRequest, SyncOp, WeightUpsert } from '@clubhouse/contracts';
 import { api, ApiError, NetworkError } from '@clubhouse/client';
 import { db, type OutboxOp } from './idb';
 
@@ -33,7 +33,7 @@ export const outbox = {
   },
   get: () => snapshot,
   isPending: (id: string) => snapshot.pending.some((op) => op.id === id),
-  async enqueue(op: { kind: 'food_log'; id: string; data: FoodLogUpsert } | { kind: 'activity_log'; id: string; data: ActivityLogUpsert } | { kind: 'weight'; id: string; data: WeightUpsert } | { kind: 'chat'; id: string; data: SendMessageRequest }) {
+  async enqueue(op: { kind: 'food_log'; id: string; data: FoodLogUpsert } | { kind: 'activity_log'; id: string; data: ActivityLogUpsert } | { kind: 'weight'; id: string; data: WeightUpsert } | { kind: 'habit_checkin'; id: string; data: HabitCheckinUpsert } | { kind: 'chat'; id: string; data: SendMessageRequest }) {
     const d = await db();
     const key = `${op.kind}:${op.id}`;
     const existing = await d.get('outbox', key);

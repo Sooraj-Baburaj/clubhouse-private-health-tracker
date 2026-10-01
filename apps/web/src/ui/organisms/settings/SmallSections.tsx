@@ -137,6 +137,13 @@ export function PrivacySection() {
         ) : (
           <ToggleRow title="Roast memes" sub="Your admin has switched roasts off for the team" checked={false} disabled onChange={() => undefined} />
         )}
+        <Divider />
+        <ToggleRow
+          title="Share my habits with the team"
+          sub={me.profile.habitPrefs?.share ? 'Teammates see which habits you ticked' : 'Off: teammates only see how many you kept'}
+          checked={!!me.profile.habitPrefs?.share}
+          onChange={(v) => update.mutate({ habitPrefs: { share: v } })}
+        />
       </ListGroup>
     </div>
   );

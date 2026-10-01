@@ -143,6 +143,8 @@ export const adminLoginEvents = pgTable(
 
 export type PrivacyJson = { teammatesSee: 'summary' | 'full'; teamPulseOptIn: boolean; roastMemes: boolean; roastPromptSeen: boolean };
 export type AiOptOutsJson = { photo: boolean; summary: boolean; noticeSeen: boolean };
+export type HabitPrefsJson = { bundle: boolean; share: boolean };
+export type HabitScheduleJson = { type: 'daily' | 'days' | 'weekly'; days: number[]; perWeek: number };
 export type MomentumPrefsJson = { showOnToday: ('logging' | 'activity' | 'in_range')[] };
 export type DietPrefsJson = { allergies: string[]; dislikes: string[]; cuisines: string[]; diet: 'none' | 'vegetarian' | 'vegan' | 'eggetarian' | 'pescatarian' };
 export type AppPrefsJson = { theme: 'light' | 'dark' | 'system'; palette: 'day' | 'night' | 'organic' | 'chili' | 'mango' | 'plum' };
@@ -177,6 +179,7 @@ export const profiles = pgTable('profiles', {
   privacy: jsonb('privacy').$type<PrivacyJson>().notNull(),
   aiOptOuts: jsonb('ai_opt_outs').$type<AiOptOutsJson>().notNull().default({ photo: false, summary: false, noticeSeen: false }),
   momentumPrefs: jsonb('momentum_prefs').$type<MomentumPrefsJson>().notNull().default({ showOnToday: ['logging'] }),
+  habitPrefs: jsonb('habit_prefs').$type<HabitPrefsJson>().notNull().default({ bundle: true, share: false }),
   appPrefs: jsonb('app_prefs').$type<AppPrefsJson>().notNull().default({ theme: 'system', palette: 'day' }),
   quietHours: jsonb('quiet_hours').$type<{ start: string; end: string } | null>(),
   notificationsMaster: boolean('notifications_master').notNull().default(true),
@@ -405,6 +408,82 @@ export const restWeeks = pgTable(
     createdAt: created(),
   },
   (t) => [uniqueIndex('rest_weeks_uq').on(t.userId, t.weekStart)],
+);
+
+/* ───────────────────────────── Habits ───────────────────────────── */
+
+export const habits = pgTable(
+  'habits',
+  {
+    id: id(),
+    teamId: uuid('team_id').notNull(),
+    name: text('name').notNull(),
+    icon: text('icon').notNull(),
+    hue: smallint('hue').notNull(),
+    group: text('group_name').notNull(),
+    kind: text('kind').notNull(),
+    target: integer('target').notNull().default(1),
+    unit: text('unit').notNull().default(''),
+    schedule: jsonb('schedule').$type<HabitScheduleJson>().notNull(),
+    assignAll: boolean('assign_all').notNull().default(true),
+    required: boolean('required').notNull().default(true),
+    reminderTime: text('reminder_time'),
+    note: text('note'),
+    startsOn: localDate('starts_on').notNull(),
+    endsOn: localDate('ends_on'),
+    enabled: boolean('enabled').notNull().default(true),
+    archivedAt: tstz('archived_at'),
+    sortOrder: integer('sort_order').notNull().default(0),
+    createdBy: uuid('created_by'),
+    updatedBy: uuid('updated_by'),
+    createdAt: created(),
+    updatedAt: updated(),
+  },
+  (t) => [index('habits_team_idx').on(t.teamId, t.archivedAt)],
+);
+
+/** Members a habit is assigned to when it isn't for everyone. */
+export const habitAssignments = pgTable(
+  'habit_assignments',
+  {
+    habitId: uuid('habit_id').notNull().references(() => habits.id, { onDelete: 'cascade' }),
+    userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  },
+  (t) => [primaryKey({ columns: [t.habitId, t.userId] }), index('habit_assignments_user_idx').on(t.userId)],
+);
+
+/** A member's own settings for a habit: hidden (optional habits only) and their reminder time. */
+export const habitMemberPrefs = pgTable(
+  'habit_member_prefs',
+  {
+    userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    habitId: uuid('habit_id').notNull().references(() => habits.id, { onDelete: 'cascade' }),
+    hidden: boolean('hidden').notNull().default(false),
+    reminderTime: text('reminder_time'),
+    reminderOff: boolean('reminder_off').notNull().default(false),
+    updatedAt: updated(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.habitId] })],
+);
+
+/** One live row per member, habit and local date; the target is snapshotted so later edits don't rewrite history. */
+export const habitCheckins = pgTable(
+  'habit_checkins',
+  {
+    id: uuid('id').primaryKey(),
+    userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    teamId: uuid('team_id').notNull(),
+    habitId: uuid('habit_id').notNull().references(() => habits.id, { onDelete: 'cascade' }),
+    date: localDate('date').notNull(),
+    value: real('value').notNull(),
+    done: boolean('done').notNull(),
+    target: integer('target').notNull(),
+    addedLate: boolean('added_late').notNull().default(false),
+    clientUpdatedAt: tstz('client_updated_at').notNull(),
+    serverUpdatedAt: tstz('server_updated_at').notNull().defaultNow(),
+    createdAt: created(),
+  },
+  (t) => [uniqueIndex('habit_checkins_uq').on(t.userId, t.habitId, t.date), index('habit_checkins_habit_date_idx').on(t.habitId, t.date), index('habit_checkins_user_date_idx').on(t.userId, t.date)],
 );
 
 /* ───────────────────────────── Diet ───────────────────────────── */

@@ -128,6 +128,7 @@ export const NOTIFICATION_TYPES = [
   'announcement',
   'ai_budget_alert',
   'weigh_in_reminder',
+  'habit_reminder',
   'system',
 ] as const;
 export const NotificationType = z.enum(NOTIFICATION_TYPES);
@@ -143,6 +144,7 @@ export const SCHEDULED_NOTIFICATION_TYPES: NotificationType[] = [
   'momentum_at_risk',
   'weekly_recap',
   'weigh_in_reminder',
+  'habit_reminder',
 ];
 
 export const SLOT_REMINDER: Record<MealSlot, NotificationType> = {

@@ -6,6 +6,7 @@ import { chatRoutes } from './chat';
 import { dietRoutes } from './diet';
 import { exportRoutes } from './export';
 import { foodRoutes } from './foods';
+import { habitRoutes } from './habits';
 import { jobRoutes } from './jobs';
 import { logRoutes } from './logs';
 import { mediaRoutes } from './media';
@@ -25,6 +26,7 @@ export function registerFeatureRoutes(app: Hono<AppEnv, Record<string, never>, '
   app.route('/', aiRoutes);
   app.route('/', dietRoutes);
   app.route('/', planRoutes);
+  app.route('/', habitRoutes);
   app.route('/', progressRoutes);
   app.route('/', momentumRoutes);
   app.route('/', teamRoutes);

@@ -56,6 +56,15 @@ export const adminApi = {
     delete: (id: string) => del<Ok>(`/admin/foods/${id}`),
     import: (csv: string) => post<{ total: number; inserted: number; updated: number; errors: string[] }>('/admin/foods/import', { csv }),
   },
+  habits: {
+    list: () => get<C.AdminHabitsResponse>('/admin/habits'),
+    adherence: () => get<C.AdminHabitAdherence>('/admin/habits/adherence'),
+    create: (b: In<typeof C.AdminHabitInput>) => post<C.AdminHabitDto>('/admin/habits', b),
+    update: (id: string, b: In<typeof C.AdminHabitInput>) => put<C.AdminHabitDto>(`/admin/habits/${id}`, b),
+    setEnabled: (id: string, enabled: boolean) => post<C.AdminHabitDto>(`/admin/habits/${id}/enabled`, { enabled }),
+    archive: (id: string) => post<Ok>(`/admin/habits/${id}/archive`),
+    addTemplate: (key: string) => post<C.AdminHabitDto>(`/admin/habits/templates/${key}`),
+  },
   plans: {
     list: () => get<C.AdminPlanRow[]>('/admin/plans'),
     get: (userId: string) => get<{ items: C.PlanItemDto[]; note: string | null; weeks: { weekStart: string; done: number; planned: number }[]; usualDays: number[] }>(`/admin/plans/${userId}`),

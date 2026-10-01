@@ -26,6 +26,7 @@ function applyPrefsLocally(p: ProfileDto, b: PreferencesUpdateRequest): ProfileD
   if (b.privacy) next.privacy = { ...p.privacy, ...b.privacy };
   if (b.aiOptOuts) next.aiOptOuts = { ...p.aiOptOuts, ...b.aiOptOuts };
   if (b.momentumPrefs) next.momentumPrefs = b.momentumPrefs;
+  if (b.habitPrefs) next.habitPrefs = { ...p.habitPrefs, ...b.habitPrefs };
   if (b.appPrefs) next.appPrefs = { ...p.appPrefs, ...b.appPrefs };
   if (b.quietHours !== undefined) next.quietHours = b.quietHours;
   if (b.notificationsMaster !== undefined) next.notificationsMaster = b.notificationsMaster;

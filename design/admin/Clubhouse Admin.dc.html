@@ -1,9 +1,6 @@
 <!DOCTYPE html>
 <html>
 <head>
-<style data-omelette-injected>html,body{background:transparent}</style><script data-omelette-injected>(()=>{{const n=new URLSearchParams(location.search).get("theme");if(n==="light"||n==="dark"){document.documentElement.dataset.theme=n}}{if(new URLSearchParams(location.search).get("_omthumb")==="1"){const n=(f)=>{const g=f.focus;if(!g)return;f.focus=function(h){g.call(this,{...h,preventScroll:true})}};n(HTMLElement.prototype);n(SVGElement.prototype);if(typeof MathMLElement!=="undefined"){n(MathMLElement.prototype)}const d=(f)=>{f.removeAttribute("autofocus");f.inert=true;if(!(f instanceof HTMLElement))f.removeAttribute("tabindex")};const p=(f)=>{if(f.hasAttribute("autofocus"))d(f);for(const g of f.querySelectorAll("[autofocus]")){d(g)}};p(document.documentElement);new MutationObserver((f)=>{for(const g of f){for(const h of g.addedNodes){if(h.nodeType===1)p(h)}}}).observe(document,{childList:true,subtree:true})}}{const n=()=>{try{if(document.querySelector('meta[name="color-scheme"]'))return;const d=getComputedStyle(document.documentElement).getPropertyValue("color-scheme").trim();if(d&&d!=="normal")return;const p=(y)=>{if(!y)return null;const m=getComputedStyle(y).backgroundColor.match(/^rgba?\(\s*(\d+)[,\s]+(\d+)[,\s]+(\d+)(?:[,\s/]+([\d.]+%?))?\s*\)$/);if(!m)return null;const w=m[4]==null?1:parseFloat(m[4])/(m[4].endsWith("%")?100:1);if(w<0.99)return null;return[+m[1],+m[2],+m[3]]};const f=p(document.body)||p(document.documentElement);if(!f)return;const g=(y)=>{const m=y/255;return m<=0.04045?m/12.92:((m+0.055)/1.055)**2.4};const h=0.2126*g(f[0])+0.7152*g(f[1])+0.0722*g(f[2]);document.documentElement.style.setProperty("color-scheme",h<0.4?"dark":"light")}catch{}};if(document.readyState==="complete")n();else window.addEventListener("load",n)}var I=[];var B=false;var K=false;var C=()=>{};if(K===true){try{const n=setTimeout.bind(window);const d=1e4;const p=15;const f=1e4;const g=120000;const h=200;const y=(o)=>{try{let r;if(typeof o==="string")r=o;else if(o instanceof URL)r=o.href;else if(typeof Request!=="undefined"&&o instanceof Request)r=o.url;else return null;if(!r)return null;const l=document.baseURI;const i=new URL(r,l);if(i.protocol!=="http:"&&i.protocol!=="https:")return null;if(i.origin!==new URL(l).origin)return null;return i.origin+i.pathname}catch{return null}};const m=new Map;const w=(o)=>{let r=m.get(o);if(!r){if(m.size>=h){const l=m.keys().next().value;if(l!==undefined)m.delete(l)}r={fails:[],until:0,cooldown:f,hard:false};m.set(o,r)}return r};const R=(o)=>{const r=m.get(o);return r!==undefined&&r.until>Date.now()};const O=(o,r)=>{const l=Date.now();const i=w(o);if(r)i.hard=true;if(i.until>l)return;i.fails.push(l);while(i.fails.length>0&&i.fails[0]<=l-d)i.fails.shift();if(i.fails.length>=p){i.until=l+i.cooldown;if(i.hard)i.cooldown=Math.min(i.cooldown*2,g);i.fails.length=0;try{n(()=>{try{S(true)}catch{}},i.until-l+100)}catch{}console.warn("[omelette] asset circuit breaker: pausing requests to "+o+" for "+Math.round((i.until-l)/1000)+"s after "+p+" failures in "+d/1000+"s")}};const e=(o)=>{m.delete(o)};const t=100;const a=new WeakMap;const u=new Set;let s=null;const S=(o)=>{for(const r of Array.from(u)){try{const l=a.get(r);if(l===undefined){u.delete(r);continue}if(o){const i=y(l);if(i!==null&&R(i))continue}a.delete(r);u.delete(r);if(s!==null)s.call(r,l)}catch{}}};C=()=>{try{m.clear();S(false)}catch{}};document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")C()});const _=window.fetch;if(typeof _==="function"){const o=function(...r){let l=null;try{l=y(r[0])}catch{}if(l!==null&&R(l)){let c;try{if(r[1]&&r[1].signal!==undefined){c=r[1].signal||undefined}else if(typeof Request!=="undefined"&&r[0]instanceof Request){c=r[0].signal||undefined}}catch{c=undefined}return new Promise((k,b)=>{const E=()=>{try{return c.reason!==undefined?c.reason:new DOMException("The operation was aborted.","AbortError")}catch{return new DOMException("The operation was aborted.","AbortError")}};try{if(c&&c.aborted){b(E());return}}catch{}let T=false;const j=()=>{if(T)return;T=true;b(E())};try{if(c)c.addEventListener("abort",j,{once:true})}catch{}n(()=>{if(T)return;T=true;try{if(c)c.removeEventListener("abort",j)}catch{}let L;try{L=new Response(null,{status:429,statusText:"Too Many Requests",headers:{"Retry-After":"10"}})}catch{L={ok:false,status:429}}k(L)},250)})}const i=_.apply(window,r);if(l!==null){const c=l;i.then((k)=>{try{if(k.ok)e(c);else if(k.status===401||k.status===403||k.status===404||k.status===429){O(c,k.status!==404)}}catch{}},()=>{})}return i};window.fetch=o}const v=Object.getOwnPropertyDescriptor(HTMLImageElement.prototype,"src");if(v!==undefined&&v.set!==undefined&&v.get!==undefined){const o=v.set;s=o;Object.defineProperty(HTMLImageElement.prototype,"src",{configurable:true,enumerable:v.enumerable,get:v.get,set(r){const l=`${r}`;try{const i=y(l);if(i!==null&&R(i)){a.set(this,l);if(u.size<t)u.add(this);return}}catch{}try{a.delete(this);u.delete(this)}catch{}o.call(this,l)}})}try{const o=HTMLImageElement.prototype.setAttribute;HTMLImageElement.prototype.setAttribute=function(r,l){if(arguments.length<2){o.apply(this,arguments);return}if(typeof r==="string"&&r.toLowerCase()==="src"){const i=`${l}`;try{const c=y(i);if(c!==null&&R(c)){a.set(this,i);if(u.size<t)u.add(this);return}a.delete(this);u.delete(this)}catch{}o.call(this,r,i);return}o.call(this,r,l)}}catch{}window.addEventListener("error",(o)=>{try{const r=o.target;if(r instanceof HTMLImageElement){const l=y(r.currentSrc||r.src||"");if(l!==null)O(l,true)}}catch{}},true);window.addEventListener("load",(o)=>{try{const r=o.target;if(r instanceof HTMLImageElement){const l=y(r.currentSrc||r.src||"");if(l!==null)e(l);const i=a.get(r);if(i!==undefined){let c=false;try{c=new URL(i,document.baseURI).href===new URL(r.currentSrc||r.src||"",document.baseURI).href}catch{c=false}if(c){a.delete(r);u.delete(r)}}}}catch{}},true)}catch{}}var J=30000;var G=3000;document.addEventListener("DOMContentLoaded",()=>{const n=window.Babel;const d="om-src-id";if(n&&n.registerPlugin&&!(n.availablePlugins&&n.availablePlugins[d])){n.registerPlugin(d,({types:h})=>({visitor:{JSXOpeningElement(y,m){const w=y.node;if(w.name&&w.name.type==="JSXMemberExpression")return;for(let t=0;t<w.attributes.length;t++){const a=w.attributes[t];if(a.type==="JSXAttribute"&&a.name&&a.name.name==="data-om-id")return}const R=m.file&&m.file.opts&&m.file.opts.filename||"?";const O=w.loc&&w.loc.start;const e=`jsx:${R}:${w.start??0}:${O?O.line:0}:${O?O.column+1:0}`;w.attributes.push(h.jsxAttribute(h.jsxIdentifier("data-om-id"),h.stringLiteral(e)))}}}))}const p="om-text-extract";let f=false;if(B&&n&&n.registerPlugin&&!(n.availablePlugins&&n.availablePlugins[p])){const h=window.React;if(h&&h.useSyncExternalStore&&h.createElement){f=true;const y={};const m=new Set;let w=0;window.__omTextO=y;window.__omTextSet=(e)=>{for(const t in e){const a=e[t];if(a==null)delete y[t];else y[t]=a}w++;m.forEach((t)=>t())};const R=(e)=>{m.add(e);return()=>m.delete(e)};const O=()=>w;window.__OmT=function e(t){h.useSyncExternalStore(R,O,O);return h.createElement("span",{"data-om-text":t.i,className:"__om-t"},t.i in y?y[t.i]:t.children)};n.registerPlugin(p,({types:e})=>{const t={style:1,script:1,noscript:1,textarea:1,title:1,option:1,text:1,tspan:1,textPath:1};const a={placeholder:1,alt:1,title:1,label:1,"aria-label":1,"aria-description":1,"aria-placeholder":1};const u=(o,r)=>e.logicalExpression("??",e.memberExpression(e.logicalExpression("||",e.memberExpression(e.identifier("window"),e.identifier("__omTextO")),e.objectExpression([])),e.stringLiteral(o),true),r);const s=(o)=>o.file&&o.file.opts&&o.file.opts.filename||"?";const S=(o)=>o.file&&o.file.code||"";const _=(o,r)=>{const l=(c)=>c&&c.start!=null&&c.end!=null&&(c.type==="StringLiteral"||c.type==="TemplateLiteral"&&c.expressions.length===0)?[c.start,c.end]:null;const i=l(r);if(i)return i;if(r&&r.type==="Identifier"){const c=o.scope.getBinding(r.name);if(c&&c.constant&&c.path.node.type==="VariableDeclarator"){return l(c.path.node.init)}}return null};const v=(o,r,l)=>{const i=o.node;let c=false;const k=(E,T)=>{c=true;return e.jsxElement(e.jsxOpeningElement(e.jsxIdentifier("__OmT"),[e.jsxAttribute(e.jsxIdentifier("i"),e.stringLiteral(E))],false),e.jsxClosingElement(e.jsxIdentifier("__OmT")),[T],false)};const b=i.children.map((E)=>{if(E.type==="JSXText"){if(E.start==null||E.end==null)return E;const T=l.slice(E.start,E.end);const j=T.length-T.trimStart().length;const L=T.length-T.trimEnd().length;if(j+L>=T.length)return E;return k(`txt:${r}:${E.start+j}:${E.end-L}`,E)}if(E.type==="JSXExpressionContainer"){const T=_(o,E.expression);if(T)return k(`str:${r}:${T[0]}:${T[1]}`,E)}return E});if(c)i.children=b};return{visitor:{JSXOpeningElement(o,r){const l=o.node;const i=s(r);const c={};for(let k=0;k<l.attributes.length;k++){const b=l.attributes[k];if(b.type!=="JSXAttribute"||!b.name)continue;const E=b.name.name;if(!a[E])continue;if(!b.value||b.value.type!=="StringLiteral")continue;if(b.value.start==null||b.value.end==null)continue;const T=`txt:${i}:${b.value.start}:${b.value.end}`;c[E]=T;b.value=e.jsxExpressionContainer(u(T,e.stringLiteral(b.value.value)))}if(Object.keys(c).length){l.attributes.push(e.jsxAttribute(e.jsxIdentifier("data-om-text-attrs"),e.stringLiteral(JSON.stringify(c))))}},JSXElement(o,r){const l=o.node.openingElement;const i=l&&l.name&&l.name.name;if(i==="__OmT")return;if(typeof i==="string"&&t[i])return;v(o,s(r),S(r))},JSXFragment(o,r){v(o,s(r),S(r))}}}})}}const g=f?["transform-react-jsx-source",d,p]:["transform-react-jsx-source",d];document.querySelectorAll('script[type="text/babel"],script[type="text/jsx"]').forEach((h,y)=>{const m=h.getAttribute("data-plugins")||"";const w=g.filter((R)=>m.indexOf(R)<0);if(w.length){h.setAttribute("data-plugins",m?`${m},${w.join(",")}`:w.join(","))}if(!h.hasAttribute("data-filename")){h.setAttribute("data-filename",h.getAttribute("src")||`inline-${y}`)}})});var A=window.parent;var U="not editable here — open the project in the Claude Design editor to save";var W=()=>Promise.resolve({persisted:false,noHost:true,reason:U});var H=W;var M="data/storage.json";var z=()=>{try{const n=new URL(document.baseURI);const d=n.pathname.match(/\/projects\/([^/]+)\/serve\//);if(d)return d[1];return n.hostname.split(".")[0]||""}catch{return location.hostname.split(".")[0]||""}};var Z=()=>{try{const n=new URL(document.baseURI);const d=n.pathname.indexOf("/serve/");if(d>=0)return n.origin+n.pathname.slice(0,d+"/serve/".length)+M}catch{}return"./"+M};var x=null;var N=()=>{if(!x){x=fetch(Z(),{cache:"no-store"}).then((n)=>{if(n.ok)return n.text();return n.status===404?"":null}).catch(()=>null).then((n)=>{if(n===null){x=null;return null}const d=new Map;if(!n)return d;let p;try{p=JSON.parse(n)}catch{console.warn("[omelette.storage] "+M+" is not valid JSON; treating the store as unreadable so a save cannot overwrite the "+"hand-edited bytes. Fix the JSON (or delete the file) to re-enable persistence.");x=null;return null}if(p===null||typeof p!=="object"||Array.isArray(p)){console.warn("[omelette.storage] "+M+" doesn't hold a JSON object; treating the store as unreadable so a save cannot "+"overwrite the hand-edited bytes. Make the top level a JSON object to re-enable persistence.");x=null;return null}const f=p;if("data"in f){const g=f.data;if(g===null||typeof g!=="object"||Array.isArray(g)){console.warn("[omelette.storage] "+M+' has a "data" field that is not a JSON object; treating the store as unreadable so a '+'save cannot overwrite the hand-edited bytes. Make "data" a JSON object to re-enable persistence.');x=null;return null}const h=f._meta;const y=h!==null&&typeof h==="object"?h.project:undefined;if(typeof y==="string"&&y!==""&&y!==z())return d;for(const m of Object.keys(g))d.set(m,g[m]);return d}for(const g of Object.keys(f)){if(g!=="_meta")d.set(g,f[g])}return d})}return x};var F=(n)=>H(M,JSON.stringify({_meta:{project:z(),version:1},data:Object.fromEntries(n)},null,2));var D=Promise.resolve();var $=(n)=>{const d=D.then(n);D=d.then(()=>{return},()=>{return});return d};var V=/sk-(?:ant-)?[A-Za-z0-9_-]{16,}|AKIA[0-9A-Z]{16}|gh[pousr]_[A-Za-z0-9]{20,}|xox[a-z]-[A-Za-z0-9][A-Za-z0-9-]{9,}|AIza[0-9A-Za-z_-]{30,}|-----BEGIN [A-Z ]*PRIVATE KEY-----/;var Y=/password|passwd|secret|api[_-]?key|access[_-]?token|auth[_-]?token|credential/i;var Q=(n,d,p)=>{if(V.test(d)||Y.test(n)&&typeof p==="string"&&p.length>=8){console.warn('[omelette.storage] the value for "'+n+'" looks like a credential. The storage file is a plaintext project file — visible to '+"everyone with project access and copied when the project is duplicated. Do not store secrets here.")}};var q={persisted:false,reason:"could not load the existing store — not overwriting it"};var X={persisted:false,reason:"stored value changed since a failed read — re-read this key before saving"};var P=new Set;var ee={get:(n)=>{if(typeof n!=="string"){return Promise.reject(new TypeError("storage.get: key must be a string"))}return $(N).then((d)=>{if(d===null){P.add(n);return null}P.delete(n);if(!d.has(n))return null;const p=d.get(n);return p==null?null:JSON.parse(JSON.stringify(p))})},set:(n,d)=>{if(typeof n!=="string"){return Promise.reject(new TypeError("storage.set: key must be a string"))}let p;try{p=JSON.stringify(d)}catch(g){return Promise.reject(new TypeError("storage.set: value must be JSON-serializable ("+String(g)+")"))}if(p===undefined){return Promise.reject(new TypeError("storage.set: value must be JSON-serializable"))}Q(n,p,d);const f=JSON.parse(p);return $(()=>N().then((g)=>{if(g===null)return q;if(P.has(n)){if(g.has(n))return X;P.delete(n)}g.set(n,f);return F(g)}))},delete:(n)=>{if(typeof n!=="string"){return Promise.reject(new TypeError("storage.delete: key must be a string"))}return $(()=>N().then((d)=>{if(d===null)return q;if(P.has(n)){if(d.has(n))return X;P.delete(n)}d.delete(n);return F(d)}))},keys:()=>$(N).then((n)=>n===null?[]:Array.from(n.keys()))};window.omelette={writeFile:(n,d)=>H(n,d).then((p)=>{if(!p.persisted&&!p.noHost){throw new Error(p.reason||"write failed")}}),storage:ee};if(A&&A!==window){const n=(e,t)=>{try{A.postMessage({__omelette_log:true,type:e,data:t},"*")}catch{}};["log","warn","error"].forEach((e)=>{const t=console[e];console[e]=(...a)=>{const u=a.map((s)=>{try{return typeof s==="object"?JSON.stringify(s):String(s)}catch{try{return String(s)}catch{return"[unstringifiable]"}}}).join(" ");n(e,u);t.apply(console,a)}});window.addEventListener("error",(e)=>{const t=e.target;if(t&&t!==window&&t.tagName){const a=t.src||t.href||"";n("resource_error",`${t.tagName} failed to load: ${a}`)}else{n("error",`${e.message||"Unknown error"} at ${e.filename||"?"}:${e.lineno||0}:${e.colno||0}`)}},true);window.addEventListener("unhandledrejection",(e)=>{const t=e.reason;const a=t instanceof Error?`${t.message} ${t.stack}`:String(t);n("error",`Unhandled rejection: ${a}`)});window.addEventListener("click",(e)=>{if(e.defaultPrevented||e.button!==0)return;if(e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;const t=e.composedPath?e.composedPath():[];const a=["button","input","select","textarea","summary","label"];let u=null;for(const v of t){if(!(v instanceof Element))continue;if(v.localName==="a"){if(!(v instanceof HTMLAnchorElement))return;u=v;break}if(a.indexOf(v.localName)!==-1)return}if(!u)return;if(u.isContentEditable)return;const s=u.closest("[contenteditable]");if(s&&s.getAttribute("contenteditable")!=="false")return;const S=(u.getAttribute("target")||"_self").toLowerCase();if(S!=="_self"&&S!=="_top"&&S!=="_parent")return;let _;try{_=new URL(u.href)}catch{return}if(_.protocol!=="http:"&&_.protocol!=="https:")return;if(location.origin==="null")return;if(_.origin===location.origin)return;e.preventDefault();window.open(_.href,"_blank","noopener,noreferrer")});const d=()=>{try{A.postMessage({type:"omelette:height",height:document.documentElement.scrollHeight},"*")}catch{}};if(window.ResizeObserver)new ResizeObserver(d).observe(document.documentElement);const p=()=>{d();if(!document.querySelector('script[type="text/babel"],script[type="text/jsx"]'))return;const e=()=>document.getElementById("root")||document.querySelector("body > div[id]");const t=e()?.firstElementChild??null;let a=0;const u=()=>{const s=e();if(s&&s.firstElementChild!==t||++a>30){d();return}setTimeout(u,100)};setTimeout(u,100)};if(document.readyState==="complete")p();else window.addEventListener("load",p);const f={};let g=0;const h=(e)=>new Promise((t,a)=>{if(!I.length){a(new Error("claude.complete: no parent origin"));return}const u=`c${++g}`;const s=()=>setTimeout(()=>{delete f[u];a(new Error(`claude.complete: no data for ${J/1000}s`))},J);const S=s();f[u]={resolve:t,reject:a,text:"",t:S,arm:s};try{for(const _ of I){A.postMessage({__om_api:true,id:u,body:e},_)}}catch(_){clearTimeout(S);delete f[u];a(_)}});const y=8;const m=async(e,t)=>{if(!Array.isArray(e.messages)){throw new Error("claude.complete: tools require a messages array")}const a=e.messages.slice();const u={...e,tools:e.tools.map((_)=>{if(_===null||typeof _!=="object")return _;const v={};for(const o of Object.keys(_)){if(typeof _[o]!=="function")v[o]=_[o]}return v})};const s=u.tool_choice;const S=s!=null&&(s.type==="any"||s.type==="tool")?{...u,tool_choice:s.disable_parallel_tool_use!==undefined?{type:"auto",disable_parallel_tool_use:s.disable_parallel_tool_use}:{type:"auto"}}:u;for(let _=0;_<y;_++){const v=await h({..._===0?u:S,messages:a});const o=v.message;const r=o&&Array.isArray(o.content)?o.content:null;const l=r?r.filter((c)=>c?.type==="tool_use"):[];if(o?.stop_reason!=="tool_use"||l.length===0){return v.text}const i=[];for(const c of l){const k=t.get(c.name);if(!k){i.push({type:"tool_result",tool_use_id:c.id,content:`no handler for tool "${c.name}"`,is_error:true});continue}try{const b=await k(c.input);const E=typeof b==="string"?b:O(b)??"";i.push({type:"tool_result",tool_use_id:c.id,content:E})}catch(b){i.push({type:"tool_result",tool_use_id:c.id,content:String(b?.message??b??"tool handler failed"),is_error:true})}}a.push({role:"assistant",content:r},{role:"user",content:i})}throw new Error(`claude.complete: exceeded ${y} tool turns`)};window.claude={complete(e){const t=e;if(t!==null&&typeof t==="object"&&Array.isArray(t.tools)&&t.tools.some((a)=>a!==null&&typeof a==="object"&&typeof a.run==="function")){const a=new Map;for(const u of t.tools){if(u!==null&&typeof u==="object"&&typeof u.run==="function"){a.set(String(u.name),u.run)}}return m(t,a)}return h(e).then((a)=>a.text)}};const w={};let R=0;H=(e,t)=>new Promise((a)=>{if(!I.length){a({persisted:false,noHost:true,reason:U});return}const u=`f${++R}`;const s=setTimeout(()=>{delete w[u];a({persisted:false,noHost:true,reason:U})},G);w[u]={settle:a,t:s};try{for(const S of I){A.postMessage({__om_file:true,id:u,op:"write",path:e,content:t},S)}}catch{clearTimeout(s);delete w[u];a({persisted:false,noHost:true,reason:U})}});const O=(e)=>{try{return JSON.stringify(e)}catch{return JSON.stringify(String(e))}};window.addEventListener("message",(e)=>{if(I.indexOf(e.origin)<0)return;if(e.source!==A)return;const t=e.data;if(!t)return;if(t.type==="omelette-preview-refresh"){if(typeof t.token!=="string"||!/^[0-9a-f.-]+(\.(rc|pr-[0-9]+))?(\.[0-9]+\.[0-9a-f]{16})?$/.test(t.token))return;const s=Math.max(1,Math.floor((t.expiresAt||0)-Date.now()/1000));document.cookie="__Host-omelette-preview="+t.token+"; Path=/; Secure; SameSite=None; Partitioned; Max-Age="+s;C();return}if(t.__om_file_r){const s=w[t.id];if(!s)return;clearTimeout(s.t);delete w[t.id];s.settle(t.ok?{persisted:true}:{persisted:false,reason:t.error||"write failed"});return}if(t.__om_api_r){const s=f[t.id];if(!s)return;if(t.error!=null){clearTimeout(s.t);delete f[t.id];s.reject(new Error(t.error));return}if(t.chunk!=null){clearTimeout(s.t);s.t=s.arm();s.text+=t.chunk;return}if(t.done){clearTimeout(s.t);delete f[t.id];s.resolve({text:t.text!=null?t.text:s.text,message:t.message});return}return}if(!t.__om_eval)return;const a=t;const u=(s)=>{e.source.postMessage({...s,__om_eval_r:1,id:a.id},e.origin)};try{const s=(0,eval)(a.code);if(s&&typeof s.then==="function"){s.then((S)=>u({ok:1,v:O(S)}),(S)=>u({ok:0,e:String(S)}))}else{u({ok:1,v:O(s)})}}catch(s){u({ok:0,e:String(s)})}})}})();
-</script>
-
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="./support.js"></script>
@@ -243,6 +240,114 @@ label>input,label>select{width:100%;min-width:0}
       </section>
     </sc-if>
 
+    <sc-if value="{{ show.habits }}" hint-placeholder-val="{{ false }}">
+      <section id="scr-habits" data-screen-label="Habits" style="display:flex;flex-direction:column;gap:20px">
+        <header style="display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap">
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="font-family:'IBM Plex Mono';font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:#B6316C">Daily checklist · member app</div>
+            <h1 style="margin:0;font-family:'Plus Jakarta Sans';font-weight:800;font-size:36px;letter-spacing:-0.045em;line-height:1">Habits</h1>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <div style="display:flex;gap:2px;padding:3px;border-radius:999px;background:#fff;border:1px solid #D9D9DD">
+              <sc-for list="{{ hTabs }}" as="t" hint-placeholder-count="2">
+                <button onClick="{{ t.pick }}" style="height:32px;padding:0 14px;border-radius:999px;border:none;background:{{ t.bg }};color:{{ t.fg }};font-weight:600;font-size:13px;cursor:pointer">{{ t.l }}</button>
+              </sc-for>
+            </div>
+            <button onClick="{{ newHabit }}" style="height:40px;padding:0 18px;border-radius:999px;border:none;background:#17171C;color:#fff;font-weight:600;font-size:14px;cursor:pointer">New habit</button>
+          </div>
+        </header>
+
+        <sc-if value="{{ hTabCat }}" hint-placeholder-val="{{ true }}">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
+            <sc-for list="{{ hKpis }}" as="k" hint-placeholder-count="3">
+              <div style="background:#fff;border:1px solid #D9D9DD;border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:6px">
+                <span style="font-size:13px;color:#6B6B76">{{ k.label }}</span>
+                <span style="font-family:'Plus Jakarta Sans';font-weight:800;font-size:30px;letter-spacing:-0.04em;line-height:1.1">{{ k.value }}</span>
+                <span style="font-size:12px;color:#6B6B76">{{ k.sub }}</span>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="background:#fff;border:1px solid #D9D9DD;border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:14px">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap">
+              <h3 style="margin:0;font-family:'Plus Jakarta Sans';font-weight:700;font-size:17px;letter-spacing:-0.02em">Starter templates</h3>
+              <span style="font-size:12px;color:#6B6B76">Added for everyone. Edit after adding.</span>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px">
+              <sc-for list="{{ templates }}" as="t" hint-placeholder-count="7">
+                <div style="display:flex;align-items:center;gap:10px;padding:6px 6px 6px 8px;border-radius:999px;background:#F8F7F4;border:1px solid #EEECE7;opacity:{{ t.op }}">
+                  <span style="width:26px;height:26px;border-radius:50%;background:{{ t.tile }};display:grid;place-items:center;font-size:14px">{{ t.icon }}</span>
+                  <span style="font-size:13px;font-weight:500">{{ t.n }}</span>
+                  <button onClick="{{ t.add }}" style="height:28px;padding:0 12px;border-radius:999px;border:{{ t.border }};background:#fff;color:{{ t.fg }};font-weight:600;font-size:12px;cursor:pointer">{{ t.label }}</button>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="background:#fff;border:1px solid #D9D9DD;border-radius:16px;overflow-x:auto">
+            <div style="display:grid;min-width:960px;grid-template-columns:minmax(200px,1.5fr) 150px minmax(120px,1fr) 110px 150px 90px 50px 50px;gap:12px;padding:12px 20px;font-family:'IBM Plex Mono';font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#6B6B76;border-bottom:1px solid #D9D9DD">
+              <span>Habit</span><span>Kind</span><span>Schedule</span><span>Assigned</span><span>Adherence 14d</span><span>Type</span><span>On</span><span></span>
+            </div>
+            <sc-for list="{{ habitRows }}" as="h" hint-placeholder-count="7">
+              <div style="display:grid;min-width:960px;grid-template-columns:minmax(200px,1.5fr) 150px minmax(120px,1fr) 110px 150px 90px 50px 50px;gap:12px;padding:12px 20px;align-items:center;font-size:14px;border-bottom:1px solid #EEECE7">
+                <div style="display:flex;align-items:center;gap:10px;min-width:0;opacity:{{ h.op }}">
+                  <span style="width:34px;height:34px;border-radius:10px;background:{{ h.tile }};display:grid;place-items:center;font-size:17px;flex:none">{{ h.icon }}</span>
+                  <div style="display:flex;flex-direction:column;line-height:1.3;min-width:0"><span style="font-weight:600">{{ h.name }}</span><span style="font-size:12px;color:#6B6B76">{{ h.group }} · {{ h.timeLabel }}</span></div>
+                </div>
+                <span style="font-size:13px;opacity:{{ h.op }}">{{ h.kindLabel }}</span>
+                <span style="font-size:13px;opacity:{{ h.op }}">{{ h.schedLabel }}</span>
+                <span style="font-size:13px;opacity:{{ h.op }}">{{ h.assignLabel }}</span>
+                <div style="display:flex;align-items:center;gap:10px;opacity:{{ h.op }}">
+                  <div style="flex:1;height:6px;border-radius:999px;background:#EEECE7"><div style="width:{{ h.adhW }};height:100%;border-radius:999px;background:#B6316C"></div></div>
+                  <span style="font-family:'IBM Plex Mono';font-size:12px;width:34px;text-align:right">{{ h.adhLabel }}</span>
+                </div>
+                <span style="justify-self:start;font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;background:{{ h.reqBg }};color:{{ h.reqFg }}">{{ h.reqLabel }}</span>
+                <button onClick="{{ h.toggle }}" aria-label="Toggle habit" style="width:40px;height:24px;border-radius:999px;border:none;background:{{ h.track }};position:relative;cursor:pointer"><span style="position:absolute;top:3px;left:{{ h.knob }};width:18px;height:18px;border-radius:50%;background:#fff;transition:left .2s"></span></button>
+                <button onClick="{{ h.open }}" style="justify-self:end;border:none;background:none;color:#B6316C;font-weight:600;font-size:13px;cursor:pointer">Edit</button>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ hTabAdh }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#fff;border:1px solid #D9D9DD;border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:14px">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap">
+              <h3 style="margin:0;font-family:'Plus Jakarta Sans';font-weight:700;font-size:17px;letter-spacing:-0.02em">Member × habit · last 4 weeks</h3>
+              <span style="font-size:12px;color:#6B6B76">Share of scheduled days kept. Individual check-ins stay private.</span>
+            </div>
+            <div style="overflow-x:auto">
+              <div style="min-width:820px;display:flex;flex-direction:column;gap:6px">
+                <div style="display:grid;grid-template-columns:150px repeat({{ heatCols }},minmax(64px,1fr)) 70px;gap:6px;align-items:end">
+                  <span></span>
+                  <sc-for list="{{ heatHead }}" as="c" hint-placeholder-count="6">
+                    <div style="display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center">
+                      <span style="width:28px;height:28px;border-radius:8px;background:{{ c.tile }};display:grid;place-items:center;font-size:14px">{{ c.icon }}</span>
+                      <span style="font-size:11px;font-weight:600;line-height:1.2">{{ c.name }}</span>
+                    </div>
+                  </sc-for>
+                  <span style="font-family:'IBM Plex Mono';font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:#6B6B76;text-align:center">Avg</span>
+                </div>
+                <sc-for list="{{ heatRows }}" as="r" hint-placeholder-count="10">
+                  <div style="display:grid;grid-template-columns:150px repeat({{ heatCols }},minmax(64px,1fr)) 70px;gap:6px;align-items:center">
+                    <span style="font-size:13px;font-weight:600">{{ r.name }}</span>
+                    <sc-for list="{{ r.cells }}" as="c" hint-placeholder-count="6">
+                      <span title="{{ c.t }}" style="height:36px;border-radius:8px;display:grid;place-items:center;font-family:'IBM Plex Mono';font-size:11px;background:{{ c.bg }};color:{{ c.fg }}">{{ c.v }}</span>
+                    </sc-for>
+                    <span style="font-family:'IBM Plex Mono';font-size:12px;font-weight:500;text-align:center">{{ r.avg }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+            <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-size:12px;color:#6B6B76;padding-top:12px;border-top:1px solid #EEECE7">
+              <sc-for list="{{ heatLegend }}" as="l" hint-placeholder-count="5">
+                <span style="display:flex;align-items:center;gap:6px"><span style="width:14px;height:14px;border-radius:4px;background:{{ l.bg }};border:1px solid #EEECE7"></span>{{ l.l }}</span>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+      </section>
+    </sc-if>
+
     <sc-if value="{{ show.chat }}" hint-placeholder-val="{{ false }}">
       <section id="scr-chat" data-screen-label="Chat moderation" style="display:flex;flex-direction:column;gap:20px">
         <header style="display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap">
@@ -463,6 +568,126 @@ label>input,label>select{width:100%;min-width:0}
   </div>
 </sc-if>
 
+<sc-if value="{{ habitOpen }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ closeHabit }}" style="position:fixed;inset:0;background:rgba(23,23,28,0.18);z-index:10"></div>
+  <div style="position:fixed;top:12px;right:12px;bottom:12px;width:min(480px,94vw);z-index:11;border-radius:24px;background:rgba(255,255,255,0.9);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.72);box-shadow:0 40px 130px rgba(182,49,108,0.16);display:flex;flex-direction:column;overflow:hidden">
+    <div style="padding:24px 28px 16px;display:flex;flex-direction:column;gap:12px;border-bottom:1px solid #EEECE7">
+      <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-family:'IBM Plex Mono';font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:#B6316C">{{ dv.eyebrow }}</span><button onClick="{{ closeHabit }}" style="border:none;background:none;font-size:13px;font-weight:600;cursor:pointer">Close</button></div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <span style="width:48px;height:48px;border-radius:14px;background:{{ dv.tile }};display:grid;place-items:center;font-size:24px;flex:none">{{ d.icon }}</span>
+        <h2 style="margin:0;font-family:'Plus Jakarta Sans';font-weight:800;font-size:26px;letter-spacing:-0.04em;line-height:1.1">{{ dv.title }}</h2>
+      </div>
+    </div>
+    <div style="flex:1;overflow:auto;padding:20px 28px;display:flex;flex-direction:column;gap:18px">
+      <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500">Name<input value="{{ d.name }}" onChange="{{ dSet.name }}" placeholder="Night skin care" style="height:42px;padding:0 12px;border-radius:10px;border:1px solid #D9D9DD;background:#fff"></label>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <span style="font-size:13px;font-weight:500">Icon</span>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          <sc-for list="{{ iconOpts }}" as="o" hint-placeholder-count="10">
+            <button onClick="{{ o.pick }}" style="width:38px;height:38px;border-radius:10px;border:{{ o.border }};background:#fff;font-size:18px;cursor:pointer">{{ o.v }}</button>
+          </sc-for>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px">
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <span style="font-size:13px;font-weight:500">Colour</span>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <sc-for list="{{ hueOpts }}" as="o" hint-placeholder-count="6">
+              <button onClick="{{ o.pick }}" aria-label="Colour" style="width:28px;height:28px;border-radius:50%;border:none;background:{{ o.bg }};box-shadow:{{ o.ring }};cursor:pointer"></button>
+            </sc-for>
+          </div>
+        </div>
+        <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500">Group<select value="{{ d.group }}" onChange="{{ dSet.group }}" style="height:42px;padding:0 10px;border-radius:10px;border:1px solid #D9D9DD;background:#fff"><option>Morning</option><option>Evening</option><option>Home</option><option>Self-care</option></select></label>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:8px;padding-top:16px;border-top:1px solid #EEECE7">
+        <span style="font-size:13px;font-weight:500">Kind</span>
+        <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:2px;padding:3px;border-radius:12px;background:#F8F7F4;border:1px solid #EEECE7">
+          <sc-for list="{{ kindOpts }}" as="o" hint-placeholder-count="4">
+            <button onClick="{{ o.pick }}" style="height:34px;border-radius:9px;border:none;background:{{ o.bg }};color:{{ o.fg }};box-shadow:{{ o.sh }};font-weight:600;font-size:13px;cursor:pointer">{{ o.l }}</button>
+          </sc-for>
+        </div>
+        <sc-if value="{{ dv.hasTarget }}" hint-placeholder-val="{{ false }}">
+          <div style="display:grid;grid-template-columns:110px minmax(0,1fr);gap:12px">
+            <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500">Target<input type="number" value="{{ d.target }}" onChange="{{ dSet.target }}" style="height:42px;padding:0 12px;border-radius:10px;border:1px solid #D9D9DD;background:#fff"></label>
+            <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500">Unit<input value="{{ d.unit }}" onChange="{{ dSet.unit }}" disabled="{{ dv.unitLocked }}" style="height:42px;padding:0 12px;border-radius:10px;border:1px solid #D9D9DD;background:#fff"></label>
+          </div>
+        </sc-if>
+        <span style="font-size:12px;color:#6B6B76;line-height:1.5">{{ dv.kindHint }}</span>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:8px;padding-top:16px;border-top:1px solid #EEECE7">
+        <span style="font-size:13px;font-weight:500">Schedule</span>
+        <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2px;padding:3px;border-radius:12px;background:#F8F7F4;border:1px solid #EEECE7">
+          <sc-for list="{{ schedOpts }}" as="o" hint-placeholder-count="3">
+            <button onClick="{{ o.pick }}" style="height:34px;border-radius:9px;border:none;background:{{ o.bg }};color:{{ o.fg }};box-shadow:{{ o.sh }};font-weight:600;font-size:13px;cursor:pointer">{{ o.l }}</button>
+          </sc-for>
+        </div>
+        <sc-if value="{{ dv.isDays }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;gap:4px">
+            <sc-for list="{{ dayOpts }}" as="o" hint-placeholder-count="7">
+              <button onClick="{{ o.pick }}" style="width:36px;height:36px;border-radius:10px;border:none;background:{{ o.bg }};color:{{ o.fg }};font-weight:600;font-size:12px;cursor:pointer">{{ o.l }}</button>
+            </sc-for>
+          </div>
+        </sc-if>
+        <sc-if value="{{ dv.isWeekly }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:10px">
+            <button onClick="{{ perDown }}" style="width:36px;height:36px;border-radius:50%;border:1px solid #D9D9DD;background:#fff;font-weight:600;cursor:pointer">−</button>
+            <span style="font-family:'Plus Jakarta Sans';font-weight:800;font-size:20px;min-width:24px;text-align:center">{{ d.perWeek }}</span>
+            <button onClick="{{ perUp }}" style="width:36px;height:36px;border-radius:50%;border:1px solid #D9D9DD;background:#fff;font-weight:600;cursor:pointer">+</button>
+            <span style="font-size:13px;color:#6B6B76">times a week, any day. Judged at week end.</span>
+          </div>
+        </sc-if>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:8px;padding-top:16px;border-top:1px solid #EEECE7">
+        <span style="font-size:13px;font-weight:500">Assigned to</span>
+        <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px;padding:3px;border-radius:12px;background:#F8F7F4;border:1px solid #EEECE7">
+          <sc-for list="{{ assignOpts }}" as="o" hint-placeholder-count="2">
+            <button onClick="{{ o.pick }}" style="height:34px;border-radius:9px;border:none;background:{{ o.bg }};color:{{ o.fg }};box-shadow:{{ o.sh }};font-weight:600;font-size:13px;cursor:pointer">{{ o.l }}</button>
+          </sc-for>
+        </div>
+        <sc-if value="{{ dv.isSome }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-wrap:wrap;gap:6px">
+            <sc-for list="{{ memberOpts }}" as="o" hint-placeholder-count="10">
+              <button onClick="{{ o.pick }}" style="height:32px;padding:0 12px;border-radius:999px;border:1px solid {{ o.bd }};background:{{ o.bg }};color:{{ o.fg }};font-weight:500;font-size:13px;cursor:pointer">{{ o.l }}</button>
+            </sc-for>
+          </div>
+        </sc-if>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;padding-top:16px;border-top:1px solid #EEECE7">
+        <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:14px;font-weight:600">Required</span><span style="font-size:12px;color:#6B6B76;line-height:1.5">{{ dv.reqHint }}</span></div>
+        <button onClick="{{ togReq }}" aria-label="Required" style="width:40px;height:24px;border-radius:999px;border:none;background:{{ dv.reqTrack }};position:relative;cursor:pointer;flex:none"><span style="position:absolute;top:3px;left:{{ dv.reqKnob }};width:18px;height:18px;border-radius:50%;background:#fff;transition:left .2s"></span></button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;padding-top:16px;border-top:1px solid #EEECE7">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:16px">
+          <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:14px;font-weight:600">Default reminder</span><span style="font-size:12px;color:#6B6B76;line-height:1.5">Bundled with other habits due at the same time. Skipped if already done.</span></div>
+          <button onClick="{{ togRemind }}" aria-label="Reminder" style="width:40px;height:24px;border-radius:999px;border:none;background:{{ dv.remTrack }};position:relative;cursor:pointer;flex:none"><span style="position:absolute;top:3px;left:{{ dv.remKnob }};width:18px;height:18px;border-radius:50%;background:#fff;transition:left .2s"></span></button>
+        </div>
+        <sc-if value="{{ d.remind }}" hint-placeholder-val="{{ false }}">
+          <input type="time" value="{{ d.time }}" onChange="{{ dSet.time }}" style="align-self:flex-start;height:42px;padding:0 12px;border-radius:10px;border:1px solid #D9D9DD;background:#fff">
+        </sc-if>
+      </div>
+      <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500;padding-top:16px;border-top:1px solid #EEECE7">How-to note<textarea rows="3" value="{{ d.note }}" onChange="{{ dSet.note }}" placeholder="Cleanser, serum, moisturiser. Sunscreen in the morning." style="padding:12px 14px;border-radius:12px;border:1px solid #D9D9DD;resize:vertical;font-size:14px;line-height:1.5;background:#fff"></textarea><span style="font-size:12px;font-weight:400;color:#6B6B76">Shown when a member taps the habit.</span></label>
+      <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px">
+        <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500">Starts<input type="date" value="{{ d.start }}" onChange="{{ dSet.start }}" style="height:42px;padding:0 12px;border-radius:10px;border:1px solid #D9D9DD;background:#fff"></label>
+        <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500">Ends<input type="date" value="{{ d.end }}" onChange="{{ dSet.end }}" style="height:42px;padding:0 12px;border-radius:10px;border:1px solid #D9D9DD;background:#fff"><span style="font-size:12px;font-weight:400;color:#6B6B76">Optional</span></label>
+      </div>
+    </div>
+    <div style="padding:16px 28px 22px;border-top:1px solid #EEECE7;display:flex;flex-direction:column;gap:10px">
+      <span style="font-size:12px;color:#6B6B76;line-height:1.5">{{ dv.footHint }}</span>
+      <div style="display:flex;justify-content:space-between;gap:8px">
+        <sc-if value="{{ dv.canArchive }}" hint-placeholder-val="{{ false }}"><button onClick="{{ archiveHabit }}" style="height:42px;padding:0 16px;border-radius:999px;border:1px solid #E7B3C8;background:#fff;color:#8C1F50;font-weight:600;font-size:13px;cursor:pointer">Archive</button></sc-if>
+        <div style="display:flex;gap:8px;margin-left:auto">
+          <button onClick="{{ closeHabit }}" style="height:42px;padding:0 18px;border-radius:999px;border:1px solid #D9D9DD;background:#fff;font-weight:600;font-size:14px;cursor:pointer">Cancel</button>
+          <button onClick="{{ saveHabit }}" style="height:42px;padding:0 20px;border-radius:999px;border:none;background:#17171C;color:#fff;font-weight:600;font-size:14px;cursor:pointer">{{ dv.saveLabel }}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
 <sc-if value="{{ modalNew }}" hint-placeholder-val="{{ false }}">
   <div style="position:fixed;inset:0;background:rgba(23,23,28,0.18);z-index:10;display:grid;place-items:center">
     <div style="width:min(440px,92vw);border-radius:28px;background:rgba(255,255,255,0.9);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.72);box-shadow:0 40px 130px rgba(182,49,108,0.16);padding:28px;display:flex;flex-direction:column;gap:14px">
@@ -497,7 +722,17 @@ label>input,label>select{width:100%;min-width:0}
 <script type="text/x-dc" data-dc-script data-props="{&quot;showAll&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;View&quot;}}">
 class Component extends DCLogic {
   state = {
-    screen: 'dashboard', sel: null, modal: null, temp: null, dietSel: 0, ai: true,
+    screen: 'habits', hTab: 'cat', hEdit: null, draft: null,
+    habits: [
+      { icon: '☀️', name: 'Morning skin care', group: 'Morning', kind: 'check', target: 1, unit: '', sched: 'daily', days: [], perWeek: 3, assign: 'all', members: [], required: true, remind: true, time: '07:30', note: 'Cleanser, serum, sunscreen.', start: '2026-09-01', end: '', adh: 82, on: true, hue: 70 },
+      { icon: '🌙', name: 'Night skin care', group: 'Evening', kind: 'check', target: 1, unit: '', sched: 'daily', days: [], perWeek: 3, assign: 'all', members: [], required: true, remind: true, time: '22:00', note: 'Remove sunscreen, moisturise.', start: '2026-09-01', end: '', adh: 64, on: true, hue: 290 },
+      { icon: '💧', name: 'Drink water', group: 'Self-care', kind: 'count', target: 8, unit: 'glasses', sched: 'daily', days: [], perWeek: 3, assign: 'all', members: [], required: false, remind: false, time: '10:00', note: '', start: '2026-09-01', end: '', adh: 71, on: true, hue: 230 },
+      { icon: '📖', name: 'Read', group: 'Evening', kind: 'duration', target: 20, unit: 'min', sched: 'daily', days: [], perWeek: 3, assign: 'some', members: [0, 1, 3, 5, 7, 9], required: false, remind: true, time: '21:30', note: 'Any book, no screens.', start: '2026-09-07', end: '', adh: 48, on: true, hue: 25 },
+      { icon: '🧺', name: 'Laundry', group: 'Home', kind: 'check', target: 1, unit: '', sched: 'weekly', days: [], perWeek: 2, assign: 'all', members: [], required: true, remind: true, time: '10:00', note: '', start: '2026-09-01', end: '', adh: 90, on: true, hue: 145 },
+      { icon: '🦷', name: 'Floss', group: 'Evening', kind: 'check', target: 1, unit: '', sched: 'days', days: [0, 2, 4, 6], perWeek: 3, assign: 'some', members: [0, 2, 3, 4, 8], required: false, remind: false, time: '22:10', note: '', start: '2026-09-14', end: '', adh: 39, on: true, hue: 350 },
+      { icon: '✨', name: 'Skin feel', group: 'Self-care', kind: 'scale', target: 5, unit: '1–5', sched: 'daily', days: [], perWeek: 3, assign: 'some', members: [0, 3, 5, 7], required: false, remind: false, time: '22:00', note: 'How did your skin feel today?', start: '2026-09-01', end: '', adh: 22, on: false, hue: 290 }
+    ],
+    sel: null, modal: null, temp: null, dietSel: 0, ai: true,
     feats: { photo: true, coach: true, diet: true, meme: true, explain: false },
     trig: [true, true, true, false],
     chat: [
@@ -510,6 +745,99 @@ class Component extends DCLogic {
   };
   go(id) { return e => { if (!this.props.showAll) { e && e.preventDefault(); this.setState({ screen: id }); window.scrollTo(0, 0); } }; }
   tg(on, big) { return { track: on ? '#B6316C' : '#D9D9DD', knob: on ? '19px' : '3px', knobL: on ? '23px' : '3px' }; }
+  habitVals() {
+    const S = this.state;
+    const MEM = ['Aditi','Sooraj','Rahul','Priya','Karan','Sneha','Arjun','Meera','Vikram','Rohan'];
+    const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+    const tile = h => `oklch(0.93 0.045 ${h})`;
+    const kindLabel = h => ({ check: 'Check', count: `Count · ${h.target} ${h.unit}`, duration: `Duration · ${h.target} min`, scale: 'Scale · 1–5' })[h.kind];
+    const schedLabel = h => h.sched === 'daily' ? 'Every day' : h.sched === 'days' ? (h.days.length ? h.days.map(d => DAYS[d]).join(' · ') : 'No days') : `${h.perWeek}× a week`;
+    const assignLabel = h => h.assign === 'all' ? 'Everyone' : `${h.members.length} members`;
+    const upd = patch => this.setState(s => ({ draft: { ...s.draft, ...patch } }));
+    const setH = (i, patch) => this.setState(s => ({ habits: s.habits.map((x, j) => j === i ? { ...x, ...patch } : x) }));
+    const blank = { icon: '✨', name: '', group: 'Morning', kind: 'check', target: 1, unit: '', sched: 'daily', days: [], perWeek: 3, assign: 'all', members: [], required: true, remind: false, time: '08:00', note: '', start: '2026-10-05', end: '', adh: null, on: true, hue: 350 };
+    const habitRows = S.habits.map((h, i) => ({
+      ...h, tile: tile(h.hue), kindLabel: kindLabel(h), schedLabel: schedLabel(h), assignLabel: assignLabel(h),
+      timeLabel: h.remind ? 'Reminder ' + h.time : 'No reminder',
+      adhW: (h.adh ?? 0) + '%', adhLabel: h.adh == null ? 'New' : h.adh + '%',
+      reqLabel: h.required ? 'Required' : 'Optional', reqBg: h.required ? '#F8D9E5' : '#EEECE7', reqFg: h.required ? '#8C1F50' : '#17171C',
+      op: h.on ? 1 : 0.45, ...this.tg(h.on), toggle: () => setH(i, { on: !h.on }),
+      open: () => this.setState({ hEdit: i, draft: { ...h, days: [...h.days], members: [...h.members] } })
+    }));
+    const tpls = [
+      ['☀️','Skin care AM','Morning skin care',{ group: 'Morning', hue: 70, remind: true, time: '07:30' }],
+      ['🌙','Skin care PM','Night skin care',{ group: 'Evening', hue: 290, remind: true, time: '22:00' }],
+      ['🧺','Laundry 2×/week','Laundry',{ group: 'Home', hue: 145, sched: 'weekly', perWeek: 2 }],
+      ['🪴','Water plants','Water plants',{ group: 'Home', hue: 145, sched: 'days', days: [0, 3] }],
+      ['📖','Read 20 min','Read',{ group: 'Evening', hue: 25, kind: 'duration', target: 20, unit: 'min', required: false }],
+      ['✍️','Journal','Journal',{ group: 'Evening', hue: 230, required: false }],
+      ['💧','Drink water 8 glasses','Drink water',{ group: 'Self-care', hue: 230, kind: 'count', target: 8, unit: 'glasses', required: false }]
+    ];
+    const templates = tpls.map(([icon, n, hn, extra]) => {
+      const has = S.habits.some(h => h.name === hn);
+      return { icon, n, tile: tile(extra.hue), label: has ? 'Added' : '+ Add', op: has ? 0.6 : 1, fg: has ? '#6B6B76' : '#B6316C', border: has ? '1px solid #EEECE7' : '1px solid rgba(182,49,108,0.25)',
+        add: () => !has && this.setState(s => ({ habits: [...s.habits, { ...blank, icon, name: hn, ...extra }] })) };
+    });
+    const on = S.habits.filter(h => h.on);
+    const withAdh = on.filter(h => h.adh != null);
+    const avg = withAdh.length ? Math.round(withAdh.reduce((a, h) => a + h.adh, 0) / withAdh.length) : 0;
+    const hKpis = [
+      { label: 'Active habits', value: String(on.length), sub: `${on.filter(h => h.required).length} required · ${S.habits.length - on.length} off` },
+      { label: 'Team adherence', value: avg + '%', sub: 'Last 14 days, active habits' },
+      { label: 'All required kept today', value: '6 / 10', sub: 'Arjun, Karan, Vikram, Rohan pending' }
+    ];
+    const steps = [[0, '#F8F7F4', '#6B6B76'], [1, '#FBEAF1', '#8C1F50'], [40, '#F3BFD4', '#8C1F50'], [60, '#DF7FA6', '#fff'], [80, '#B6316C', '#fff']];
+    const shade = v => { let r = steps[1]; steps.forEach(s => { if (v >= s[0]) r = s; }); return r; };
+    const heatHead = on.map(h => ({ icon: h.icon, name: h.name, tile: tile(h.hue) }));
+    const heatRows = MEM.map((m, i) => {
+      const vals = [];
+      const cells = on.map((h, j) => {
+        if (h.assign === 'some' && !h.members.includes(i)) return { v: '—', bg: '#F8F7F4', fg: '#B5B5BC', t: 'Not assigned' };
+        const base = h.adh ?? 50;
+        const v = Math.max(0, Math.min(100, base + ((i * 37 + j * 53) % 41) - 20 - (i === 6 ? 30 : 0)));
+        vals.push(v); const c = shade(v);
+        return { v: v + '%', bg: c[1], fg: c[2], t: `${m} · ${h.name}` };
+      });
+      return { name: m, cells, avg: vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) + '%' : '—' };
+    });
+    const heatLegend = [['Not assigned', '#F8F7F4'], ['Under 40%', '#FBEAF1'], ['40–59%', '#F3BFD4'], ['60–79%', '#DF7FA6'], ['80%+', '#B6316C']].map(([l, bg]) => ({ l, bg }));
+    const hTabs = [['cat', 'Catalogue'], ['adh', 'Adherence']].map(([k, l]) => ({ l, bg: S.hTab === k ? '#17171C' : 'transparent', fg: S.hTab === k ? '#fff' : '#17171C', pick: () => this.setState({ hTab: k }) }));
+    const d = S.draft || blank;
+    const seg = (cur, list, key, extra) => list.map(([k, l]) => ({ l, bg: cur === k ? '#fff' : 'transparent', fg: cur === k ? '#17171C' : '#6B6B76', sh: cur === k ? '0 1px 3px rgba(23,23,28,0.12)' : 'none', pick: () => upd({ [key]: k, ...(extra ? extra(k) : {}) }) }));
+    const kindDefaults = k => ({ check: { target: 1, unit: '' }, count: { target: 8, unit: 'glasses' }, duration: { target: 20, unit: 'min' }, scale: { target: 5, unit: '1–5' } })[k];
+    const field = k => e => upd({ [k]: e.target.value });
+    const isNew = S.hEdit === 'new';
+    const req = this.tg(d.required), rem = this.tg(d.remind);
+    return {
+      hTabs, hTabCat: S.hTab === 'cat', hTabAdh: S.hTab === 'adh', hKpis, templates, habitRows,
+      heatHead, heatRows, heatCols: String(Math.max(on.length, 1)), heatLegend,
+      newHabit: () => this.setState({ hEdit: 'new', draft: { ...blank } }),
+      habitOpen: S.hEdit !== null, d,
+      dSet: { name: field('name'), group: field('group'), target: field('target'), unit: field('unit'), time: field('time'), note: field('note'), start: field('start'), end: field('end') },
+      dv: {
+        eyebrow: isNew ? 'New habit' : 'Edit habit', title: d.name || 'Untitled habit', tile: tile(d.hue),
+        hasTarget: d.kind === 'count' || d.kind === 'duration', unitLocked: d.kind === 'duration',
+        kindHint: ({ check: 'Done or not done. One tap for members.', count: 'Members tap ± until they reach the target.', duration: 'Members pick minutes from quick chips or type them.', scale: 'Members rate 1–5. Any rating completes the habit.' })[d.kind],
+        isDays: d.sched === 'days', isWeekly: d.sched === 'weekly', isSome: d.assign === 'some',
+        reqHint: d.required ? 'Counts toward the habits streak. Members can’t hide it.' : 'Members can hide it. Doesn’t affect the habits streak.',
+        reqTrack: req.track, reqKnob: req.knob, remTrack: rem.track, remKnob: rem.knob,
+        canArchive: !isNew, saveLabel: isNew ? 'Create habit' : 'Save changes',
+        footHint: isNew ? 'Members see it from the start date. Recorded in the audit log.' : 'Has check-ins, so it can’t be deleted. Archiving keeps history. Edits are audited; past check-ins keep their old target.'
+      },
+      iconOpts: ['☀️','🌙','💧','📖','🧺','🪴','✍️','🦷','🧘','✨'].map(v => ({ v, border: d.icon === v ? '2px solid #17171C' : '1px solid #D9D9DD', pick: () => upd({ icon: v }) })),
+      hueOpts: [350, 25, 70, 145, 230, 290].map(h => ({ bg: `oklch(0.8 0.1 ${h})`, ring: d.hue === h ? '0 0 0 2px #fff, 0 0 0 4px #17171C' : 'none', pick: () => upd({ hue: h }) })),
+      kindOpts: seg(d.kind, [['check','Check'],['count','Count'],['duration','Duration'],['scale','Scale']], 'kind', kindDefaults),
+      schedOpts: seg(d.sched, [['daily','Every day'],['days','Weekdays'],['weekly','N× a week']], 'sched'),
+      assignOpts: seg(d.assign, [['all','Everyone'],['some','Selected members']], 'assign'),
+      dayOpts: ['M','T','W','T','F','S','S'].map((l, i) => { const a = d.days.includes(i); return { l, bg: a ? '#B6316C' : '#F8F7F4', fg: a ? '#fff' : '#6B6B76', pick: () => upd({ days: a ? d.days.filter(x => x !== i) : [...d.days, i].sort() }) }; }),
+      memberOpts: MEM.map((l, i) => { const a = d.members.includes(i); return { l, bg: a ? '#F8D9E5' : '#fff', fg: a ? '#8C1F50' : '#17171C', bd: a ? '#E7B3C8' : '#D9D9DD', pick: () => upd({ members: a ? d.members.filter(x => x !== i) : [...d.members, i] }) }; }),
+      perDown: () => upd({ perWeek: Math.max(1, d.perWeek - 1) }), perUp: () => upd({ perWeek: Math.min(6, d.perWeek + 1) }),
+      togReq: () => upd({ required: !d.required }), togRemind: () => upd({ remind: !d.remind }),
+      closeHabit: () => this.setState({ hEdit: null, draft: null }),
+      saveHabit: () => this.setState(s => ({ habits: s.hEdit === 'new' ? [...s.habits, { ...s.draft, name: s.draft.name || 'Untitled habit' }] : s.habits.map((x, j) => j === s.hEdit ? s.draft : x), hEdit: null, draft: null })),
+      archiveHabit: () => this.setState(s => ({ habits: s.habits.filter((_, j) => j !== s.hEdit), hEdit: null, draft: null }))
+    };
+  }
   renderVals() {
     const S = this.state, all = !!this.props.showAll;
     const members = [
@@ -527,14 +855,14 @@ class Component extends DCLogic {
       op: m[3] === 'Deactivated' ? 0.55 : 1, open: () => this.setState({ sel: i, temp: null })
     }));
     const groups = [
-      { label: 'Team', items: [['dashboard','Overview'],['members','Members'],['goals','Goals & targets'],['diets','Diet plans'],['activity','Activity plans']] },
+      { label: 'Team', items: [['dashboard','Overview'],['members','Members'],['goals','Goals & targets'],['diets','Diet plans'],['activity','Activity plans'],['habits','Habits','NEW']] },
       { label: 'Community', items: [['chat','Chat moderation'],['memes','Memes & triggers']] },
       { label: 'System', items: [['ai','AI control centre', S.ai ? 'ON' : 'OFF'],['team','Team settings'],['data','Retention & data'],['audit','Audit log'],['login','Sign-in screen']] }
     ].map(g => ({ label: g.label, items: g.items.map(([id, label, tag]) => {
       const act = !all && S.screen === id;
       return { anchor: 'scr-' + id, label, tag: tag || '', go: this.go(id), bg: act ? '#F8D9E5' : 'transparent', color: act ? '#8C1F50' : '#17171C' };
     }) }));
-    const show = {}; ['login','dashboard','members','goals','diets','activity','chat','memes','ai','team','data','audit'].forEach(k => show[k] = all || S.screen === k);
+    const show = {}; ['login','dashboard','members','goals','diets','activity','habits','chat','memes','ai','team','data','audit'].forEach(k => show[k] = all || S.screen === k);
     const bands = { 'In range': ['#E3F1E6', '#1E5B2E'], 'Under': ['#FBEFD9', '#7A4B00'], 'Over': ['#F8D9E5', '#8C1F50'], 'Not logged': ['#EEECE7', '#4A4A55'] };
     const today = [['Aditi Rao','1,720 / 1,850','In range'],['Rahul Mehta','2,480 / 2,200','Over'],['Priya Iyer','1,210 / 1,650','Under'],['Sneha Kulkarni','1,590 / 1,700','In range'],['Meera Pillai','1,480 / 1,550','In range'],['Arjun Reddy','— / 2,100','Not logged']]
       .map(r => ({ name: r[0], kcal: r[1], band: r[2], bandBg: bands[r[2]][0], bandFg: bands[r[2]][1] }));
@@ -549,6 +877,7 @@ class Component extends DCLogic {
       .map((t, i) => ({ ev: t[0], cond: t[1], act: t[2], fired: t[3], ...this.tg(S.trig[i]), toggle: () => this.setState(s => { const a = [...s.trig]; a[i] = !a[i]; return { trig: a }; }) }));
     const close = () => this.setState({ sel: null, modal: null, temp: null });
     return {
+      ...this.habitVals(),
       navGroups: groups, show, goLogin: this.go('login'), goDash: this.go('dashboard'),
       aiLabel: S.ai ? 'on' : 'off',
       kpis: [

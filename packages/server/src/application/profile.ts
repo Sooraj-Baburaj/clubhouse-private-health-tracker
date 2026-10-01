@@ -36,6 +36,7 @@ export function profileToDto(p: ProfileRow, tz: string, today: string, vacationQ
     privacy: p.privacy,
     aiOptOuts: p.aiOptOuts,
     momentumPrefs: { showOnToday: p.momentumPrefs.showOnToday },
+    habitPrefs: { bundle: p.habitPrefs?.bundle ?? true, share: p.habitPrefs?.share ?? false },
     appPrefs: p.appPrefs,
     quietHours: p.quietHours,
     notificationsMaster: p.notificationsMaster,
@@ -152,6 +153,7 @@ export async function updatePreferences(c: Container, user: AuthUser, patch: Pre
   if (patch.privacy) next.privacy = { ...p.privacy, ...patch.privacy };
   if (patch.aiOptOuts) next.aiOptOuts = { ...p.aiOptOuts, ...patch.aiOptOuts };
   if (patch.momentumPrefs) next.momentumPrefs = patch.momentumPrefs;
+  if (patch.habitPrefs) next.habitPrefs = { ...p.habitPrefs, ...patch.habitPrefs };
   if (patch.appPrefs) next.appPrefs = { ...p.appPrefs, ...patch.appPrefs };
   if (patch.quietHours !== undefined) next.quietHours = patch.quietHours;
   if (patch.notificationsMaster !== undefined) next.notificationsMaster = patch.notificationsMaster;

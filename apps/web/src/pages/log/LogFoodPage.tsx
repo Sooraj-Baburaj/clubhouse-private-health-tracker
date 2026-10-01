@@ -24,6 +24,7 @@ import {
   useRecognisePhoto,
   useUploadFoodPhoto,
   type CartItem,
+  type Shot,
 } from '@/features/food';
 import { fmt, SLOT_LABEL } from '@/features/format';
 import { useSaveFoodLog } from '@/features/logs';
@@ -153,34 +154,35 @@ export function LogFoodPage() {
   };
 
   // ── photos ──
-  const attachUpload = (blob: Blob) => {
+  // One clientId per photo: the recognition call and any fallback upload share it, so the server stores the photo once.
+  const attachUpload = (shot: Shot) => {
     setPhoto((p) => (p ? { ...p, status: 'uploading' } : p));
-    upload.mutate(blob, {
+    upload.mutate(shot, {
       onSuccess: (r) => setPhoto((p) => (p ? { ...p, imageId: r.id, status: 'ready' } : p)),
       onError: () => setPhoto((p) => (p ? { ...p, status: 'failed' } : p)),
     });
   };
-  const couldntTell = (r: RecognitionResponse | null, blob: Blob) => {
+  const couldntTell = (r: RecognitionResponse | null, shot: Shot) => {
     toast.show(r?.message ? `Couldn’t quite tell — ${r.message}` : 'Couldn’t quite tell. Search for it and the photo stays attached.');
     setStage('idle');
     setMode('search');
     if (r?.imageId) setPhoto((p) => (p ? { ...p, imageId: r.imageId, status: 'ready' } : p));
-    else attachUpload(blob);
+    else attachUpload(shot);
   };
   // Guards against a slow answer landing after "Search instead" or a retake.
   const run = useRef(0);
-  const analyse = (blob: Blob) => {
+  const analyse = (shot: Shot) => {
     setStage('analyzing');
     const mine = ++run.current;
     recognise.mutate(
-      { blob, slot },
+      { ...shot, slot },
       {
         onSuccess: (r) => {
           if (mine !== run.current) return;
           if (r.callId) setAiCallId(r.callId);
-          if (!r.ok || r.lowConfidence || !r.items.length) return couldntTell(r, blob);
+          if (!r.ok || r.lowConfidence || !r.items.length) return couldntTell(r, shot);
           setPhoto((p) => (p ? { ...p, imageId: r.imageId, status: r.imageId ? 'ready' : p.status } : p));
-          if (!r.imageId) attachUpload(blob);
+          if (!r.imageId) attachUpload(shot);
           setCart((c) => [...c.filter((i) => i.source !== 'ai'), ...r.items.map(itemFromRecognised)]);
           setResultsFrom('photo');
           setStage('results');
@@ -195,7 +197,7 @@ export function LogFoodPage() {
             return;
           }
           if (e instanceof ApiError && e.status !== 429 && e.status < 500) toast.error(e.message);
-          couldntTell(null, blob);
+          couldntTell(null, shot);
         },
       },
     );
@@ -210,8 +212,9 @@ export function LogFoodPage() {
     }
     setPhotoRemoved(false);
     setPhoto({ url: c.previewUrl, imageId: null, status: 'local' });
-    if (photoAi) analyse(c.blob);
-    else attachUpload(c.blob);
+    const shot = { blob: c.blob, clientId: uuid() };
+    if (photoAi) analyse(shot);
+    else attachUpload(shot);
   };
 
   // Share target: a photo shared into the app lands here once.

@@ -15,6 +15,8 @@ export interface MessageCtx {
   myUsername: string;
   onActions: (m: ChatMessageDto) => void;
   onToggleReaction: (m: ChatMessageDto, emoji: string, on: boolean) => void;
+  /** Who reacted (long-press a reaction); `emoji` preselects that reaction. */
+  onShowReactions: (m: ChatMessageDto, emoji: string | null) => void;
   onJumpTo: (id: string) => void;
 }
 
@@ -114,41 +116,52 @@ export const MessageItem = forwardRef<HTMLDivElement, { m: ChatMessageDto; first
             Message actions
           </button>
         )}
-        {!m.deleted && (m.reactions.length > 0 || m.memeReactions.length > 0) && <Reactions m={m} onToggle={ctx.onToggleReaction} />}
+        {!m.deleted && (m.reactions.length > 0 || m.memeReactions.length > 0) && <Reactions m={m} onToggle={ctx.onToggleReaction} onShow={ctx.onShowReactions} />}
       </div>
     </motion.div>
   );
 });
 
-function Reactions({ m, onToggle }: { m: ChatMessageDto; onToggle: MessageCtx['onToggleReaction'] }) {
+function Reactions({ m, onToggle, onShow }: { m: ChatMessageDto; onToggle: MessageCtx['onToggleReaction']; onShow: MessageCtx['onShowReactions'] }) {
   return (
     <div className={cn('flex flex-wrap gap-1 px-1.5', m.mine && 'justify-end')}>
       <AnimatePresence initial={false} mode="popLayout">
         {m.reactions.map((r) => (
-          <motion.button
-            layout
-            key={r.emoji}
-            type="button"
-            initial={{ scale: 0.4, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.4, opacity: 0 }}
-            whileTap={{ scale: 0.88 }}
-            transition={{ type: 'spring', stiffness: 520, damping: 26 }}
-            onClick={() => onToggle(m, r.emoji, !r.mine)}
-            aria-pressed={r.mine}
-            aria-label={`${r.emoji} ${r.count}${r.mine ? ', including you' : ''}. ${r.mine ? 'Remove' : 'Add'} your reaction`}
-            title={r.names.join(', ')}
-            className={cn('inline-flex min-h-[30px] items-center gap-1 rounded-full border px-2.5 text-[12px] font-bold', r.mine ? 'border-accent-400 bg-accent-200 text-accent-900' : 'border-divider bg-transparent')}
-          >
-            <span aria-hidden>{r.emoji}</span>
-            <span className="tabular">{r.count}</span>
-          </motion.button>
+          <ReactionPill key={r.emoji} r={r} onToggle={() => onToggle(m, r.emoji, !r.mine)} onShow={() => onShow(m, r.emoji)} />
         ))}
       </AnimatePresence>
       {m.memeReactions.map((mr, i) => (mr.url ? <img key={i} src={mr.url} alt="Meme reaction" className="h-[30px] w-[30px] rounded-full object-cover" /> : null))}
     </div>
   );
 }
+
+/** Tap toggles my reaction; long-press (or right-click) shows who reacted. */
+const ReactionPill = forwardRef<HTMLButtonElement, { r: ChatMessageDto['reactions'][number]; onToggle: () => void; onShow: () => void }>(function ReactionPill({ r, onToggle, onShow }, ref) {
+  const lp = useLongPress(onShow);
+  return (
+    <motion.button
+      ref={ref}
+      layout
+      type="button"
+      initial={{ scale: 0.4, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      exit={{ scale: 0.4, opacity: 0 }}
+      whileTap={{ scale: 0.88 }}
+      transition={{ type: 'spring', stiffness: 520, damping: 26 }}
+      {...lp.handlers}
+      onClick={() => {
+        if (!lp.consumed()) onToggle();
+      }}
+      aria-pressed={r.mine}
+      aria-label={`${r.emoji} ${r.count}${r.mine ? ', including you' : ''}. ${r.mine ? 'Remove' : 'Add'} your reaction`}
+      title={`${r.names.join(', ')} · long-press to see who reacted`}
+      className={cn('inline-flex min-h-[30px] select-none items-center gap-1 rounded-full border px-2.5 text-[12px] font-bold [-webkit-touch-callout:none]', r.mine ? 'border-accent-400 bg-accent-200 text-accent-900' : 'border-divider bg-transparent')}
+    >
+      <span aria-hidden>{r.emoji}</span>
+      <span className="tabular">{r.count}</span>
+    </motion.button>
+  );
+});
 
 /** Optimistic / queued / failed own message (clock icon until the server has it). */
 export function PendingItem({ body, labels, reply, status, error, onRetry, onDiscard }: { body: string; labels: string[]; reply: { authorName: string; body: string } | null; status: 'sending' | 'queued' | 'failed'; error?: string | null; onRetry: () => void; onDiscard: () => void }) {

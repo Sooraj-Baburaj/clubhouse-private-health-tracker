@@ -8,6 +8,7 @@ import type { AuthUser } from '../interface/http/types';
 import { memberClock } from './clockCtx';
 import { afterLogSaved, emptyEffects } from './effects';
 import { foodsByIds } from './foods';
+import { upsertCheckin } from './habits';
 import { imageUrlMap } from './images';
 import { activityLogDto, foodLogDto, weightDto } from './mappers';
 import { isAddedLate } from './momentum';
@@ -215,6 +216,12 @@ export async function sync(c: Container, user: AuthUser, ops: SyncOp[]): Promise
   const touchedDates = new Set<string>();
   for (const op of ops) {
     try {
+      if (op.kind === 'habit_checkin') {
+        // Habit ticks have no log side effects (streaks are computed on read).
+        const r = await upsertCheckin(c, user, op.id, op.data);
+        results.push({ kind: op.kind, id: op.id, status: r.status, entity: r.entity });
+        continue;
+      }
       const r =
         op.kind === 'food_log'
           ? await upsertFoodLog(c, user, op.id, op.data, { skipEffects: ops.length > 1 })

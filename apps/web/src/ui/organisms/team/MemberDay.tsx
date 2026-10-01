@@ -43,6 +43,17 @@ export function MemberDaySummary({ d }: { d: MemberDayResponse }) {
           sub="days"
         />
       </motion.div>
+      {d.habits && (
+        <motion.div variants={fadeUp}>
+          <ListGroup title="Habits">
+            <ListRow
+              title={`${d.habits.done} of ${d.habits.total} kept`}
+              sub={d.habits.doneNames ? (d.habits.doneNames.length ? d.habits.doneNames.join(', ') : 'None ticked yet') : 'They keep which ones private'}
+              right={<Bar value={d.habits.total ? d.habits.done / d.habits.total : 0} height={8} className="w-20 bg-neutral-300" fillStyle={{ background: 'var(--color-accent-2)' }} label={`${d.habits.done} of ${d.habits.total} habits kept`} />}
+            />
+          </ListGroup>
+        </motion.div>
+      )}
       {s.activities.length > 0 && (
         <motion.div variants={fadeUp}>
           <ListGroup title="Moves">

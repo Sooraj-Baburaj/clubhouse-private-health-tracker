@@ -7,6 +7,7 @@ import { initials } from '../lib/crypto';
 import { notFound } from '../lib/errors';
 import type { AuthUser } from '../interface/http/types';
 import { memberClock } from './clockCtx';
+import { getHabitDay } from './habits';
 import { imageUrlMap, pick } from './images';
 import { logsForDate } from './logs';
 import { consistencyWeeks, currentTargets, dayAggregates, dayKcalBand, dayTargets, thresholdsFor, type DayAgg } from './progress';
@@ -140,6 +141,14 @@ export async function memberDay(c: Container, user: AuthUser, memberId: string, 
       streak: f.streak,
     },
     full,
+    habits: await teammateHabits(c, { id: u.id, teamId: u.teamId, timezone: u.timezone || team.timezone }, date, isMe || !!p.habitPrefs?.share),
   };
+}
+
+/** Privacy: teammates see how many habits were kept; which ones only when the member shares them. */
+async function teammateHabits(c: Container, member: { id: string; teamId: string; timezone: string }, date: string, showNames: boolean): Promise<MemberDayResponse['habits']> {
+  const day = await getHabitDay(c, member, date).catch(() => null);
+  if (!day || !day.total) return null;
+  return { done: day.done, total: day.total, doneNames: showNames ? day.items.filter((i) => i.done).map((i) => i.name) : null };
 }
 

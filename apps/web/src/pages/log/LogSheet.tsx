@@ -1,6 +1,7 @@
 import { useLocation, useNavigate, useSearch } from '@tanstack/react-router';
 import { motion } from 'motion/react';
 import { useUi } from '@/app/uiStore';
+import { useHabitDay } from '@/features/habits';
 import { useMeData } from '@/features/me';
 import { cn } from '@/lib/cn';
 import { AIBadge } from '@/ui/atoms/Badges';
@@ -30,6 +31,7 @@ export function LogSheet() {
   const loc = useLocation();
   const search = useSearch({ strict: false });
   const m = useListMotion(0.05, 0.05);
+  const habits = useHabitDay();
   // Logging from a past day on Today carries that date through.
   const date = loc.pathname === '/' && typeof search.date === 'string' ? search.date : undefined;
 
@@ -44,6 +46,9 @@ export function LogSheet() {
     { key: 'search', label: 'Search food', sub: 'Roti, dosa, dal and plenty more', tone: 'bg-surface text-text', go: go(() => void navigate({ to: '/log/food', search: { mode: 'search', date } })) },
     { key: 'activity', label: 'Log activity', sub: 'Three taps: type, time, done', tone: 'bg-accent-2 text-on-accent', go: go(() => void navigate({ to: '/log/activity', search: { date } })) },
     { key: 'weight', label: 'Log weight', sub: 'Step on, type it in', tone: 'border border-divider bg-transparent text-text', go: openWeight },
+    ...(habits.data && habits.data.total > 0
+      ? [{ key: 'habits', label: 'Tick habits', sub: `${habits.data.done} of ${habits.data.total} done today`, tone: 'bg-surface text-text', go: go(() => void navigate({ to: '/habits' })) }]
+      : []),
   ];
 
   return (

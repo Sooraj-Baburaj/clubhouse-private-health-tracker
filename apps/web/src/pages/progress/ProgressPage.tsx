@@ -5,6 +5,7 @@ import { usePaneRef } from '@/app/pane';
 import { ActivitySection } from '@/ui/organisms/progress/ActivitySection';
 import { CaloriesSection } from '@/ui/organisms/progress/CaloriesSection';
 import { ConsistencySection } from '@/ui/organisms/progress/ConsistencySection';
+import { HabitsSection } from '@/ui/organisms/progress/HabitsSection';
 import { Section } from '@/ui/organisms/progress/Kit';
 import { MomentumCard } from '@/ui/organisms/progress/MomentumCard';
 import { NutrientsSection } from '@/ui/organisms/progress/NutrientsSection';
@@ -43,6 +44,9 @@ export function ProgressPage() {
         </Section>
         <Section id="activity" label="Activity" className="mt-4">
           <ActivitySection />
+        </Section>
+        <Section id="habits" label="Habits" className="mt-4 empty:hidden">
+          <HabitsSection />
         </Section>
         <Section id="consistency" label="Consistency" className="mt-4">
           <ConsistencySection />

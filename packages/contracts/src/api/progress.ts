@@ -104,6 +104,8 @@ export interface MemberDayResponse {
   date: string;
   summary: { eaten: number; targetKcal: number | null; bandLabel: string | null; band: Band | null; mealsLogged: number; burned: number; activities: { typeName: string; durationMin: number }[]; streak: number };
   full: { foodLogs: FoodLogDto[]; activityLogs: ActivityLogDto[] } | null;
+  /** Habits due that day; `done` names only when the member shares their habits (or it's you). Null with none due. */
+  habits: { done: number; total: number; doneNames: string[] | null } | null;
 }
 
 export interface RecapDto {

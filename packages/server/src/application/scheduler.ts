@@ -3,6 +3,7 @@ import { SCHEDULED_NOTIFICATION_TYPES, SLOT_REMINDER, type MealSlot, type Notifi
 import { hhmmToMinutes, minutesToHHmm, nextSendAt, slotsFromPreference, type ScheduleSlot } from '@clubhouse/domain';
 import { schema as s } from '@clubhouse/db';
 import type { Container } from '../container';
+import { habitReminderSlots } from './habits';
 import { getTeam } from './team';
 
 const SLOT_BY_TYPE = Object.fromEntries(Object.entries(SLOT_REMINDER).map(([slot, type]) => [type, slot])) as Record<string, MealSlot>;
@@ -10,6 +11,10 @@ const SLOT_BY_TYPE = Object.fromEntries(Object.entries(SLOT_REMINDER).map(([slot
 /** Weekly (weekday, time) slots for a scheduled type, using smart times for meals and plan days for activity. */
 export async function slotsFor(c: Container, userId: string, type: NotificationType, pref: { enabled: boolean; time: string | null; days: number[]; smartTime: boolean }, smartTimes: Record<string, string>): Promise<ScheduleSlot[]> {
   if (!pref.enabled) return [];
+  if (type === 'habit_reminder') {
+    const u = await c.db.query.users.findFirst({ where: eq(s.users.id, userId), columns: { teamId: true } });
+    return u ? habitReminderSlots(c, userId, u.teamId, pref.days) : [];
+  }
   if (type === 'activity_reminder') {
     const plan = await c.db.query.activityPlans.findFirst({ where: eq(s.activityPlans.userId, userId) });
     if (!plan) return [];
@@ -52,7 +57,9 @@ export async function rescheduleUser(c: Container, userId: string, onlyType?: No
     let next: Date | null = null;
     if (pref && user.status === 'active' && profile.notificationsMaster && user.onboardedAt) {
       const slots = await slotsFor(c, userId, sch.type as NotificationType, { enabled: pref.enabled, time: pref.time, days: pref.days, smartTime: pref.smartTime }, profile.smartTimes);
-      next = nextSendAt({ slots, tz, now, lastSentLocalDate: sch.lastSentLocalDate, quiet: profile.quietHours });
+      // Habit reminders go out at several times a day (one per time slot), so a send today doesn't close the day.
+      const lastSentLocalDate = sch.type === 'habit_reminder' ? null : sch.lastSentLocalDate;
+      next = nextSendAt({ slots, tz, now, lastSentLocalDate, quiet: profile.quietHours });
     }
     await c.db
       .update(s.notificationSchedules)

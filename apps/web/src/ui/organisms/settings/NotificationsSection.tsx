@@ -18,8 +18,8 @@ import { ErrorCard } from '@/ui/organisms/progress/Kit';
 import { cn } from '@/lib/cn';
 import { Divider, TimeInput, ToggleRow, WeekdayChips } from './Kit';
 
-const GROUP_TITLES: Record<NotificationPrefDto['group'], string> = { meals: 'Meals', activity: 'Activity', momentum: 'Momentum', chat: 'Chat', team: 'Team', system: 'From the Clubhouse' };
-const GROUP_ORDER: NotificationPrefDto['group'][] = ['meals', 'activity', 'momentum', 'chat', 'team', 'system'];
+const GROUP_TITLES: Record<NotificationPrefDto['group'], string> = { meals: 'Meals', activity: 'Activity', habits: 'Habit reminders', momentum: 'Momentum', chat: 'Chat', team: 'Team', system: 'From the Clubhouse' };
+const GROUP_ORDER: NotificationPrefDto['group'][] = ['meals', 'activity', 'habits', 'momentum', 'chat', 'team', 'system'];
 type Mute = 'off' | '1h' | '8h' | '1w';
 
 /** Which mute option matches the time left until `until` (reads the clock, like `relativeTime`). */
@@ -68,6 +68,18 @@ export function NotificationsSection() {
                     <PrefRow r={r} onChange={(patch) => change(r.type, patch)} disabled={!master} />
                   </div>
                 ))}
+                {g === 'habits' && (
+                  <>
+                    <Divider />
+                    <ToggleRow
+                      title="Bundle into one push"
+                      sub={p.habitPrefs?.bundle === false ? 'One push per habit' : '“3 habits due this evening” instead of three pings'}
+                      checked={p.habitPrefs?.bundle !== false}
+                      disabled={!master || !rows.some((r) => r.enabled)}
+                      onChange={(bundle) => updatePrefs.mutate({ habitPrefs: { bundle } })}
+                    />
+                  </>
+                )}
               </ListGroup>
             );
           })}

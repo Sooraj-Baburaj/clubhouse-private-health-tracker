@@ -68,6 +68,13 @@ export const api = {
     logOption: (optionId: string, b: C.LogOptionRequest) => post<C.UpsertResult<C.FoodLogDto>>(`/diet/options/${optionId}/log`, b),
     feedback: (optionId: string, reaction: 'favourite' | 'dislike' | null) => post<Ok>(`/diet/options/${optionId}/feedback`, { reaction }),
   },
+  habits: {
+    day: (date?: string) => get<C.HabitDayResponse>('/habits', { date }),
+    week: () => get<C.HabitWeekResponse>('/habits/week'),
+    get: (id: string) => get<C.HabitDetailResponse>(`/habits/${id}`),
+    checkin: (id: string, b: C.HabitCheckinUpsert) => put<C.UpsertResult<C.HabitCheckinDto>>(`/habits/checkins/${id}`, b),
+    prefs: (id: string, b: C.HabitPrefUpdate) => patch<Ok>(`/habits/${id}/prefs`, b),
+  },
   plan: {
     get: () => get<C.MyPlanResponse>('/activity-plan'),
     setDays: (b: C.SetPlanDaysRequest) => put<C.MyPlanResponse>('/activity-plan/days', b),

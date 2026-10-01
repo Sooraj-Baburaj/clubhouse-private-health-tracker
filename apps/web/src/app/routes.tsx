@@ -8,6 +8,8 @@ import { OnboardingPage } from '@/pages/onboarding/OnboardingPage';
 import { LogFoodPage } from '@/pages/log/LogFoodPage';
 import { LogActivityPage } from '@/pages/log/LogActivityPage';
 import { MomentumPage } from '@/pages/momentum/MomentumPage';
+import { HabitsPage } from '@/pages/habits/HabitsPage';
+import { HabitDetailPage } from '@/pages/habits/HabitDetailPage';
 import { InboxPage } from '@/pages/inbox/InboxPage';
 import { SettingsPage } from '@/pages/settings/SettingsPage';
 import { SettingsSectionPage } from '@/pages/settings/SettingsSectionPage';
@@ -50,6 +52,8 @@ const logWeightRoute = createRoute({
     throw redirect({ to: '/', search: {} });
   },
 });
+const habitsRoute = createRoute({ getParentRoute: () => shellRoute, path: '/habits', validateSearch: z.object({ day: z.enum(['yesterday']).optional() }), component: HabitsPage });
+const habitDetailRoute = createRoute({ getParentRoute: () => shellRoute, path: '/habits/$habitId', component: HabitDetailPage });
 const momentumRoute = createRoute({ getParentRoute: () => shellRoute, path: '/momentum', component: MomentumPage });
 const inboxRoute = createRoute({ getParentRoute: () => shellRoute, path: '/inbox', component: InboxPage });
 const settingsRoute = createRoute({ getParentRoute: () => shellRoute, path: '/settings', component: SettingsPage });
@@ -61,7 +65,7 @@ const routeTree = rootRoute.addChildren([
   changePasswordRoute,
   verifyRoute,
   onboardingRoute,
-  shellRoute.addChildren([todayRoute, dietRoute, progressRoute, chatRoute, logFoodRoute, logActivityRoute, logWeightRoute, momentumRoute, inboxRoute, settingsRoute, settingsSectionRoute, memberDayRoute]),
+  shellRoute.addChildren([todayRoute, dietRoute, progressRoute, chatRoute, logFoodRoute, logActivityRoute, logWeightRoute, habitsRoute, habitDetailRoute, momentumRoute, inboxRoute, settingsRoute, settingsSectionRoute, memberDayRoute]),
 ]);
 
 export const router = createRouter({ routeTree, defaultPreload: 'intent', scrollRestoration: false });

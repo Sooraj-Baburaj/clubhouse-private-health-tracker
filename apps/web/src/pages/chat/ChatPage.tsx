@@ -31,6 +31,7 @@ import { AttachSheet } from '@/ui/organisms/chat/AttachSheet';
 import { ChatHeader, PinnedBanner } from '@/ui/organisms/chat/ChatHeader';
 import { CHAT_DOCK_OFFSET, Composer } from '@/ui/organisms/chat/Composer';
 import { MessageActionsSheet } from '@/ui/organisms/chat/MessageActionsSheet';
+import { ReactionsSheet } from '@/ui/organisms/chat/ReactionsSheet';
 import { DaySeparator, DividerRow, MessageItem, PendingItem, UnreadMarker, type MessageCtx } from '@/ui/organisms/chat/MessageItem';
 import { ErrorCard } from '@/ui/organisms/progress/Kit';
 
@@ -60,6 +61,7 @@ export function ChatPage() {
   const box = useSyncExternalStore(outbox.subscribe, outbox.get, outbox.get);
 
   const [actionsFor, setActionsFor] = useState<ChatMessageDto | null>(null);
+  const [reactionsFor, setReactionsFor] = useState<{ id: string; emoji: string | null } | null>(null);
   const [attachOpen, setAttachOpen] = useState(false);
   const [highlight, setHighlight] = useState<string | null>(null);
   const [newCount, setNewCount] = useState(0);
@@ -265,6 +267,7 @@ export function ChatPage() {
     myUsername: me.user.username,
     onActions: setActionsFor,
     onToggleReaction: (m, emoji, on) => react.mutate({ id: m.id, emoji, on }),
+    onShowReactions: (m, emoji) => setReactionsFor({ id: m.id, emoji }),
     onJumpTo: jumpTo,
   };
 
@@ -399,8 +402,13 @@ export function ChatPage() {
           },
           remove: (m) => del.mutate(m.id),
           report: (m, reason) => report.mutate({ id: m.id, reason }),
+          showReactions: (m) => setReactionsFor({ id: m.id, emoji: null }),
         }}
       />
+      <ReactionsSheet
+        request={reactionsFor}
+        m={reactionsFor ? (messages.find((x) => x.id === reactionsFor.id) ?? null) : null}
+        onClose={() => setReactionsFor(null)} members={members.data ?? []} myName={me.user.displayName} />
       <AttachSheet open={attachOpen} onClose={() => setAttachOpen(false)} />
     </MotionConfig>
   );

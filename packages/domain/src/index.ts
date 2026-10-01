@@ -11,3 +11,4 @@ export * from './triggers';
 export * from './diet';
 export * from './nutrition';
 export * from './format';
+export * from './habits';

@@ -94,6 +94,7 @@ export const DEFAULT_NOTIFICATION_PREFS: Record<NotificationType, NotificationDe
   announcement: { enabled: true, time: null, days: ALL_DAYS, smartTime: false },
   ai_budget_alert: { enabled: true, time: null, days: ALL_DAYS, smartTime: false },
   weigh_in_reminder: { enabled: false, time: '08:00', days: [0], smartTime: false },
+  habit_reminder: { enabled: true, time: null, days: ALL_DAYS, smartTime: false },
   system: { enabled: true, time: null, days: ALL_DAYS, smartTime: false },
 };
 /** Types a member cannot switch off (SRS Appendix C "Member can change: No"). */
@@ -135,7 +136,7 @@ export const DEFAULT_TEAM_SETTINGS: TeamSettings = {
   notificationDefaults: DEFAULT_NOTIFICATION_PREFS,
   defaultQuietHours: DEFAULT_QUIET_HOURS,
   copyPool: {},
-  privacyDefault: 'summary',
+  privacyDefault: 'full',
   roastDefault: true,
   eatBackDefault: false,
   featureFlags: { teamPulse: true, roastMemes: true, naturalLanguageEntry: true },

@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { useEffect, useRef } from 'react';
 import { useOnline } from '@clubhouse/ui';
 import { useMeData } from '@/features/me';
+import { useHabitDay } from '@/features/habits';
 import { useMarkBadgesSeen, useMomentum } from '@/features/momentum';
 import { Button } from '@/ui/atoms/Button';
 import { Skeleton } from '@/ui/atoms/Skeleton';
@@ -10,6 +11,7 @@ import { EmptyState } from '@/ui/molecules/EmptyState';
 import { StackHeader } from '@/ui/molecules/StackHeader';
 import { BadgesGrid, DotGrid, StreakHero, StreakTiles } from '@/ui/organisms/momentum/MomentumPieces';
 import { VacationCard } from '@/ui/organisms/momentum/VacationCard';
+import { HabitsStreakCard } from '@/ui/organisms/habits/HabitPieces';
 import { useListMotion } from '@/ui/organisms/today/motion';
 
 /** APP-PROG-07: streaks that pause instead of breaking, grace days, team streak, badges and breaks. */
@@ -19,6 +21,7 @@ export function MomentumPage() {
   const navigate = useNavigate();
   const online = useOnline();
   const q = useMomentum();
+  const habits = useHabitDay();
   const seen = useMarkBadgesSeen();
   const m = useListMotion(0.05);
   const back = () => (window.history.length > 1 ? router.history.back() : void navigate({ to: '/', search: {} }));
@@ -73,6 +76,11 @@ export function MomentumPage() {
           <motion.div variants={m.item}>
             <StreakTiles data={d} />
           </motion.div>
+          {habits.data && (habits.data.total > 0 || habits.data.streak.best > 0) && (
+            <motion.div variants={m.item}>
+              <HabitsStreakCard current={habits.data.streak.current} onOpen={() => void navigate({ to: '/habits' })} />
+            </motion.div>
+          )}
           <motion.div variants={m.item}>
             <VacationCard v={d.vacation} today={d.today} />
           </motion.div>

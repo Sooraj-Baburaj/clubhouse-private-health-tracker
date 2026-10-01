@@ -28,6 +28,7 @@ export const NOTIFICATION_LABELS: Record<NotificationType, { label: string; hint
   announcement: { label: 'Announcements', hint: 'Messages from your admins', group: 'team' },
   ai_budget_alert: { label: 'AI budget alerts', hint: 'Admins only: spend thresholds', group: 'system' },
   weigh_in_reminder: { label: 'Weigh-in reminder', hint: 'A weekly reminder to step on the scale', group: 'momentum' },
+  habit_reminder: { label: 'Habit reminders', hint: 'At each habit’s reminder time, bundled; skipped once done', group: 'habits' },
   system: { label: 'System', hint: 'Account and security messages', group: 'system' },
 };
 

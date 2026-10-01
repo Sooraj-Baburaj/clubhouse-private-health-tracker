@@ -12,7 +12,7 @@ import { queryClient } from './queryClient';
 import { ReauthDialog } from './ReauthDialog';
 import { useReauth } from './reauth';
 
-export const NAV: { label: string; items: { to: string; label: string; superOnly?: boolean; tag?: 'ai' }[] }[] = [
+export const NAV: { label: string; items: { to: string; label: string; superOnly?: boolean; tag?: 'ai' | 'new' }[] }[] = [
   { label: 'Team', items: [
     { to: '/', label: 'Overview' },
     { to: '/members', label: 'Members' },
@@ -20,6 +20,7 @@ export const NAV: { label: string; items: { to: string; label: string; superOnly
     { to: '/diets', label: 'Diet plans' },
     { to: '/foods', label: 'Food database' },
     { to: '/plans', label: 'Activity plans' },
+    { to: '/habits', label: 'Habits', tag: 'new' },
   ] },
   { label: 'Community', items: [
     { to: '/chat', label: 'Chat moderation' },
@@ -168,6 +169,7 @@ function Sidebar({ userName, role, aiOn, onSignOut }: { userName: string; role: 
                   {on && <motion.span layoutId="nav-active" className="absolute inset-0 rounded-[10px] bg-accent-tint" transition={{ type: 'spring', stiffness: 500, damping: 38 }} />}
                   <span className="relative">{i.label}</span>
                   {i.tag === 'ai' && <span className="relative font-mono text-[10px] text-accent">{aiOn ? 'ON' : 'OFF'}</span>}
+                  {i.tag === 'new' && <span className="relative font-mono text-[10px] text-accent">NEW</span>}
                 </Link>
               );
             })}

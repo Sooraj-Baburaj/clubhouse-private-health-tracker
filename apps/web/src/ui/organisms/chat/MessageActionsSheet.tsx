@@ -1,4 +1,4 @@
-import { Copy, CornerUpLeft, Flag, Plus, Share2, Trash2 } from 'lucide-react';
+import { Copy, CornerUpLeft, Flag, Plus, Share2, SmilePlus, Trash2 } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { useState } from 'react';
 import { REACTION_QUICK_SET, type ChatMessageDto } from '@clubhouse/contracts';
@@ -14,6 +14,7 @@ export interface MessageActions {
   reply: (m: ChatMessageDto) => void;
   remove: (m: ChatMessageDto) => void;
   report: (m: ChatMessageDto, reason: string) => void;
+  showReactions: (m: ChatMessageDto) => void;
 }
 
 const row = (Icon: typeof Copy, text: string) => (
@@ -23,7 +24,7 @@ const row = (Icon: typeof Copy, text: string) => (
   </span>
 );
 
-/** Long-press menu: react (quick set + any emoji), reply, copy, share, delete own, report (APP-CHAT-06/07). */
+/** Long-press menu: react (quick set + any emoji), reply, who reacted, copy, share, delete own, report (APP-CHAT-06/07). */
 export function MessageActionsSheet({ m, onClose, actions }: { m: ChatMessageDto | null; onClose: () => void; actions: MessageActions }) {
   const [custom, setCustom] = useState(false);
   const [emoji, setEmoji] = useState('');
@@ -164,6 +165,15 @@ export function MessageActionsSheet({ m, onClose, actions }: { m: ChatMessageDto
                       onClose();
                     }}
                     title={row(CornerUpLeft, 'Reply')}
+                  />
+                )}
+                {m.reactions.length > 0 && (
+                  <ListRow
+                    onClick={() => {
+                      actions.showReactions(m);
+                      onClose();
+                    }}
+                    title={row(SmilePlus, 'Who reacted')}
                   />
                 )}
                 {m.body && <ListRow onClick={() => void copy()} title={row(Copy, 'Copy text')} />}

@@ -22,6 +22,10 @@ export type PrivacyPrefs = z.infer<typeof PrivacyPrefs>;
 export const AiOptOuts = z.object({ photo: z.boolean(), summary: z.boolean(), noticeSeen: z.boolean() });
 export type AiOptOuts = z.infer<typeof AiOptOuts>;
 
+/** Habit reminders: one bundled push per time slot (default) or one per habit; share habit names with teammates. */
+export const HabitPrefs = z.object({ bundle: z.boolean(), share: z.boolean() });
+export type HabitPrefs = z.infer<typeof HabitPrefs>;
+
 export const MomentumPrefs = z.object({ showOnToday: z.array(z.enum(['logging', 'activity', 'in_range'])).max(3) });
 export const AppPrefs = z.object({ theme: Theme, palette: Palette });
 export type AppPrefs = z.infer<typeof AppPrefs>;
@@ -73,6 +77,7 @@ export const PreferencesUpdateRequest = z
     privacy: PrivacyPrefs.partial(),
     aiOptOuts: AiOptOuts.partial(),
     momentumPrefs: MomentumPrefs,
+    habitPrefs: HabitPrefs.partial(),
     appPrefs: AppPrefs.partial(),
     quietHours: QuietHoursSchema,
     notificationsMaster: z.boolean(),
@@ -121,6 +126,7 @@ export interface ProfileDto {
   privacy: PrivacyPrefs;
   aiOptOuts: AiOptOuts;
   momentumPrefs: { showOnToday: StreakKind[] };
+  habitPrefs: HabitPrefs;
   appPrefs: AppPrefs;
   quietHours: { start: string; end: string } | null;
   notificationsMaster: boolean;

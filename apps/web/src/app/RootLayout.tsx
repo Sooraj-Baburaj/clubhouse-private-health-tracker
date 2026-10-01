@@ -19,6 +19,7 @@ export function RootLayout() {
       void queryClient.invalidateQueries({ queryKey: ['today'] });
       void queryClient.invalidateQueries({ queryKey: ['chat'] });
       void queryClient.invalidateQueries({ queryKey: ['momentum'] });
+      void queryClient.invalidateQueries({ queryKey: ['habits'] });
     });
     registerServiceWorker();
   }, []);

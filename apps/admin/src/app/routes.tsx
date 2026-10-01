@@ -17,6 +17,7 @@ const DietsPage = lazyRouteComponent(() => import('@/pages/diets/DietsPage'), 'D
 const DietBuilderPage = lazyRouteComponent(() => import('@/pages/diets/DietBuilderPage'), 'DietBuilderPage');
 const FoodsPage = lazyRouteComponent(() => import('@/pages/foods/FoodsPage'), 'FoodsPage');
 const PlansPage = lazyRouteComponent(() => import('@/pages/plans/PlansPage'), 'PlansPage');
+const HabitsPage = lazyRouteComponent(() => import('@/pages/habits/HabitsPage'), 'HabitsPage');
 const ChatModerationPage = lazyRouteComponent(() => import('@/pages/chat/ChatModerationPage'), 'ChatModerationPage');
 const MemesPage = lazyRouteComponent(() => import('@/pages/memes/MemesPage'), 'MemesPage');
 const AiPage = lazyRouteComponent(() => import('@/pages/ai/AiPage'), 'AiPage');
@@ -45,6 +46,7 @@ const diets = createRoute({ getParentRoute: () => shell, path: '/diets', compone
 const dietBuilder = createRoute({ getParentRoute: () => shell, path: '/diets/$planId', component: DietBuilderPage, validateSearch: z.object({ option: opt, tab: opt }) });
 const foods = createRoute({ getParentRoute: () => shell, path: '/foods', component: FoodsPage, validateSearch: z.object({ q: opt, source: opt, verified: opt }) });
 const plans = createRoute({ getParentRoute: () => shell, path: '/plans', component: PlansPage, validateSearch: z.object({ member: opt, tab: opt }) });
+const habits = createRoute({ getParentRoute: () => shell, path: '/habits', component: HabitsPage, validateSearch: z.object({ tab: opt, habit: opt }) });
 const chat = createRoute({ getParentRoute: () => shell, path: '/chat', component: ChatModerationPage, validateSearch: z.object({ tab: opt, q: opt, member: opt }) });
 const memes = createRoute({ getParentRoute: () => shell, path: '/memes', component: MemesPage, validateSearch: z.object({ tab: opt, trigger: opt }) });
 const ai = createRoute({ getParentRoute: () => shell, path: '/ai', component: AiPage, validateSearch: z.object({ tab: opt }) });
@@ -61,7 +63,7 @@ const routeTree = root.addChildren([
   verify,
   changePassword,
   forbidden,
-  shell.addChildren([dashboard, members, memberDetail, goals, diets, dietBuilder, foods, plans, chat, memes, ai, aiCalls, notifications, settings, retention, audit, sessions, jobs]),
+  shell.addChildren([dashboard, members, memberDetail, goals, diets, dietBuilder, foods, plans, habits, chat, memes, ai, aiCalls, notifications, settings, retention, audit, sessions, jobs]),
 ]);
 
 function PagePending() {
