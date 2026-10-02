@@ -16,8 +16,9 @@ export type ChatFeed = ChatPageResponse;
 
 /**
  * The chat feed is a view over the IndexedDB-backed chat history (infrastructure/cache/chatHistory.ts): it renders
- * instantly from the cache and refreshes with delta pulls. Invalidating ['chat'] (realtime hints, polling, focus)
- * refetches, which revalidates the cache; cache changes are pushed into this query by the cache manager.
+ * instantly from the cache and refreshes with delta pulls. Realtime hints, focus and the 60 s interval revalidate the
+ * cache directly (cache manager); invalidating ['chat'] (socket-down polling, outbox sync) refetches, which also
+ * revalidates the cache. Cache changes are pushed into this query by the cache manager.
  */
 export function useChatFeed() {
   const status = useCollectionStatus(chatHistory);

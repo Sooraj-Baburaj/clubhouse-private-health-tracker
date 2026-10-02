@@ -7,7 +7,7 @@ export const HABIT_KINDS = ['check', 'count', 'duration', 'scale'] as const;
 export const HabitKind = z.enum(HABIT_KINDS);
 export type HabitKind = z.infer<typeof HabitKind>;
 
-/** Sections on the member's list, in display order. */
+/** Labels (and chip colours) for habits; the list order is the admin's arrangement, not the group. */
 export const HABIT_GROUPS = ['Morning', 'Home', 'Self-care', 'Evening'] as const;
 export const HabitGroup = z.enum(HABIT_GROUPS);
 export type HabitGroup = z.infer<typeof HabitGroup>;
@@ -98,8 +98,28 @@ export interface AdminHabitDto {
   updatedAt: string;
 }
 
+/** A full arrangement: every habit id, in the new order. */
+export const HabitOrderRequest = z.object({ ids: z.array(Uuid).min(1).max(500) });
+export type HabitOrderRequest = z.infer<typeof HabitOrderRequest>;
+
+/** Members to put back on the team order; omit `userIds` for everyone with their own order. */
+export const HabitOrderSyncRequest = z.object({ userIds: z.array(Uuid).min(1).max(500).optional() });
+
+/** A member who arranged their own list: it no longer follows the admin's order until synced. */
+export interface HabitCustomOrderDto {
+  person: PersonRef;
+  /** When they last rearranged. */
+  orderedAt: string | null;
+  /** Their arrangement (active habits assigned to them, in their order). */
+  order: { id: string; icon: string; name: string }[];
+  /** Whether their order still matches the team order (e.g. after the admin rearranged to the same thing). */
+  matchesTeam: boolean;
+}
+
 export interface AdminHabitsResponse {
+  /** In the team order (the order members see unless they arranged their own). */
   habits: AdminHabitDto[];
+  customOrders: HabitCustomOrderDto[];
   kpis: {
     active: number;
     required: number;
@@ -158,7 +178,15 @@ export interface HabitDayResponse {
   total: number;
   streak: { current: number; best: number };
   hidden: { id: string; name: string; icon: string }[];
+  /** True once the member arranged their own order (it stops following the admin's until reset). */
+  customOrder: boolean;
+  /** Every habit on the member's list (not just the ones due on `date`), in their order: what "Arrange" edits. */
+  arrangement: { id: string; name: string; icon: string; group: HabitGroup }[];
 }
+
+/** The member's own arrangement; `null` goes back to the team order. */
+export const MemberHabitOrderRequest = z.object({ ids: z.array(Uuid).min(1).max(500).nullable() });
+export type MemberHabitOrderRequest = z.infer<typeof MemberHabitOrderRequest>;
 
 export const HabitCheckinUpsert = z.object({
   habitId: Uuid,

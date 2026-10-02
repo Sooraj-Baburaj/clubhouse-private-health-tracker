@@ -1,9 +1,11 @@
 import { useNavigate, useRouter, useSearch } from '@tanstack/react-router';
+import { ArrowUpDown } from 'lucide-react';
 import { motion } from 'motion/react';
+import { useState } from 'react';
 import { addDays, habitTapValue, isHabitComplete } from '@clubhouse/domain';
 import { toast, useOnline } from '@clubhouse/ui';
 import type { HabitDayItem } from '@clubhouse/contracts';
-import { useHabitDay, useHabitPref, useTickHabit } from '@/features/habits';
+import { useHabitDay, useHabitPref, useSetMyHabitOrder, useTickHabit } from '@/features/habits';
 import { useMeData } from '@/features/me';
 import { memberNow } from '@/features/summary';
 import { uuid } from '@/lib/ids';
@@ -13,6 +15,7 @@ import { Segmented } from '@/ui/atoms/Segmented';
 import { EmptyState } from '@/ui/molecules/EmptyState';
 import { ListGroup, ListRow } from '@/ui/molecules/ListGroup';
 import { StackHeader } from '@/ui/molecules/StackHeader';
+import { ArrangeHabits } from '@/ui/organisms/habits/ArrangeHabits';
 import { HabitTile, nextLine } from '@/ui/organisms/habits/HabitPieces';
 import { shortDay } from '@/ui/organisms/today/dates';
 import { useListMotion } from '@/ui/organisms/today/motion';
@@ -37,6 +40,8 @@ export function HabitsPage() {
   const q = useHabitDay(date);
   const tick = useTickHabit(date);
   const pref = useHabitPref();
+  const order = useSetMyHabitOrder();
+  const [arranging, setArranging] = useState(false);
   const m = useListMotion(0.03);
   const back = () => (window.history.length > 1 ? router.history.back() : void navigate({ to: '/', search: {} }));
   const setDay = (v: 'today' | 'yesterday') => void navigate({ to: '/habits', search: v === 'today' ? {} : { day: v }, replace: true });
@@ -100,7 +105,7 @@ export function HabitsPage() {
             <div className="text-[15px] font-bold">{nextLine(d.items)}</div>
           </motion.div>
 
-          <motion.div variants={m.item}>
+          <motion.div variants={m.item} className="flex items-center justify-between gap-3">
             <Segmented
               label="Day"
               size="sm"
@@ -112,6 +117,11 @@ export function HabitsPage() {
                 { value: 'today', label: 'Today' },
               ]}
             />
+            {!date && !arranging && d.arrangement.length > 1 && (
+              <Button size="sm" variant="ghost" icon={<ArrowUpDown className="h-4 w-4" strokeWidth={2.75} />} onClick={() => setArranging(true)}>
+                Arrange
+              </Button>
+            )}
           </motion.div>
 
           {date && (
@@ -120,7 +130,18 @@ export function HabitsPage() {
             </motion.div>
           )}
 
-          {d.items.length ? (
+          {arranging && !date ? (
+            <motion.div variants={m.item}>
+              <ArrangeHabits
+                arrangement={d.arrangement}
+                customOrder={d.customOrder}
+                saving={order.isPending}
+                onCancel={() => setArranging(false)}
+                onSave={(ids) => order.mutate(ids, { onSuccess: () => setArranging(false) })}
+                onReset={() => order.mutate(null, { onSuccess: () => setArranging(false) })}
+              />
+            </motion.div>
+          ) : d.items.length ? (
             <motion.div variants={m.item} className="grid grid-cols-2 gap-2.5">
               {d.items.map((item) => (
                 <HabitTile key={item.id} item={item} disabled={!d.editable} onTap={() => tap(item)} onInfo={() => void navigate({ to: '/habits/$habitId', params: { habitId: item.id } })} />
@@ -136,9 +157,10 @@ export function HabitsPage() {
             </motion.div>
           )}
 
-          {d.items.length > 0 && (
+          {d.items.length > 0 && !arranging && (
             <motion.p variants={m.item} className="m-0 px-1.5 text-[12px] leading-normal text-neutral-700">
-              Tap a tile to tick, add a glass or add 10 minutes. Tiles stay where they are, so your thumb learns the grid.
+              Tap a tile to tick, add a glass or add 10 minutes. Tiles stay where they are, so your thumb learns the grid
+              {d.customOrder ? ', in the order you arranged.' : '.'}
               {d.items[0]?.setBy ? ` Set by ${d.items[0].setBy}. Teammates only see how many you kept, never which ones.` : ' Teammates only see how many you kept, never which ones.'}
             </motion.p>
           )}

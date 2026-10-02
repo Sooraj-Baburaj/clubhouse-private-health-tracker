@@ -1,10 +1,11 @@
 import { useNavigate, useSearch } from '@tanstack/react-router';
-import { ListChecks, Plus } from 'lucide-react';
+import { ArrowUpDown, ListChecks, Plus } from 'lucide-react';
 import { HABIT_TEMPLATES, type AdminHabitDto } from '@clubhouse/contracts';
-import { useAddTemplate, useHabits, useToggleHabit } from '@/features/habits';
+import { useAddTemplate, useHabits, useSyncHabitOrders, useToggleHabit } from '@/features/habits';
 import { cn } from '@/lib/cn';
 import { fmtPct, plural } from '@/lib/format';
 import {
+  Avatar,
   Button,
   Card,
   CardHeader,
@@ -23,6 +24,7 @@ import {
 } from '@/ui';
 import { AdherencePanel } from './AdherencePanel';
 import { HabitEditorDrawer } from './HabitEditorDrawer';
+import { ArrangeHabitsDrawer, CustomOrdersDrawer } from './OrderDrawers';
 import { HabitIcon, kindLabel, scheduleLabel } from './shared';
 
 type Tab = 'catalogue' | 'adherence';
@@ -35,13 +37,16 @@ export function HabitsPage() {
   const q = useHabits();
   const toggle = useToggleHabit();
   const addTemplate = useAddTemplate();
+  const syncOrders = useSyncHabitOrders();
 
   const setTab = (t: Tab) => void navigate({ search: (s) => ({ ...s, tab: t === 'catalogue' ? undefined : t }), replace: true });
   const open = (id: string) => void navigate({ search: (s) => ({ ...s, habit: id }) });
   const close = () => void navigate({ search: (s) => ({ ...s, habit: undefined }) });
+  const setOrderPanel = (order?: 'arrange' | 'members') => void navigate({ search: (s) => ({ ...s, order }) });
 
   const habits = q.data?.habits;
   const k = q.data?.kpis;
+  const custom = q.data?.customOrders ?? [];
   const editing = search.habit === 'new' ? null : (habits?.find((h) => h.id === search.habit) ?? null);
   const names = new Set(habits?.map((h) => h.name.toLowerCase()));
 
@@ -164,6 +169,30 @@ export function HabitsPage() {
             </div>
           </Card>
 
+          {custom.length > 0 && (
+            <Card className="flex-row flex-wrap items-center gap-x-4 gap-y-3" aria-label="Members on their own order">
+              <div className="flex shrink-0 -space-x-2" aria-hidden>
+                {custom.slice(0, 3).map((o) => (
+                  <Avatar key={o.person.id} person={o.person} size={30} className="ring-2 ring-white" />
+                ))}
+              </div>
+              <div className="flex min-w-[220px] flex-1 flex-col gap-0.5">
+                <span className="text-[14px] font-semibold">
+                  {custom.length === 1 ? `${custom[0]!.person.name} arranged their own habit order` : `${custom[0]!.person.name} and ${plural(custom.length - 1, 'other')} arranged their own habit order`}
+                </span>
+                <span className="text-[12px] text-muted">Changes to the team order don’t reach them until you sync.</span>
+              </div>
+              <div className="flex gap-2">
+                <Button size="sm" variant="secondary" onClick={() => setOrderPanel('members')}>
+                  Review
+                </Button>
+                <Button size="sm" loading={syncOrders.isPending} onClick={() => syncOrders.mutate(custom.length === 1 ? [custom[0]!.person.id] : undefined)}>
+                  {custom.length === 1 ? 'Sync' : 'Sync all'}
+                </Button>
+              </div>
+            </Card>
+          )}
+
           <DataTable
             label="Habits"
             columns={columns}
@@ -175,6 +204,11 @@ export function HabitsPage() {
             onRowClick={(h) => open(h.id)}
             minWidth={960}
             hideCount
+            toolbar={
+              <Button size="sm" variant="secondary" icon={<ArrowUpDown className="h-4 w-4" />} disabled={!habits || habits.length < 2} onClick={() => setOrderPanel('arrange')}>
+                Arrange order
+              </Button>
+            }
             search={{ placeholder: 'Search habits', text: (h) => `${h.name} ${h.group} ${h.kind}` }}
             filters={[
               {
@@ -205,7 +239,7 @@ export function HabitsPage() {
           />
           {habits && habits.length > 0 && (
             <p className="m-0 text-[12px] text-muted">
-              {plural(habits.length, 'habit')} · Switching a habit off hides it from members and keeps its history. Archive it from the editor to remove it from this list.
+              {plural(habits.length, 'habit')}, in the order members see · Switching a habit off hides it from members and keeps its history. Archive it from the editor to remove it from this list.
             </p>
           )}
         </TabPanel>
@@ -217,6 +251,8 @@ export function HabitsPage() {
         </TabPanel>
       )}
 
+      <ArrangeHabitsDrawer open={search.order === 'arrange' && !!habits} habits={habits ?? []} customCount={custom.length} onClose={() => setOrderPanel()} />
+      <CustomOrdersDrawer open={search.order === 'members'} orders={custom} onClose={() => setOrderPanel()} />
       <HabitEditorDrawer open={!!search.habit && (search.habit === 'new' || !!editing)} habit={editing} onClose={close} />
     </>
   );

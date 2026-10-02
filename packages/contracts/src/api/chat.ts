@@ -28,7 +28,7 @@ export type AttachmentDto =
   | { type: 'food_log'; id: string; removed: boolean; mealSlot: string | null; items: string[]; kcal: number; thumbUrl: string | null; date: string | null; mine: boolean }
   | { type: 'activity_log'; id: string; removed: boolean; typeName: string | null; icon: string | null; durationMin: number | null; distanceKm: number | null; kcal: number; date: string | null; mine: boolean }
   | { type: 'day_card'; userId: string; date: string; name: string; eaten: Nutrients; targetKcal: number | null; burned: number; bandLabel: string | null; logged: number }
-  | { type: 'meme'; memeId: string; url: string | null; caption: string };
+  | { type: 'meme'; memeId: string; url: string | null; width: number | null; height: number | null; caption: string };
 
 export interface ChatMessageDto {
   id: string;

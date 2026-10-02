@@ -46,7 +46,7 @@ const diets = createRoute({ getParentRoute: () => shell, path: '/diets', compone
 const dietBuilder = createRoute({ getParentRoute: () => shell, path: '/diets/$planId', component: DietBuilderPage, validateSearch: z.object({ option: opt, tab: opt }) });
 const foods = createRoute({ getParentRoute: () => shell, path: '/foods', component: FoodsPage, validateSearch: z.object({ q: opt, source: opt, verified: opt }) });
 const plans = createRoute({ getParentRoute: () => shell, path: '/plans', component: PlansPage, validateSearch: z.object({ member: opt, tab: opt }) });
-const habits = createRoute({ getParentRoute: () => shell, path: '/habits', component: HabitsPage, validateSearch: z.object({ tab: opt, habit: opt }) });
+const habits = createRoute({ getParentRoute: () => shell, path: '/habits', component: HabitsPage, validateSearch: z.object({ tab: opt, habit: opt, order: opt }) });
 const chat = createRoute({ getParentRoute: () => shell, path: '/chat', component: ChatModerationPage, validateSearch: z.object({ tab: opt, q: opt, member: opt }) });
 const memes = createRoute({ getParentRoute: () => shell, path: '/memes', component: MemesPage, validateSearch: z.object({ tab: opt, trigger: opt }) });
 const ai = createRoute({ getParentRoute: () => shell, path: '/ai', component: AiPage, validateSearch: z.object({ tab: opt }) });

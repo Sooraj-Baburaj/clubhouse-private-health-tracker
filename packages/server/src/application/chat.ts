@@ -144,7 +144,8 @@ export async function renderMessages(c: Container, viewer: AuthUser, rows: Messa
           }
           if (a.type === 'day_card') return cardData.get(`${a.userId}:${a.date}`) ?? { type: 'day_card', userId: a.userId, date: a.date, name: 'Member', eaten: { kcal: 0, protein: 0, carbs: 0, fat: 0, fibre: 0 }, targetKcal: null, burned: 0, bandLabel: null, logged: 0 };
           const m = memes.find((x) => x.id === a.memeId);
-          return { type: 'meme', memeId: a.memeId, url: m ? pick(images, m.imageId).url : null, caption: m?.caption ?? '' };
+          const im = m ? pick(images, m.imageId) : null;
+          return { type: 'meme', memeId: a.memeId, url: im?.url ?? null, width: im?.width ?? null, height: im?.height ?? null, caption: m?.caption ?? '' };
         });
     return {
       id: r.id,

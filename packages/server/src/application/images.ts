@@ -6,9 +6,12 @@ export interface ImageUrls {
   url: string | null;
   thumbUrl: string | null;
   expired: boolean;
+  /** Original pixel size, so clients can reserve space before the image loads. */
+  width: number | null;
+  height: number | null;
 }
 
-const NONE: ImageUrls = { url: null, thumbUrl: null, expired: false };
+const NONE: ImageUrls = { url: null, thumbUrl: null, expired: false, width: null, height: null };
 
 /** Resolve signed URLs for many images at once; purged images report `expired` (SYS-MEDIA-06). */
 export async function imageUrlMap(c: Container, ids: (string | null | undefined)[]): Promise<Map<string, ImageUrls>> {
@@ -18,12 +21,12 @@ export async function imageUrlMap(c: Container, ids: (string | null | undefined)
   const rows = await c.db.select().from(s.images).where(inArray(s.images.id, unique));
   for (const r of rows) {
     if (r.purgedAt) {
-      out.set(r.id, { url: null, thumbUrl: null, expired: true });
+      out.set(r.id, { url: null, thumbUrl: null, expired: true, width: null, height: null });
       continue;
     }
     const url = await c.storage.signedUrl(r.storageKey, 86400);
     const thumbUrl = r.thumbKey ? await c.storage.signedUrl(r.thumbKey, 86400) : url;
-    out.set(r.id, { url, thumbUrl, expired: false });
+    out.set(r.id, { url, thumbUrl, expired: false, width: r.width, height: r.height });
   }
   return out;
 }

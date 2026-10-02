@@ -1,10 +1,10 @@
-import { and, asc, count, eq, inArray, isNull } from 'drizzle-orm';
-import { HABIT_TEMPLATES, type AdminHabitAdherence, type AdminHabitDto, type AdminHabitInput, type AdminHabitsResponse, type HabitGroup, type HabitKind } from '@clubhouse/contracts';
+import { and, asc, count, eq, inArray, isNull, max } from 'drizzle-orm';
+import { HABIT_TEMPLATES, type AdminHabitAdherence, type AdminHabitDto, type AdminHabitInput, type AdminHabitsResponse, type HabitCustomOrderDto, type HabitGroup, type HabitKind } from '@clubhouse/contracts';
 import { addDays, adherencePct, habitAdherence, isHabitComplete, isHabitShownOn, weekStartOf, type HabitValues } from '@clubhouse/domain';
 import { schema as s } from '@clubhouse/db';
 import type { Container } from '../../container';
 import { badRequest, notFound } from '../../lib/errors';
-import { byListOrder, habitRule, loadValues, type HabitRow } from '../habits';
+import { applyMemberOrder, byTeamOrder, habitRule, loadValues, type HabitRow } from '../habits';
 import { rescheduleUser } from '../scheduler';
 import { getTeam } from '../team';
 import { logAudit, personMap, personOf, teamClock, teamUsers, type Actor, type Tx } from './shared';
@@ -32,7 +32,7 @@ function normalize(input: AdminHabitInput): AdminHabitInput {
 
 async function teamHabits(c: Container, teamId: string): Promise<HabitRow[]> {
   const rows = await c.db.query.habits.findMany({ where: and(eq(s.habits.teamId, teamId), isNull(s.habits.archivedAt)), orderBy: [asc(s.habits.sortOrder), asc(s.habits.createdAt)] });
-  return rows.sort(byListOrder);
+  return rows.sort(byTeamOrder);
 }
 
 async function getHabit(c: Container, teamId: string, id: string): Promise<HabitRow> {
@@ -129,6 +129,7 @@ export async function listHabits(c: Container, a: Actor): Promise<AdminHabitsRes
 
   return {
     habits: rows,
+    customOrders: await customOrders(c, habits, assigned, users),
     kpis: {
       active: habits.filter((h) => h.enabled).length,
       required: required.length,
@@ -184,11 +185,12 @@ async function one(c: Container, a: Actor, id: string): Promise<AdminHabitDto> {
 export async function createHabit(c: Container, a: Actor, raw: AdminHabitInput): Promise<AdminHabitDto> {
   const input = normalize(raw);
   await validateMembers(c, a.user.teamId, input.memberIds);
-  const [{ n } = { n: 0 }] = await c.db.select({ n: count() }).from(s.habits).where(eq(s.habits.teamId, a.user.teamId));
+  // New habits go to the end of the team order.
+  const [{ last } = { last: null }] = await c.db.select({ last: max(s.habits.sortOrder) }).from(s.habits).where(eq(s.habits.teamId, a.user.teamId));
   const id = await c.db.transaction(async (tx) => {
     const [row] = await tx
       .insert(s.habits)
-      .values({ ...rowValues(input), teamId: a.user.teamId, sortOrder: Number(n), createdBy: a.user.id, updatedBy: a.user.id })
+      .values({ ...rowValues(input), teamId: a.user.teamId, sortOrder: (last ?? -1) + 1, createdBy: a.user.id, updatedBy: a.user.id })
       .returning({ id: s.habits.id });
     await writeAssignments(tx, row!.id, input);
     return row!.id;
@@ -261,4 +263,71 @@ export async function adherence(c: Container, a: Actor): Promise<AdminHabitAdher
     return { person: personOf(people, u.id)!, cells, avg: pcts.length ? Math.round(pcts.reduce((s1, x) => s1 + x, 0) / pcts.length) : null };
   });
   return { from, to, habits: on.map((h) => ({ id: h.id, name: h.name, icon: h.icon, hue: h.hue })), rows };
+}
+
+/* ───────── Order ───────── */
+
+type ProfileRow = typeof s.profiles.$inferSelect;
+type UserRow = Awaited<ReturnType<typeof teamUsers>>[number];
+
+/** Members who arranged their own list, with their arrangement over the live habits assigned to them. */
+async function customOrders(c: Container, habits: HabitRow[], assigned: Map<string, string[]>, users: UserRow[]): Promise<HabitCustomOrderDto[]> {
+  const ids = users.map((u) => u.id);
+  if (!ids.length) return [];
+  const profiles = (await c.db.query.profiles.findMany({ where: inArray(s.profiles.userId, ids), columns: { userId: true, habitPrefs: true } })).filter((p) => p.habitPrefs?.order?.length);
+  if (!profiles.length) return [];
+  const people = await personMap(c, profiles.map((p) => p.userId));
+  const live = habits.filter((h) => h.enabled);
+  return profiles
+    .map((p) => {
+      const theirs = live.filter((h) => assignees(h, assigned, [p.userId]).length);
+      const order = applyMemberOrder(theirs, p.habitPrefs.order);
+      return {
+        person: personOf(people, p.userId)!,
+        orderedAt: p.habitPrefs.orderedAt ?? null,
+        order: order.map((h) => ({ id: h.id, icon: h.icon, name: h.name })),
+        matchesTeam: order.map((h) => h.id).join() === theirs.map((h) => h.id).join(),
+      };
+    })
+    .sort((x, y) => (y.orderedAt ?? '').localeCompare(x.orderedAt ?? ''));
+}
+
+async function clearMemberOrders(c: Container, profiles: Pick<ProfileRow, 'userId' | 'habitPrefs'>[]) {
+  for (const p of profiles) {
+    await c.db
+      .update(s.profiles)
+      .set({ habitPrefs: { ...p.habitPrefs, order: null, orderedAt: null }, updatedAt: c.clock.now() })
+      .where(eq(s.profiles.userId, p.userId));
+  }
+}
+
+/**
+ * Rearrange the team order (what members see unless they arranged their own). `ids` must list every habit in the
+ * catalogue. Members whose own order now matches the team order go back to following it.
+ */
+export async function setTeamOrder(c: Container, a: Actor, ids: string[]): Promise<AdminHabitsResponse> {
+  const habits = await teamHabits(c, a.user.teamId);
+  const unique = [...new Set(ids)];
+  if (unique.length !== habits.length || !habits.every((h) => unique.includes(h.id))) throw badRequest('The habit list changed while you were arranging it. Refresh and try again.', 'habit_order_stale');
+  const before = habits.map((h) => h.id);
+  await c.db.transaction(async (tx) => {
+    for (const [i, id] of unique.entries()) await tx.update(s.habits).set({ sortOrder: i }).where(eq(s.habits.id, id));
+  });
+  await logAudit(c, a, { action: 'habit.reorder', targetType: 'habit', before: { order: before }, after: { order: unique } });
+  const r = await listHabits(c, a);
+  const caughtUp = r.customOrders.filter((o) => o.matchesTeam).map((o) => o.person.id);
+  if (!caughtUp.length) return r;
+  await clearMemberOrders(c, await c.db.query.profiles.findMany({ where: inArray(s.profiles.userId, caughtUp), columns: { userId: true, habitPrefs: true } }));
+  return { ...r, customOrders: r.customOrders.filter((o) => !caughtUp.includes(o.person.id)) };
+}
+
+/** Put members back on the team order (all who arranged their own, or the ones given). */
+export async function syncMemberOrders(c: Container, a: Actor, userIds?: string[]): Promise<{ synced: number }> {
+  const team = (await teamUsers(c, a.user.teamId)).map((u) => u.id);
+  const wanted = userIds ? userIds.filter((id) => team.includes(id)) : team;
+  if (!wanted.length) return { synced: 0 };
+  const profiles = (await c.db.query.profiles.findMany({ where: inArray(s.profiles.userId, wanted), columns: { userId: true, habitPrefs: true } })).filter((p) => p.habitPrefs?.order?.length);
+  await clearMemberOrders(c, profiles);
+  for (const p of profiles) await logAudit(c, a, { action: 'habit.order_sync', targetType: 'habit_order', targetId: p.userId, memberId: p.userId, before: { order: p.habitPrefs.order }, after: { order: null } });
+  return { synced: profiles.length };
 }

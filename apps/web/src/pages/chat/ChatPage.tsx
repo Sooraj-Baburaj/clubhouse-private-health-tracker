@@ -23,6 +23,7 @@ import { dateLabel, fmt, SLOT_LABEL } from '@/features/format';
 import { useMeData } from '@/features/me';
 import { useTeamSummary } from '@/features/team';
 import { useToday } from '@/features/today';
+import { trimWindow } from '@/infrastructure/cache/chatHistory';
 import { outbox } from '@/infrastructure/outbox';
 import { Skeleton } from '@/ui/atoms/Skeleton';
 import { Spinner } from '@/ui/atoms/Spinner';
@@ -51,7 +52,7 @@ export function ChatPage() {
   const team = useTeamSummary();
   const today = useToday();
   const { mutateAsync: loadOlderAsync, isPending: olderPending } = useLoadOlder();
-  const react = useReact(me.user.displayName);
+  const { mutate: reactMutate } = useReact(me.user.displayName);
   const del = useDeleteMessage();
   const report = useReportMessage();
   const { mutate: markReadMutate } = useMarkChatRead();
@@ -120,15 +121,19 @@ export function ChatPage() {
     const e = el();
     if (!e || !active) return;
     const h = () => {
-      atBottom.current = e.scrollHeight - e.scrollTop - e.clientHeight < 140;
+      const gap = e.scrollHeight - e.scrollTop - e.clientHeight;
+      atBottom.current = gap < 140;
       if (atBottom.current) {
         setNewCount(0);
         maybeRead();
       }
+      // Back at the newest message: drop the history rendered while scrolling up (it stays cached), unless a ?seq=
+      // deep link is still loading back to its target.
+      if (gap < 2 && search.seq == null) trimWindow();
     };
     e.addEventListener('scroll', h, { passive: true });
     return () => e.removeEventListener('scroll', h);
-  }, [el, active, maybeRead]);
+  }, [el, active, maybeRead, search.seq]);
 
   useEffect(maybeRead, [maybeRead, d?.latestSeq, d?.lastReadSeq]);
 
@@ -262,27 +267,38 @@ export function ChatPage() {
     requestAnimationFrame(() => scrollToBottom(true));
   };
 
-  const ctx: MessageCtx = {
-    usernames,
-    myUsername: me.user.username,
-    onActions: setActionsFor,
-    onToggleReaction: (m, emoji, on) => react.mutate({ id: m.id, emoji, on }),
-    onShowReactions: (m, emoji) => setReactionsFor({ id: m.id, emoji }),
-    onJumpTo: jumpTo,
-  };
+  // Stable, so memoised rows only re-render when their own message changes.
+  const ctx = useMemo<MessageCtx>(
+    () => ({
+      usernames,
+      myUsername: me.user.username,
+      onActions: setActionsFor,
+      onToggleReaction: (m, emoji, on) => reactMutate({ id: m.id, emoji, on }),
+      onShowReactions: (m, emoji) => setReactionsFor({ id: m.id, emoji }),
+      onJumpTo: jumpTo,
+    }),
+    [usernames, me.user.username, reactMutate, jumpTo],
+  );
 
   // Build the list with day separators, the unread marker and author grouping.
   const tz = me.profile.timezone || me.team.timezone;
-  const dayOf = (iso: string) => new Date(iso).toLocaleDateString('en-CA', { timeZone: tz });
+  // One formatter and one pass: toLocaleDateString per call is slow enough to dominate long lists.
+  const days = useMemo(() => {
+    const f = new Intl.DateTimeFormat('en-CA', { timeZone: tz });
+    return messages.map((m) => f.format(new Date(m.createdAt)));
+  }, [messages, tz]);
   const dayWord = (day: string) => (day === me.today ? 'Today' : day === addDays(me.today, -1) ? 'Yesterday' : dateLabel(day, { weekday: 'short', day: 'numeric', month: 'short' }));
-  const same = (a: ChatMessageDto | undefined, b: ChatMessageDto | undefined) =>
-    !!a && !!b && a.kind === b.kind && a.kind !== 'divider' && !a.deleted && !b.deleted && (a.author?.id ?? 'sys') === (b.author?.id ?? 'sys') && dayOf(a.createdAt) === dayOf(b.createdAt) && Math.abs(Date.parse(b.createdAt) - Date.parse(a.createdAt)) < GROUP_MS;
+  const same = (i: number, j: number) => {
+    const a = messages[i];
+    const b = messages[j];
+    return !!a && !!b && a.kind === b.kind && a.kind !== 'divider' && !a.deleted && !b.deleted && (a.author?.id ?? 'sys') === (b.author?.id ?? 'sys') && days[i] === days[j] && Math.abs(Date.parse(b.createdAt) - Date.parse(a.createdAt)) < GROUP_MS;
+  };
   const rows: ReactNode[] = [];
   let prevDay = '';
   let unreadAt = -1;
   if (anchor != null) unreadAt = messages.findIndex((m) => m.seq > anchor && !m.mine && m.kind !== 'divider');
   messages.forEach((m, i) => {
-    const day = dayOf(m.createdAt);
+    const day = days[i]!;
     const newDay = day !== prevDay;
     if (newDay) {
       rows.push(<DaySeparator key={`day-${day}`}>{dayWord(day)}</DaySeparator>);
@@ -293,8 +309,8 @@ export function ChatPage() {
       rows.push(<DividerRow key={m.id} m={m} />);
       return;
     }
-    const first = newDay || i === unreadAt || !same(messages[i - 1], m);
-    const last = i + 1 === unreadAt || !same(m, messages[i + 1]);
+    const first = newDay || i === unreadAt || !same(i - 1, i);
+    const last = i + 1 === unreadAt || !same(i, i + 1);
     rows.push(<MessageItem key={m.id} m={m} first={first} last={last} highlight={highlight === m.id} ctx={ctx} />);
   });
 
@@ -395,7 +411,7 @@ export function ChatPage() {
         m={actionsFor}
         onClose={() => setActionsFor(null)}
         actions={{
-          react: (m, emoji, on) => react.mutate({ id: m.id, emoji, on }),
+          react: (m, emoji, on) => reactMutate({ id: m.id, emoji, on }),
           reply: (m) => {
             useChatStore.getState().setReplyTo({ id: m.id, authorName: m.mine ? 'yourself' : (m.author?.name ?? 'Clubhouse'), body: m.body });
             setFocusKey((k) => k + 1);

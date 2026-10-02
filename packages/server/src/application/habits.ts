@@ -1,5 +1,5 @@
 import { and, eq, gte, inArray, isNull, lte, or, sql } from 'drizzle-orm';
-import { HABIT_GROUPS, type HabitCheckinDto, type HabitCheckinUpsert, type HabitDayItem, type HabitDayResponse, type HabitDetailResponse, type HabitDto, type HabitGroup, type HabitKind, type HabitPrefUpdate, type HabitWeekResponse, type UpsertResult } from '@clubhouse/contracts';
+import { type HabitCheckinDto, type HabitCheckinUpsert, type HabitDayItem, type HabitDayResponse, type HabitDetailResponse, type HabitDto, type HabitGroup, type HabitKind, type HabitPrefUpdate, type HabitWeekResponse, type UpsertResult } from '@clubhouse/contracts';
 import {
   addDays,
   adherencePct,
@@ -33,8 +33,18 @@ type CheckinRow = typeof s.habitCheckins.$inferSelect;
 
 export const habitRule = (h: HabitRow): HabitRule => ({ id: h.id, kind: h.kind as HabitKind, target: h.target, schedule: h.schedule, required: h.required, startsOn: h.startsOn, endsOn: h.endsOn });
 
-const GROUP_ORDER = new Map<string, number>(HABIT_GROUPS.map((g, i) => [g, i]));
-export const byListOrder = (a: HabitRow, b: HabitRow) => (GROUP_ORDER.get(a.group) ?? 9) - (GROUP_ORDER.get(b.group) ?? 9) || a.sortOrder - b.sortOrder || a.name.localeCompare(b.name);
+/** The team order the admin arranged (ties: oldest first). */
+export const byTeamOrder = (a: HabitRow, b: HabitRow) => a.sortOrder - b.sortOrder || a.createdAt.getTime() - b.createdAt.getTime() || a.name.localeCompare(b.name);
+
+/**
+ * A member's own arrangement over the team order: habits they placed come first in their order; anything they haven't
+ * placed (a habit added since) follows in team order. Without an arrangement the team order stands.
+ */
+export function applyMemberOrder<T extends { id: string }>(teamOrdered: T[], order: string[] | null | undefined): T[] {
+  if (!order?.length) return teamOrdered;
+  const at = new Map(order.map((id, i) => [id, i]));
+  return [...teamOrdered].sort((a, b) => (at.get(a.id) ?? Infinity) - (at.get(b.id) ?? Infinity));
+}
 
 /** The member's own reminder for a habit: their override, else the admin default; null when off. */
 export function effectiveReminder(h: Pick<HabitRow, 'reminderTime'>, pref: Pick<PrefRow, 'reminderTime' | 'reminderOff'> | undefined): string | null {
@@ -49,7 +59,7 @@ export async function memberHabits(c: Container, userId: string, teamId: string)
     .from(s.habits)
     .leftJoin(s.habitAssignments, and(eq(s.habitAssignments.habitId, s.habits.id), eq(s.habitAssignments.userId, userId)))
     .where(and(eq(s.habits.teamId, teamId), isNull(s.habits.archivedAt), eq(s.habits.enabled, true), or(eq(s.habits.assignAll, true), sql`${s.habitAssignments.userId} is not null`)));
-  return rows.map((r) => r.h).sort(byListOrder);
+  return rows.map((r) => r.h).sort(byTeamOrder);
 }
 
 export async function memberPrefs(c: Container, userId: string): Promise<Map<string, PrefRow>> {
@@ -115,14 +125,15 @@ async function memberContext(c: Container, user: MemberRef) {
     getTeam(c, user.teamId),
     c.db.query.profiles.findFirst({ where: eq(s.profiles.userId, user.id) }),
   ]);
-  const visible = habits.filter((h) => !isHidden(h, prefs.get(h.id)));
+  const order = profile?.habitPrefs?.order ?? null;
+  const visible = applyMemberOrder(habits, order).filter((h) => !isHidden(h, prefs.get(h.id)));
   const earliest = visible.reduce((m, h) => (h.startsOn < m ? h.startsOn : m), clock.today);
   const floor = addDays(clock.today, -400);
   const from = earliest > floor ? earliest : floor;
   const { byUser } = await loadValues(c, [user.id], habits.map((h) => h.id), weekStartOf(from), clock.today);
   const values = byUser.get(user.id) ?? new Map();
   const vacations = profile?.vacationRanges ?? [];
-  return { clock, habits, visible, prefs, team, values, isVacation: (d: string) => isOnVacation(vacations, d) };
+  return { clock, habits, visible, prefs, team, values, profile, customOrder: !!order?.length, isVacation: (d: string) => isOnVacation(vacations, d) };
 }
 
 /** Checklist for one day (today by default): due habits with their value, done count and the habits streak. */
@@ -161,6 +172,8 @@ export async function getHabitDay(c: Container, user: MemberRef, date?: string):
     total: items.length,
     streak,
     hidden: ctx.habits.filter((h) => isHidden(h, ctx.prefs.get(h.id))).map((h) => ({ id: h.id, name: h.name, icon: h.icon })),
+    customOrder: ctx.customOrder,
+    arrangement: ctx.visible.map((h) => ({ id: h.id, name: h.name, icon: h.icon, group: h.group as HabitGroup })),
   };
 }
 
@@ -257,6 +270,27 @@ export async function updateHabitPref(c: Container, user: AuthUser, habitId: str
     .values({ userId: user.id, habitId, hidden: false, reminderOff: false, ...set })
     .onConflictDoUpdate({ target: [s.habitMemberPrefs.userId, s.habitMemberPrefs.habitId], set });
   await rescheduleUser(c, user.id, 'habit_reminder');
+}
+
+/**
+ * Save the member's own arrangement, or go back to the team order with `null`. Habits left out keep their team-order
+ * place after the arranged ones; an arrangement identical to the team order is stored as "following the team".
+ */
+export async function setMemberOrder(c: Container, user: AuthUser, ids: string[] | null) {
+  const [habits, profile] = await Promise.all([memberHabits(c, user.id, user.teamId), c.db.query.profiles.findFirst({ where: eq(s.profiles.userId, user.id) })]);
+  if (!profile) throw notFound('Profile not found.');
+  let order: string[] | null = null;
+  if (ids) {
+    const mine = new Set(habits.map((h) => h.id));
+    if (ids.some((id) => !mine.has(id))) throw badRequest('One of those habits isn’t on your list any more. Refresh and try again.', 'habit_order_stale');
+    const full = applyMemberOrder(habits, [...new Set(ids)]).map((h) => h.id);
+    order = full.join() === habits.map((h) => h.id).join() ? null : full;
+  }
+  await c.db
+    .update(s.profiles)
+    .set({ habitPrefs: { ...profile.habitPrefs, order, orderedAt: order ? c.clock.now().toISOString() : null }, updatedAt: c.clock.now() })
+    .where(eq(s.profiles.userId, user.id));
+  return { customOrder: !!order };
 }
 
 /** Last 7 days ending today: done vs due per day, habits kept, and the ones slipping. */

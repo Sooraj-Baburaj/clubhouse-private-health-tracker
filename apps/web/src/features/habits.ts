@@ -89,3 +89,31 @@ export function useHabitPref() {
     onSettled: () => void qc.invalidateQueries({ queryKey: ['habits'] }),
   });
 }
+
+/**
+ * Save the member's own habit order (or `null` for the team order). The cached list reorders at once; the server
+ * answers whether the result still differs from the team order.
+ */
+export function useSetMyHabitOrder() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (ids: string[] | null) => api.habits.order(ids),
+    onMutate: async (ids) => {
+      const key = qk.habits(undefined);
+      await qc.cancelQueries({ queryKey: key });
+      const prev = qc.getQueryData<HabitDayResponse>(key);
+      if (prev && ids) {
+        const at = new Map(ids.map((id, i) => [id, i]));
+        const byOrder = <T extends { id: string }>(xs: T[]) => [...xs].sort((a, b) => (at.get(a.id) ?? Infinity) - (at.get(b.id) ?? Infinity));
+        qc.setQueryData<HabitDayResponse>(key, { ...prev, items: byOrder(prev.items), arrangement: byOrder(prev.arrangement), customOrder: true });
+      }
+      return { prev };
+    },
+    onError: (err, _v, ctx) => {
+      if (ctx?.prev) qc.setQueryData(qk.habits(undefined), ctx.prev);
+      toast.error(err instanceof ApiError ? err.message : 'Couldn’t save your order.');
+    },
+    onSuccess: (r, ids) => toast.show(ids === null ? 'Back on the team order' : r.customOrder ? 'Your order is saved' : 'That’s the team order, so you’ll follow it again'),
+    onSettled: () => void qc.invalidateQueries({ queryKey: ['habits'] }),
+  });
+}

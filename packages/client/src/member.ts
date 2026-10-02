@@ -74,6 +74,8 @@ export const api = {
     get: (id: string) => get<C.HabitDetailResponse>(`/habits/${id}`),
     checkin: (id: string, b: C.HabitCheckinUpsert) => put<C.UpsertResult<C.HabitCheckinDto>>(`/habits/checkins/${id}`, b),
     prefs: (id: string, b: C.HabitPrefUpdate) => patch<Ok>(`/habits/${id}/prefs`, b),
+    /** `null` goes back to the team order. */
+    order: (ids: string[] | null) => put<{ customOrder: boolean }>('/habits/order', { ids }),
   },
   plan: {
     get: () => get<C.MyPlanResponse>('/activity-plan'),

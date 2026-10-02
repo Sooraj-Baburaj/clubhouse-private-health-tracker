@@ -178,10 +178,9 @@ function useUnreadAndLive(onChat: boolean) {
   useEffect(
     () =>
       live.on((event) => {
-        if (event.startsWith('chat.')) {
-          void qc.invalidateQueries({ queryKey: qk.chat });
-          void qc.invalidateQueries({ queryKey: qk.unread });
-        }
+        // The chat feed itself is revalidated by the cache manager (infrastructure/cache), which pushes changes into
+        // the feed query; invalidating it here too would queue a second /chat/changes pull per event.
+        if (event.startsWith('chat.')) void qc.invalidateQueries({ queryKey: qk.unread });
         if (event === 'inbox.new') {
           void qc.invalidateQueries({ queryKey: qk.inbox });
           void qc.invalidateQueries({ queryKey: qk.unread });

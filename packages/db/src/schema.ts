@@ -143,7 +143,8 @@ export const adminLoginEvents = pgTable(
 
 export type PrivacyJson = { teammatesSee: 'summary' | 'full'; teamPulseOptIn: boolean; roastMemes: boolean; roastPromptSeen: boolean };
 export type AiOptOutsJson = { photo: boolean; summary: boolean; noticeSeen: boolean };
-export type HabitPrefsJson = { bundle: boolean; share: boolean };
+/** `order`: the member's own habit arrangement (ids); absent = follow the admin's order. */
+export type HabitPrefsJson = { bundle: boolean; share: boolean; order?: string[] | null; orderedAt?: string | null };
 export type HabitScheduleJson = { type: 'daily' | 'days' | 'weekly'; days: number[]; perWeek: number };
 export type MomentumPrefsJson = { showOnToday: ('logging' | 'activity' | 'in_range')[] };
 export type DietPrefsJson = { allergies: string[]; dislikes: string[]; cuisines: string[]; diet: 'none' | 'vegetarian' | 'vegan' | 'eggetarian' | 'pescatarian' };

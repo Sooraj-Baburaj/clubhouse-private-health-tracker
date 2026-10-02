@@ -9,7 +9,8 @@ import { SyncedCollection } from './engine';
  * history, then pages older messages from the server into the cache. At most MAX_CACHED messages are kept.
  */
 
-export const CHAT_FORMAT = 1;
+/** Bump when ChatMessageDto changes shape so cached rows are refetched (2: meme width/height). */
+export const CHAT_FORMAT = 2;
 const MAX_CACHED = 2000;
 const INITIAL_WINDOW = 80;
 const PAGE = 50;
@@ -179,6 +180,17 @@ export async function setLastRead(seq: number) {
   feedCache = null;
   chatHistory.touched();
   await persistMeta();
+}
+
+/**
+ * Shrink the visible window back to the newest INITIAL_WINDOW messages (the rest stay cached and come back instantly on
+ * scroll-up), so the rendered list doesn't keep every message someone once scrolled past.
+ */
+export function trimWindow() {
+  if (windowSize <= INITIAL_WINDOW) return;
+  windowSize = INITIAL_WINDOW;
+  feedCache = null;
+  chatHistory.touched(false);
 }
 
 /** Scroll-up: reveal cached history first (instant), then page older messages from the server into the cache. */

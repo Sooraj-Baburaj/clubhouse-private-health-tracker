@@ -8,7 +8,7 @@ import { notFound } from '../lib/errors';
 import type { AuthUser } from '../interface/http/types';
 import { memberClock } from './clockCtx';
 import { getHabitDay } from './habits';
-import { imageUrlMap, pick } from './images';
+import { imageUrlMap, pick, type ImageUrls } from './images';
 import { logsForDate } from './logs';
 import { consistencyWeeks, currentTargets, dayAggregates, dayKcalBand, dayTargets, thresholdsFor, type DayAgg } from './progress';
 import { getTeam } from './team';
@@ -16,7 +16,7 @@ import { getTeam } from './team';
 type UserRow = typeof s.users.$inferSelect;
 type ProfileRow = typeof s.profiles.$inferSelect;
 
-function personRef(u: UserRow, avatars: Map<string, { url: string | null; thumbUrl: string | null; expired: boolean }>): PersonRef {
+function personRef(u: UserRow, avatars: Map<string, ImageUrls>): PersonRef {
   const img = pick(avatars, u.avatarImageId);
   return { id: u.id, name: u.displayName, initials: initials(u.displayName), avatarUrl: img.thumbUrl ?? img.url };
 }

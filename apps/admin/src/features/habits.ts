@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { adminApi } from '@clubhouse/client';
 import type { AdminHabitDto, AdminHabitInput, AdminHabitsResponse } from '@clubhouse/contracts';
 import type { z } from 'zod';
@@ -41,4 +41,22 @@ export function useToggleHabit() {
 
 export function useArchiveHabit() {
   return useAction((h: AdminHabitDto) => adminApi.habits.archive(h.id), { success: (_r, h) => `${h.name} archived. Its history is kept.`, invalidate: [qk.habits, qk.habitAdherence] });
+}
+
+/** Save the team order; the response is the refreshed catalogue (members who now match are synced). */
+export function useSetHabitOrder() {
+  const qc = useQueryClient();
+  return useAction((ids: string[]) => adminApi.habits.setOrder(ids), {
+    success: 'Order saved. Members see it right away.',
+    onSuccess: (r) => qc.setQueryData(qk.habits, r),
+    invalidate: [qk.habitAdherence],
+  });
+}
+
+/** Put members back on the team order: some (`userIds`) or everyone who arranged their own. */
+export function useSyncHabitOrders() {
+  return useAction((userIds?: string[]) => adminApi.habits.syncOrders(userIds), {
+    success: (r) => (r.synced === 1 ? 'Synced to the team order' : `${r.synced} members synced to the team order`),
+    invalidate: [qk.habits],
+  });
 }

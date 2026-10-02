@@ -1,6 +1,6 @@
 import { AlertCircle, Clock, CornerUpLeft, Pin, RotateCw, Trash2 } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
-import { forwardRef, type ReactNode } from 'react';
+import { forwardRef, memo, type ReactNode } from 'react';
 import type { ChatMessageDto } from '@clubhouse/contracts';
 import { timeOf } from '@/features/format';
 import { AIBadge, Tag } from '@/ui/atoms/Badges';
@@ -20,8 +20,11 @@ export interface MessageCtx {
   onJumpTo: (id: string) => void;
 }
 
-/** One message: header (first of a group), bubble, reply quote, attachments, reactions (APP-CHAT-02/05/06). */
-export const MessageItem = forwardRef<HTMLDivElement, { m: ChatMessageDto; first: boolean; last: boolean; highlight: boolean; ctx: MessageCtx }>(function MessageItem({ m, first, last, highlight, ctx }, ref) {
+/**
+ * One message: header (first of a group), bubble, reply quote, attachments, reactions (APP-CHAT-02/05/06).
+ * Memoised: a feed change re-renders only the rows whose message or grouping changed, so `ctx` must be stable.
+ */
+export const MessageItem = memo(forwardRef<HTMLDivElement, { m: ChatMessageDto; first: boolean; last: boolean; highlight: boolean; ctx: MessageCtx }>(function MessageItem({ m, first, last, highlight, ctx }, ref) {
   const own = m.mine;
   const system = m.kind === 'system';
   const who = system ? 'Clubhouse' : own ? 'You' : (m.author?.name.split(' ')[0] ?? 'Someone');
@@ -120,7 +123,7 @@ export const MessageItem = forwardRef<HTMLDivElement, { m: ChatMessageDto; first
       </div>
     </motion.div>
   );
-});
+}));
 
 function Reactions({ m, onToggle, onShow }: { m: ChatMessageDto; onToggle: MessageCtx['onToggleReaction']; onShow: MessageCtx['onShowReactions'] }) {
   return (

@@ -64,6 +64,8 @@ export const adminApi = {
     setEnabled: (id: string, enabled: boolean) => post<C.AdminHabitDto>(`/admin/habits/${id}/enabled`, { enabled }),
     archive: (id: string) => post<Ok>(`/admin/habits/${id}/archive`),
     addTemplate: (key: string) => post<C.AdminHabitDto>(`/admin/habits/templates/${key}`),
+    setOrder: (ids: string[]) => put<C.AdminHabitsResponse>('/admin/habits/order', { ids }),
+    syncOrders: (userIds?: string[]) => post<{ synced: number }>('/admin/habits/order/sync', { userIds }),
   },
   plans: {
     list: () => get<C.AdminPlanRow[]>('/admin/plans'),

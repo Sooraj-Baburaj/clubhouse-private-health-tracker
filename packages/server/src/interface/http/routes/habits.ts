@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
-import { HabitCheckinUpsert, HabitPrefUpdate, LocalDateStr } from '@clubhouse/contracts';
+import { HabitCheckinUpsert, HabitPrefUpdate, LocalDateStr, MemberHabitOrderRequest } from '@clubhouse/contracts';
 import * as habits from '../../../application/habits';
 import { currentAuth } from '../middleware/session';
 import { writeLimit } from '../middleware/writeLimit';
@@ -17,6 +17,10 @@ export const habitRoutes = new Hono<AppEnv>()
   .get('/habits/week', async (ctx) => {
     const a = currentAuth(ctx);
     return ctx.json(await habits.getHabitWeek(ctx.get('c'), a.user));
+  })
+  .put('/habits/order', async (ctx) => {
+    const a = currentAuth(ctx);
+    return ctx.json(await habits.setMemberOrder(ctx.get('c'), a.user, (await body(ctx, MemberHabitOrderRequest)).ids));
   })
   .put('/habits/checkins/:id', async (ctx) => {
     const a = currentAuth(ctx);

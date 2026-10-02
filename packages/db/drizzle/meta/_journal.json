@@ -36,6 +36,13 @@
       "when": 1790879888103,
       "tag": "0004_habits",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1790919222339,
+      "tag": "0005_habit_team_order",
+      "breakpoints": true
     }
   ]
 }
