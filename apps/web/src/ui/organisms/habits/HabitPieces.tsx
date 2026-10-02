@@ -51,8 +51,8 @@ export function HabitChip({ icon, group, done, size = 36, className }: { icon: s
 }
 
 /**
- * 4b tap tile: one tap ticks, adds a glass, adds 10 minutes or steps the rating; tiles never move, so the thumb
- * learns the grid. The info button opens the habit.
+ * 4b tap tile: one tap ticks, adds a glass, adds 10 minutes or steps the rating. The info button opens the habit.
+ * `layoutId` lets a tile glide between the open grid and the Done row.
  */
 export function HabitTile({ item, onTap, onInfo, disabled }: { item: HabitDayItem; onTap: () => void; onInfo: () => void; disabled?: boolean }) {
   const reduce = useReducedMotion();
@@ -60,7 +60,8 @@ export function HabitTile({ item, onTap, onInfo, disabled }: { item: HabitDayIte
   const done = item.done;
   return (
     <motion.div
-      layout={false}
+      layoutId={reduce ? undefined : `habit-tile-${item.id}`}
+      layout={reduce ? false : 'position'}
       animate={done && !reduce ? { scale: [1, 1.035, 1] } : { scale: 1 }}
       transition={{ duration: 0.35, ease: [0.34, 1.56, 0.64, 1] }}
       className={cn('relative flex min-h-[148px] flex-col gap-1.5 rounded-[30px] pb-3.5 pl-3.5 pr-3 pt-3 transition-colors duration-[250ms]', done ? 'bg-accent text-on-accent' : 'bg-surface text-text')}

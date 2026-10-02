@@ -141,3 +141,13 @@ describe('per-habit stats', () => {
     expect(habitKeptThisWeek(laundry, values({}), addDays(MON, 6))).toBe(false);
   });
 });
+
+describe('habit icons', () => {
+  it('accepts exactly one emoji, including ZWJ sequences, flags, keycaps and skin tones', async () => {
+    const { HABIT_ICONS, isSingleEmoji } = await import('@clubhouse/contracts');
+    expect(HABIT_ICONS.every(isSingleEmoji)).toBe(true);
+    expect(new Set(HABIT_ICONS).size).toBe(HABIT_ICONS.length);
+    for (const ok of ['🧑‍💻', '🇮🇳', '1️⃣', '👍🏽', '❤️', ' 🙂 ']) expect(isSingleEmoji(ok)).toBe(true);
+    for (const bad of ['', 'a', 'ab', '🙂🙂', 'yoga 🧘']) expect(isSingleEmoji(bad)).toBe(false);
+  });
+});

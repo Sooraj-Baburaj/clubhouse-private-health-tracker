@@ -1,15 +1,15 @@
 import { Minus, Plus } from 'lucide-react';
 import { useState } from 'react';
-import { AdminHabitInput, HABIT_GROUPS, HABIT_HUES, HABIT_ICONS, type AdminHabitDto, type HabitKind, type HabitSchedule } from '@clubhouse/contracts';
+import { AdminHabitInput, HABIT_GROUPS, HABIT_HUES, type AdminHabitDto, type HabitKind, type HabitSchedule } from '@clubhouse/contracts';
 import { useMembers } from '@/features/directory';
 import { useArchiveHabit, useSaveHabit } from '@/features/habits';
-import { cn } from '@/lib/cn';
 import { todayLocal } from '@/lib/format';
 import { Button, ChipToggleGroup, confirmAction, DayPicker, DrawerPanel, Field, Input, NumberInput, Segmented, Select, Textarea, Toggle } from '@/ui';
+import { IconPicker } from './IconPicker';
 import { HabitIcon, habitSwatch, KIND_HINT } from './shared';
 
 type Draft = Omit<AdminHabitInput, 'note' | 'endsOn' | 'reminderTime'> & { note: string; endsOn: string; remind: boolean; time: string };
-type Errors = Partial<Record<'name' | 'target' | 'days' | 'memberIds' | 'endsOn' | 'note' | 'startsOn', string>>;
+type Errors = Partial<Record<'name' | 'icon' | 'target' | 'days' | 'memberIds' | 'endsOn' | 'note' | 'startsOn', string>>;
 
 const KIND_DEFAULTS: Record<HabitKind, { target: number; unit: string }> = { check: { target: 1, unit: '' }, count: { target: 8, unit: 'glasses' }, duration: { target: 20, unit: 'min' }, scale: { target: 5, unit: '1–5' } };
 
@@ -130,20 +130,7 @@ export function HabitEditorDrawer({ open, habit, onClose }: { open: boolean; hab
         </Field>
 
         <Field as="div" label="Icon">
-          <div className="flex flex-wrap gap-1.5">
-            {HABIT_ICONS.map((icon) => (
-              <button
-                key={icon}
-                type="button"
-                aria-pressed={d.icon === icon}
-                aria-label={`Icon ${icon}`}
-                onClick={() => up({ icon })}
-                className={cn('grid h-[38px] w-[38px] place-items-center rounded-[10px] bg-white text-[18px] transition-colors', d.icon === icon ? 'border-2 border-ink' : 'border border-border hover:border-muted')}
-              >
-                {icon}
-              </button>
-            ))}
-          </div>
+          <IconPicker key={seenKey ?? 'closed'} value={d.icon} onChange={(icon) => up({ icon })} error={errors.icon} />
         </Field>
 
         <div className="grid grid-cols-2 gap-3">

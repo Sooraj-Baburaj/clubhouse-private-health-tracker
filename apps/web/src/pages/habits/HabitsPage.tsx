@@ -1,13 +1,14 @@
 import { useNavigate, useRouter, useSearch } from '@tanstack/react-router';
 import { ArrowUpDown } from 'lucide-react';
 import { motion } from 'motion/react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { addDays, habitTapValue, isHabitComplete } from '@clubhouse/domain';
 import { toast, useOnline } from '@clubhouse/ui';
 import type { HabitDayItem } from '@clubhouse/contracts';
 import { useHabitDay, useHabitPref, useSetMyHabitOrder, useTickHabit } from '@/features/habits';
 import { useMeData } from '@/features/me';
 import { memberNow } from '@/features/summary';
+import { cn } from '@/lib/cn';
 import { uuid } from '@/lib/ids';
 import { Button } from '@/ui/atoms/Button';
 import { Skeleton } from '@/ui/atoms/Skeleton';
@@ -42,17 +43,30 @@ export function HabitsPage() {
   const pref = useHabitPref();
   const order = useSetMyHabitOrder();
   const [arranging, setArranging] = useState(false);
+  // A tile that was just completed stays in place briefly before moving to Done, so a quick second tap doesn't land
+  // on whichever tile slid into its spot.
+  const [settling, setSettling] = useState<string[]>([]);
+  const timers = useRef<number[]>([]);
+  useEffect(() => () => timers.current.forEach((t) => clearTimeout(t)), []);
+  const settle = (id: string) => {
+    setSettling((xs) => [...xs, id]);
+    timers.current.push(window.setTimeout(() => setSettling((xs) => xs.filter((x) => x !== id)), 900));
+  };
   const m = useListMotion(0.03);
   const back = () => (window.history.length > 1 ? router.history.back() : void navigate({ to: '/', search: {} }));
   const setDay = (v: 'today' | 'yesterday') => void navigate({ to: '/habits', search: v === 'today' ? {} : { day: v }, replace: true });
 
   const d = q.data;
+  const open = d?.items.filter((i) => !i.done || settling.includes(i.id)) ?? [];
+  const finished = d?.items.filter((i) => i.done && !settling.includes(i.id)) ?? [];
+  const tile = (item: HabitDayItem) => <HabitTile key={item.id} item={item} disabled={!d?.editable} onTap={() => tap(item)} onInfo={() => void navigate({ to: '/habits/$habitId', params: { habitId: item.id } })} />;
   const tap = (item: HabitDayItem) => {
     if (!d?.editable) return;
     const value = habitTapValue(item.kind, item.value, item.target);
     const nowDone = isHabitComplete(item.kind, value, item.target);
     tick.mutate({ item, value, day, id: item.checkinId ?? uuid() });
     if (!item.done && nowDone) {
+      settle(item.id);
       const left = d.total - d.done - 1;
       toast.show(left > 0 ? `${item.name} done · ${left} to go` : date ? 'Yesterday fixed · marked added later' : 'All done today. Nice.');
     }
@@ -142,10 +156,14 @@ export function HabitsPage() {
               />
             </motion.div>
           ) : d.items.length ? (
-            <motion.div variants={m.item} className="grid grid-cols-2 gap-2.5">
-              {d.items.map((item) => (
-                <HabitTile key={item.id} item={item} disabled={!d.editable} onTap={() => tap(item)} onInfo={() => void navigate({ to: '/habits/$habitId', params: { habitId: item.id } })} />
-              ))}
+            <motion.div variants={m.item} className="flex flex-col gap-2.5">
+              {open.length > 0 && <div className="grid grid-cols-2 gap-2.5">{open.map(tile)}</div>}
+              {finished.length > 0 && (
+                <>
+                  <h2 className={cn('px-1.5 font-body text-[12px] font-bold uppercase tracking-[0.1em] text-neutral-700', open.length > 0 && 'pt-2')}>Done · {finished.length}</h2>
+                  <div className="grid grid-cols-2 gap-2.5">{finished.map(tile)}</div>
+                </>
+              )}
             </motion.div>
           ) : (
             <motion.div variants={m.item}>
@@ -159,8 +177,8 @@ export function HabitsPage() {
 
           {d.items.length > 0 && !arranging && (
             <motion.p variants={m.item} className="m-0 px-1.5 text-[12px] leading-normal text-neutral-700">
-              Tap a tile to tick, add a glass or add 10 minutes. Tiles stay where they are, so your thumb learns the grid
-              {d.customOrder ? ', in the order you arranged.' : '.'}
+              Tap a tile to tick, add a glass or add 10 minutes. Finished ones move to Done; tap one there to undo or change it.
+              {d.customOrder ? ' Open habits keep the order you arranged.' : ''}
               {d.items[0]?.setBy ? ` Set by ${d.items[0].setBy}. Teammates only see how many you kept, never which ones.` : ' Teammates only see how many you kept, never which ones.'}
             </motion.p>
           )}

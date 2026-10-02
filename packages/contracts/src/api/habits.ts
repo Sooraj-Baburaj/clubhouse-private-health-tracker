@@ -12,7 +12,25 @@ export const HABIT_GROUPS = ['Morning', 'Home', 'Self-care', 'Evening'] as const
 export const HabitGroup = z.enum(HABIT_GROUPS);
 export type HabitGroup = z.infer<typeof HabitGroup>;
 
-export const HABIT_ICONS = ['☀️', '🌙', '💧', '📖', '🧺', '🪴', '✍️', '🦷', '🧘', '✨'] as const;
+/** Curated icon picker, by theme. Any other single emoji is allowed too (see `isSingleEmoji`). */
+export const HABIT_ICON_SETS: { label: string; icons: string[] }[] = [
+  { label: 'Self-care', icons: ['✨', '☀️', '🌙', '🧴', '🧼', '🪥', '🦷', '🛁', '🚿', '💆', '💅', '🪒', '🧖', '😴', '🛌', '👁️'] },
+  { label: 'Health', icons: ['💧', '💊', '🩺', '🫀', '🧘', '🌬️', '🍎', '🥗', '🥦', '🫖', '☕', '🚭', '🍷', '⚖️', '🩹', '🌡️'] },
+  { label: 'Move', icons: ['🚶', '🏃', '🚴', '🏊', '🏋️', '🤸', '🧗', '⚽', '🏸', '🎾', '🏏', '🥾', '🛹', '💪', '🦵', '⛹️'] },
+  { label: 'Home', icons: ['🧺', '🧹', '🧽', '🍳', '🍽️', '🛒', '🗑️', '♻️', '🪴', '🌱', '🐕', '🐈', '🛏️', '🧾', '🔑', '🪟'] },
+  { label: 'Mind', icons: ['📖', '✍️', '📓', '🧠', '🙏', '🕯️', '🎧', '🎵', '🎨', '🧩', '♟️', '🌅', '🤝', '💬', '📵', '😊'] },
+  { label: 'Work & study', icons: ['💻', '📚', '🗣️', '🧮', '📝', '📅', '⏰', '🎯', '📈', '💰', '🏦', '📬', '🧑‍💻', '🎓', '🔤', '🌍'] },
+];
+/** Every curated icon, flattened (first set first). */
+export const HABIT_ICONS = HABIT_ICON_SETS.flatMap((s) => s.icons);
+
+/** Exactly one emoji (one grapheme that renders as a pictograph, flag or keycap); words and multiple emoji are not. */
+export function isSingleEmoji(value: string): boolean {
+  const v = value.trim();
+  if (!v || v.length > 16) return false;
+  const parts = [...new Intl.Segmenter(undefined, { granularity: 'grapheme' }).segment(v)];
+  return parts.length === 1 && /\p{Extended_Pictographic}|\p{Regional_Indicator}|\u20E3/u.test(v);
+}
 /** Tile hues (oklch hue angle) the admin can pick from. */
 export const HABIT_HUES = [350, 25, 70, 145, 230, 290] as const;
 
@@ -27,7 +45,7 @@ export type HabitSchedule = z.infer<typeof HabitSchedule>;
 export const AdminHabitInput = z
   .object({
     name: z.string().trim().min(1, 'Give the habit a name.').max(60, 'Keep the name under 60 characters.'),
-    icon: z.string().min(1).max(16),
+    icon: z.string().trim().refine(isSingleEmoji, 'Pick one emoji.'),
     hue: z.number().int().min(0).max(360),
     group: HabitGroup,
     kind: HabitKind,
