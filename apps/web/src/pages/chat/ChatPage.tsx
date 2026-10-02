@@ -69,6 +69,10 @@ export function ChatPage() {
   const [anchor, setAnchor] = useState<number | null>(null);
   const [focusKey, setFocusKey] = useState(0);
   const atBottom = useRef(true);
+  // Stuck to the newest message: kept until the user scrolls up, so late layout (images, fonts, the keyboard) can't
+  // leave the view a few messages short of the bottom.
+  const pinned = useRef(true);
+  const rootRef = useRef<HTMLDivElement>(null);
   const restore = useRef<{ h: number; top: number } | null>(null);
   const topRef = useRef<HTMLDivElement>(null);
   const didInit = useRef(false);
@@ -102,6 +106,7 @@ export function ChatPage() {
     (smooth: boolean) => {
       const e = el();
       if (!e) return;
+      pinned.current = true;
       e.scrollTo({ top: e.scrollHeight, behavior: smooth ? 'smooth' : 'auto' });
       setNewCount(0);
     },
@@ -120,8 +125,13 @@ export function ChatPage() {
   useEffect(() => {
     const e = el();
     if (!e || !active) return;
+    let lastTop = e.scrollTop;
     const h = () => {
       const gap = e.scrollHeight - e.scrollTop - e.clientHeight;
+      // Only a scroll up lets go of the bottom: programmatic scrolls (smooth ones included) only ever move down.
+      if (e.scrollTop < lastTop - 1 && gap > 2) pinned.current = false;
+      else if (gap < 2) pinned.current = true;
+      lastTop = e.scrollTop;
       atBottom.current = gap < 140;
       if (atBottom.current) {
         setNewCount(0);
@@ -161,7 +171,7 @@ export function ChatPage() {
     if (latest > lastSeq.current) {
       const fresh = messages.filter((m) => m.seq > lastSeq.current);
       lastSeq.current = latest;
-      if (atBottom.current || fresh.some((m) => m.mine)) requestAnimationFrame(() => scrollToBottom(true));
+      if (atBottom.current || pinned.current || fresh.some((m) => m.mine)) requestAnimationFrame(() => scrollToBottom(true));
       else setNewCount((c) => c + fresh.filter((m) => !m.mine && m.kind !== 'divider').length);
     }
   }, [latest, d, el, messages, scrollToBottom, search.seq]);
@@ -174,10 +184,25 @@ export function ChatPage() {
     didInit.current = true;
     lastSeq.current = d.messages[d.messages.length - 1]?.seq ?? 0;
     if (search.seq == null) {
+      pinned.current = true;
       e.scrollTop = e.scrollHeight;
       requestAnimationFrame(() => (e.scrollTop = e.scrollHeight));
-    }
+    } else pinned.current = atBottom.current = false;
   }, [d, el, search.seq]);
+
+  // While pinned, stay on the newest message as content settles after the first jump (lazy images and memes loading,
+  // the composer growing) and as the pane resizes (keyboard opening).
+  useEffect(() => {
+    const e = el();
+    const r = rootRef.current;
+    if (!e || !r) return;
+    const ro = new ResizeObserver(() => {
+      if (didInit.current && pinned.current) e.scrollTop = e.scrollHeight;
+    });
+    ro.observe(r);
+    ro.observe(e);
+    return () => ro.disconnect();
+  }, [el]);
 
   const older = useCallback(async () => {
     const e = el();
@@ -385,7 +410,7 @@ export function ChatPage() {
 
   return (
     <MotionConfig reducedMotion="user">
-      <div className="flex flex-col" style={{ minHeight: 'calc(100dvh - env(safe-area-inset-top, 0px) - 58px - max(env(safe-area-inset-bottom, 0px), 14px))', marginBottom: CHAT_DOCK_OFFSET }}>
+      <div ref={rootRef} className="flex flex-col" style={{ minHeight: 'calc(100dvh - env(safe-area-inset-top, 0px) - 58px - max(env(safe-area-inset-bottom, 0px), 14px))', marginBottom: CHAT_DOCK_OFFSET }}>
         <ChatHeader members={members.data?.length ?? me.team.memberCount ?? null} teamStreak={team.data?.teamStreak ?? null} />
         <div className="flex flex-1 flex-col justify-end gap-2 px-4 pb-3">
           {d && (

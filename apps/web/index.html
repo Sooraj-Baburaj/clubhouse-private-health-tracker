@@ -19,6 +19,12 @@
         var dark = p.theme === 'dark' || ((p.theme || 'system') === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
         document.documentElement.dataset.palette = dark ? 'night' : p.palette && p.palette !== 'night' ? p.palette : 'day';
       } catch (e) {}
+      // iOS Safari zooms in when a field under 16px gets focus and never zooms back out. maximum-scale stops that
+      // auto-zoom, while iOS still allows pinch-zoom; scoped to iOS because Android would lose pinch-zoom.
+      if (/iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) {
+        var vp = document.querySelector('meta[name=viewport]');
+        if (vp) vp.content += ', maximum-scale=1';
+      }
     </script>
   </head>
   <body>
