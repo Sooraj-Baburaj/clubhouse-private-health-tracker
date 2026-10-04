@@ -16,7 +16,7 @@ import { getTeam } from './team';
 type UserRow = typeof s.users.$inferSelect;
 type ProfileRow = typeof s.profiles.$inferSelect;
 
-function personRef(u: UserRow, avatars: Map<string, ImageUrls>): PersonRef {
+export function personRef(u: UserRow, avatars: Map<string, ImageUrls>): PersonRef {
   const img = pick(avatars, u.avatarImageId);
   return { id: u.id, name: u.displayName, initials: initials(u.displayName), avatarUrl: img.thumbUrl ?? img.url };
 }

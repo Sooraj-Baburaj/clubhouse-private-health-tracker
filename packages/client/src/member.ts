@@ -105,6 +105,7 @@ export const api = {
     memberDay: (memberId: string, date?: string) => get<C.MemberDayResponse>(`/team/members/${memberId}/day`, { date }),
     board: (week?: string) => get<C.BoardResponse>('/team/board', { week }),
     memberPoints: (memberId: string, week?: string) => get<C.MemberPointsResponse>(`/team/members/${memberId}/points`, { week }),
+    memberProfile: (memberId: string) => get<C.MemberProfileResponse>(`/team/members/${memberId}/profile`),
   },
   chat: {
     list: (q: { after?: number; before?: number; limit?: number }) => get<C.ChatPageResponse>('/chat/messages', q),

@@ -14,7 +14,7 @@ import { Button } from '@/ui/atoms/Button';
 import { Skeleton } from '@/ui/atoms/Skeleton';
 import { ListGroup } from '@/ui/molecules/ListGroup';
 import { StatTile } from '@/ui/molecules/StatTile';
-import { ChipInput, Divider, FieldRow, inputCls, RadioList, ToggleRow } from './Kit';
+import { ChipInput, dateInputCls, Divider, FieldRow, RadioList, ToggleRow } from './Kit';
 
 /* ---------------- Diet preferences ---------------- */
 
@@ -227,12 +227,12 @@ export function MomentumSection() {
                 Planned: {upcoming.map((r) => `${dateLabel(r.from, { day: 'numeric', month: 'short' })} – ${dateLabel(r.to, { day: 'numeric', month: 'short' })}`).join(', ')}
               </div>
             )}
-            <div className="grid grid-cols-2">
+            <div className="grid grid-cols-1 min-[420px]:grid-cols-2">
               <FieldRow label="From">
-                <input type="date" className={inputCls} value={from} min={me.today} onChange={(e) => setFrom(e.target.value)} />
+                <input type="date" className={dateInputCls} value={from} min={me.today} onChange={(e) => setFrom(e.target.value)} />
               </FieldRow>
               <FieldRow label="To">
-                <input type="date" className={inputCls} value={to} min={from} onChange={(e) => setTo(e.target.value)} />
+                <input type="date" className={dateInputCls} value={to} min={from} onChange={(e) => setTo(e.target.value)} />
               </FieldRow>
             </div>
             <div className="px-4 pb-3.5">

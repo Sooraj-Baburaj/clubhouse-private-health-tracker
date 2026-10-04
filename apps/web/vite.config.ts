@@ -53,8 +53,10 @@ export default defineConfig({
   server: {
     port: 5173,
     host: true,
-    proxy: { '/api': { target: 'http://localhost:3000', changeOrigin: false } },
+    // /admin is the admin app's dev server (base /admin/), so links into it work on this origin like they do on
+    // Vercel, where both apps share one domain. ws: its HMR socket comes through here too.
+    proxy: { '/api': { target: 'http://localhost:3000', changeOrigin: false }, '/admin': { target: 'http://localhost:5174', ws: true } },
   },
-  preview: { port: 4173, proxy: { '/api': { target: 'http://localhost:3000' } } },
+  preview: { port: 4173, proxy: { '/api': { target: 'http://localhost:3000' }, '/admin': { target: 'http://localhost:4174' } } },
   build: { target: 'es2022', sourcemap: true, chunkSizeWarningLimit: 600 },
 });

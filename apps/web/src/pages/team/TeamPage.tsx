@@ -1,3 +1,4 @@
+import { useNavigate } from '@tanstack/react-router';
 import { CircleHelp } from 'lucide-react';
 import { AnimatePresence, motion, MotionConfig } from 'motion/react';
 import { useState } from 'react';
@@ -56,6 +57,7 @@ export function TeamPage() {
   const boardOn = me.team.featureFlags.leaderboard;
   const board = useBoard(undefined);
   const team = useTeamSummary();
+  const navigate = useNavigate();
   const [view, setView] = useState<BoardView>('week');
   const [card, setCard] = useState<{ id: string; week?: string } | null>(null);
   const [points, setPoints] = useState(false);
@@ -126,7 +128,7 @@ export function TeamPage() {
             </motion.div>
             {b.lastWeek && !showResults && (
               <motion.div variants={m.item}>
-                <AwardsStrip results={b.lastWeek} />
+                <AwardsStrip results={b.lastWeek} onOpenMember={(id) => void navigate({ to: '/member/$memberId', params: { memberId: id } })} />
               </motion.div>
             )}
           </motion.div>

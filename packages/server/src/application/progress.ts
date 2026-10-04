@@ -337,7 +337,7 @@ export async function nutrientGrid(c: Container, user: AuthUser, weekStartParam?
 
 /* ───────── Activity ───────── */
 
-const RECORD_LABELS: Record<PersonalRecord, string> = {
+export const RECORD_LABELS: Record<PersonalRecord, string> = {
   longest_run: 'Longest run',
   longest_swim: 'Longest swim',
   longest_ride: 'Longest ride',

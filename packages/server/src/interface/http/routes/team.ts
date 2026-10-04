@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { z } from 'zod';
 import { BoardQuery, LocalDateStr } from '@clubhouse/contracts';
 import { boardView, memberPoints } from '../../../application/board';
+import { memberProfile } from '../../../application/profileView';
 import { memberDay, teamSummary } from '../../../application/teamView';
 import { currentAuth } from '../middleware/session';
 import type { AppEnv } from '../types';
@@ -25,6 +26,10 @@ export const teamRoutes = new Hono<AppEnv>()
     const a = currentAuth(ctx);
     const { date } = query(ctx, DateQuery);
     return ctx.json(await memberDay(ctx.get('c'), a.user, param(ctx, 'id'), date));
+  })
+  .get('/team/members/:id/profile', async (ctx) => {
+    const a = currentAuth(ctx);
+    return ctx.json(await memberProfile(ctx.get('c'), a.user, param(ctx, 'id')));
   })
   .get('/team/members/:id/points', async (ctx) => {
     const a = currentAuth(ctx);

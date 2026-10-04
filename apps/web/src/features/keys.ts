@@ -16,6 +16,7 @@ export const qk = {
   memberDay: (id: string, date?: string) => ['team', 'member', id, date ?? 'today'] as const,
   board: (week?: string) => ['team', 'board', week ?? 'current'] as const,
   memberPoints: (id: string, week?: string) => ['team', 'points', id, week ?? 'current'] as const,
+  memberProfile: (id: string) => ['team', 'profile', id] as const,
   chat: ['chat'] as const,
   chatMembers: ['chat-members'] as const,
   memes: ['memes'] as const,

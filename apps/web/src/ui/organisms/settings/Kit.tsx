@@ -181,6 +181,10 @@ export function FieldRow({ label, children, hint }: { label: string; children: R
 
 export const inputCls = 'min-h-12 w-full rounded-full border border-divider bg-bg px-[18px] text-[16px] text-text outline-none transition-colors focus:border-accent';
 
+/** Date inputs in half-width columns: iOS keeps a date input at its intrinsic width unless it can shrink, which overflows the card. */
+export const dateInputCls =
+  'block min-h-12 w-full min-w-0 appearance-none rounded-full border border-divider bg-bg px-3.5 text-[16px] text-text outline-none transition-colors focus:border-accent [&::-webkit-date-and-time-value]:text-left';
+
 export const initials = (name: string) =>
   name
     .trim()

@@ -13,6 +13,7 @@ import { InboxPage } from '@/pages/inbox/InboxPage';
 import { SettingsPage } from '@/pages/settings/SettingsPage';
 import { SettingsSectionPage } from '@/pages/settings/SettingsSectionPage';
 import { MemberDayPage } from '@/pages/team/MemberDayPage';
+import { MemberProfilePage } from '@/pages/team/MemberProfilePage';
 import { AppShell } from './AppShell';
 import { RouteError } from './RouteError';
 import { RootLayout } from './RootLayout';
@@ -93,13 +94,15 @@ const inboxRoute = createRoute({ getParentRoute: () => shellRoute, path: '/inbox
 const settingsRoute = createRoute({ getParentRoute: () => shellRoute, path: '/settings', component: SettingsPage });
 const settingsSectionRoute = createRoute({ getParentRoute: () => shellRoute, path: '/settings/$section', component: SettingsSectionPage });
 const memberDayRoute = createRoute({ getParentRoute: () => shellRoute, path: '/team/$memberId', validateSearch: z.object({ date: z.string().optional() }), component: MemberDayPage });
+/** A teammate's profile; their day stays at /team/$memberId (chat cards and Crew today link there). */
+const memberProfileRoute = createRoute({ getParentRoute: () => shellRoute, path: '/member/$memberId', component: MemberProfilePage });
 
 const routeTree = rootRoute.addChildren([
   loginRoute,
   changePasswordRoute,
   verifyRoute,
   onboardingRoute,
-  shellRoute.addChildren([todayRoute, dietRoute, progressRoute, teamRoute, chatRoute, logFoodRoute, logActivityRoute, logWeightRoute, planRoute, habitsRoute, habitDetailRoute, momentumRoute, inboxRoute, settingsRoute, settingsSectionRoute, memberDayRoute]),
+  shellRoute.addChildren([todayRoute, dietRoute, progressRoute, teamRoute, chatRoute, logFoodRoute, logActivityRoute, logWeightRoute, planRoute, habitsRoute, habitDetailRoute, momentumRoute, inboxRoute, settingsRoute, settingsSectionRoute, memberDayRoute, memberProfileRoute]),
 ]);
 
 export const router = createRouter({ routeTree, defaultPreload: 'intent', scrollRestoration: false });

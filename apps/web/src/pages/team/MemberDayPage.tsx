@@ -35,7 +35,13 @@ export function MemberDayPage() {
           onBack={back}
           title={d ? d.person.name : ' '}
           subtitle={day === me.today ? 'Today' : dateLabel(day, { weekday: 'long', day: 'numeric', month: 'short' })}
-          right={d ? <Avatar name={d.person.name} initials={d.person.initials} url={d.person.avatarUrl} size={44} /> : undefined}
+          right={
+            d ? (
+              <button type="button" onClick={() => void navigate({ to: '/member/$memberId', params: { memberId } })} aria-label={`${d.person.name}’s profile`} className="rounded-full border-0 bg-transparent p-0">
+                <Avatar name={d.person.name} initials={d.person.initials} url={d.person.avatarUrl} size={44} />
+              </button>
+            ) : undefined
+          }
         />
         <div className="flex items-center justify-between rounded-full bg-surface p-1">
           <IconButton label="Previous day" tone="ghost" onClick={() => go(-1)}>

@@ -1,6 +1,7 @@
 import type { Band, Nutrient, PersonalRecord, StreakKind } from '../index';
 import type { Nutrients, PersonRef } from './common';
 import type { ActivityLogDto, FoodLogDto } from './logs';
+import type { AwardKey, BoardStatus } from './board';
 
 export interface ForecastDto {
   locked: boolean;
@@ -109,6 +110,35 @@ export interface MemberDayResponse {
   full: { foodLogs: FoodLogDto[]; activityLogs: ActivityLogDto[] } | null;
   /** Habits due that day; `done` names only when the member shares their habits (or it's you). Null with none due. */
   habits: { done: number; total: number; doneNames: string[] | null } | null;
+}
+
+/** A teammate's profile: streaks, personal records, badges, the board and habits — never weight, calories or foods. */
+export interface MemberProfileResponse {
+  person: PersonRef;
+  isMe: boolean;
+  /** Member since (their local date). */
+  joinedOn: string | null;
+  onVacation: boolean;
+  /** What they share beyond the summary: meal-by-meal logs, and which habits they keep. */
+  shares: { fullLogs: boolean; habits: boolean };
+  streaks: { kind: StreakKind; current: number; best: number; status: StreakDto['status'] }[];
+  records: { record: PersonalRecord; label: string; value: number; unit: string; date: string }[];
+  badges: { kind: string; days: number; name: string; emoji: string; earnedAt: string }[];
+  /** Null while the leaderboard is off for the team. */
+  board: {
+    /** They left themselves off the board (privacy); you always see your own. */
+    hidden: boolean;
+    week: { number: number; rank: number | null; points: number; status: BoardStatus } | null;
+    crown: boolean;
+    solid: { solidDays: number; eligibleDays: number } | null;
+    weeksRanked: number;
+    bestWeek: { points: number; weekStart: string } | null;
+    wins: number;
+    podiums: number;
+    awards: { key: AwardKey; count: number }[];
+  } | null;
+  /** Null when they have no habits. Names of today's kept habits only when they share habits. */
+  habits: { doneToday: number; totalToday: number; streak: { current: number; best: number }; keptToday: string[] | null } | null;
 }
 
 export interface RecapDto {

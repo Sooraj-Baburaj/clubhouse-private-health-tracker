@@ -1,6 +1,7 @@
 import { EyeOff, Flame, Utensils } from 'lucide-react';
 import { motion } from 'motion/react';
-import type { MemberDayResponse } from '@clubhouse/contracts';
+import { useState } from 'react';
+import type { FoodLogDto, MemberDayResponse } from '@clubhouse/contracts';
 import { AnimatedNumber, Bar, fadeUp, stagger } from '@clubhouse/ui';
 import { firstName, fmt, SLOT_LABEL, timeOf } from '@/features/format';
 import { BandPill } from '@/ui/atoms/Badges';
@@ -8,6 +9,7 @@ import { ActivityIcon } from '@/ui/molecules/ActivityIcon';
 import { EmptyState } from '@/ui/molecules/EmptyState';
 import { ListGroup, ListRow } from '@/ui/molecules/ListGroup';
 import { StatTile } from '@/ui/molecules/StatTile';
+import { TeammateMealSheet } from './TeammateMealSheet';
 
 const ICON = { green: 'check', yellow: 'dash', red: 'alert', neutral: 'progress' } as const;
 
@@ -68,6 +70,7 @@ export function MemberDaySummary({ d }: { d: MemberDayResponse }) {
 }
 
 export function MemberDayFull({ d }: { d: MemberDayResponse }) {
+  const [meal, setMeal] = useState<FoodLogDto | null>(null);
   if (!d.full) {
     return (
       <EmptyState
@@ -95,6 +98,8 @@ export function MemberDayFull({ d }: { d: MemberDayResponse }) {
               }
               sub={`${f.pendingDetails ? 'Photo — foods to follow' : f.items.map((i) => i.name).join(', ')} · ${timeOf(f.loggedAt)}`}
               right={<span className="text-[13px] font-bold tabular">{f.pendingDetails ? '—' : `${fmt(f.totals.kcal)} kcal`}</span>}
+              onClick={() => setMeal(f)}
+              chevron
             />
           ))}
         </ListGroup>
@@ -116,6 +121,7 @@ export function MemberDayFull({ d }: { d: MemberDayResponse }) {
           ))}
         </ListGroup>
       )}
+      <TeammateMealSheet log={meal} onClose={() => setMeal(null)} />
     </div>
   );
 }

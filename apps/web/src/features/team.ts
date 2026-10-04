@@ -37,3 +37,8 @@ export function useTeamPulseOptIn() {
     },
   });
 }
+
+/** A teammate's profile (or your own): streaks, records, badges, the board and habits. */
+export function useMemberProfile(memberId: string) {
+  return useQuery({ queryKey: qk.memberProfile(memberId), queryFn: () => api.team.memberProfile(memberId), enabled: !!memberId, staleTime: 60_000 });
+}

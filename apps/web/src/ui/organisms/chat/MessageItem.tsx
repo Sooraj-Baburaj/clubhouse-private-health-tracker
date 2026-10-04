@@ -18,6 +18,8 @@ export interface MessageCtx {
   /** Who reacted (long-press a reaction); `emoji` preselects that reaction. */
   onShowReactions: (m: ChatMessageDto, emoji: string | null) => void;
   onJumpTo: (id: string) => void;
+  /** A teammate's avatar or name: their profile. */
+  onOpenMember: (id: string) => void;
 }
 
 /**
@@ -47,13 +49,29 @@ export const MessageItem = memo(forwardRef<HTMLDivElement, { m: ChatMessageDto; 
     >
       {!own && (
         <span className="w-7 shrink-0 self-end">
-          {last && (system ? <span aria-hidden className="grid h-7 w-7 place-items-center rounded-full bg-accent font-heading text-[12px] text-on-accent-fill">C</span> : m.author && <Avatar name={m.author.name} initials={m.author.initials} url={m.author.avatarUrl} size={28} />)}
+          {last &&
+            (system ? (
+              <span aria-hidden className="grid h-7 w-7 place-items-center rounded-full bg-accent font-heading text-[12px] text-on-accent-fill">C</span>
+            ) : (
+              m.author && (
+                <button type="button" onClick={() => ctx.onOpenMember(m.author!.id)} aria-label={`${m.author.name}’s profile`} className="block rounded-full border-0 bg-transparent p-0">
+                  <Avatar name={m.author.name} initials={m.author.initials} url={m.author.avatarUrl} size={28} />
+                </button>
+              )
+            ))}
         </span>
       )}
       <div className={cn('flex min-w-0 max-w-[84%] flex-col gap-1', own ? 'items-end' : 'items-start')}>
         {first && (
           <span className="flex items-center gap-1.5 px-2.5 text-[11px] font-bold text-neutral-700">
-            {who} · {timeOf(m.createdAt)}
+            {!own && !system && m.author ? (
+              <button type="button" onClick={() => ctx.onOpenMember(m.author!.id)} className="border-0 bg-transparent p-0 font-bold text-neutral-700 underline-offset-2 hover:underline">
+                {who}
+              </button>
+            ) : (
+              who
+            )}{' '}
+            · {timeOf(m.createdAt)}
             {m.pinned && <Pin aria-label="Pinned" className="h-3 w-3" strokeWidth={2.75} />}
             {m.test && <Tag className="px-1.5 py-0 text-[10px]">Test</Tag>}
             {m.aiGenerated && <AIBadge />}

@@ -301,8 +301,9 @@ export function ChatPage({ onBack }: { onBack?: () => void }) {
       onToggleReaction: (m, emoji, on) => reactMutate({ id: m.id, emoji, on }),
       onShowReactions: (m, emoji) => setReactionsFor({ id: m.id, emoji }),
       onJumpTo: jumpTo,
+      onOpenMember: (id) => void navigate({ to: '/member/$memberId', params: { memberId: id } }),
     }),
-    [usernames, me.user.username, reactMutate, jumpTo],
+    [usernames, me.user.username, reactMutate, jumpTo, navigate],
   );
 
   // Build the list with day separators, the unread marker and author grouping.

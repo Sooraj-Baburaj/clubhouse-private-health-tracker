@@ -77,10 +77,11 @@ export function WeekResultsCard({ results, onDismiss }: { results: WeekResultsDt
   );
 }
 
-function AwardCard({ a }: { a: AwardDto }) {
+function AwardCard({ a, onOpen }: { a: AwardDto; onOpen?: () => void }) {
   const meta = AWARD_META[a.key];
   return (
-    <li className="flex w-[156px] shrink-0 flex-col gap-2 rounded-[28px] bg-surface p-3.5">
+    <li className="w-[156px] shrink-0">
+      <button type="button" onClick={onOpen} disabled={!onOpen} className="flex h-full w-full flex-col items-start gap-2 rounded-[28px] border-0 bg-surface p-3.5 text-left text-text">
       <span aria-hidden className="text-[30px] leading-none">
         {meta.emoji}
       </span>
@@ -90,12 +91,13 @@ function AwardCard({ a }: { a: AwardDto }) {
         <span className="truncate text-[13px] font-bold">{shownName(a.person, a.isMe)}</span>
       </span>
       <span className="text-[12px] leading-snug text-neutral-700">{a.why}</span>
+      </button>
     </li>
   );
 }
 
 /** Last week's awards, a horizontal strip. */
-export function AwardsStrip({ results }: { results: WeekResultsDto }) {
+export function AwardsStrip({ results, onOpenMember }: { results: WeekResultsDto; onOpenMember?: (id: string) => void }) {
   if (!results.awards.length) return null;
   return (
     <section aria-labelledby="awards-title" className="flex flex-col gap-2.5">
@@ -105,10 +107,10 @@ export function AwardsStrip({ results }: { results: WeekResultsDto }) {
         </h2>
         <span className="text-[12px] font-bold text-neutral-700">Week {results.weekNumber}</span>
       </div>
-      {/* It scrolls sideways, so it takes keyboard focus itself (its cards are plain text). */}
+      {/* It scrolls sideways, so it takes keyboard focus itself too. */}
       <ul tabIndex={0} aria-labelledby="awards-title" className="scroll-hidden snap-x-chips -mx-5 m-0 flex list-none gap-2.5 overflow-x-auto rounded-[28px] px-5 pb-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
         {results.awards.map((a) => (
-          <AwardCard key={a.key} a={a} />
+          <AwardCard key={a.key} a={a} onOpen={onOpenMember && (() => onOpenMember(a.person.id))} />
         ))}
       </ul>
     </section>

@@ -152,3 +152,34 @@ describe('crew leaderboard', () => {
     await acl.req('PATCH', '/admin/settings', { featureFlags: { leaderboard: true } });
   });
 });
+
+describe('member profile', () => {
+  it('shows streaks, the week and board history, with no weight, calories or foods', async () => {
+    const r = await people[1]!.cl.req('GET', `/team/members/${people[0]!.id}/profile`);
+    expect(r.status).toBe(200);
+    const p = r.json;
+    expect(p.isMe).toBe(false);
+    expect(p.streaks.map((x: { kind: string }) => x.kind)).toEqual(['logging', 'activity', 'in_range']);
+    expect(p.board.hidden).toBe(false);
+    expect(p.board.wins).toBe(1);
+    expect(p.board.podiums).toBe(1);
+    expect(p.board.awards.find((a: { key: string }) => a.key === 'winner')?.count).toBe(1);
+    const keys = deepKeys(p);
+    for (const k of ['weightKg', 'kcal', 'grams', 'items', 'foodLogs', 'eaten']) expect(keys.has(k)).toBe(false);
+  });
+
+  it('keeps the board private for someone who left it, but not from themselves', async () => {
+    const hidden = people[2]!;
+    await hidden.cl.req('PATCH', '/profile/preferences', { privacy: { showOnBoard: false } });
+    expect((await people[0]!.cl.req('GET', `/team/members/${hidden.id}/profile`)).json.board).toMatchObject({ hidden: true, week: null, awards: [] });
+    expect((await hidden.cl.req('GET', `/team/members/${hidden.id}/profile`)).json.board.hidden).toBe(false);
+    await hidden.cl.req('PATCH', '/profile/preferences', { privacy: { showOnBoard: true } });
+  });
+
+  it('is only for your own team', async () => {
+    const other = await createHarness();
+    const stranger = await other.createUser();
+    expect((await people[0]!.cl.req('GET', `/team/members/${stranger.id}/profile`)).status).toBe(404);
+    await other.close();
+  });
+});

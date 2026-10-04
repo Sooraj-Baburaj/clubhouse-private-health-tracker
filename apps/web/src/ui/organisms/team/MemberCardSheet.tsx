@@ -102,17 +102,30 @@ export function MemberCardSheet({ memberId, week, onClose }: { memberId: string 
               {d.days.some((day) => day.state === 'today') && <span className="px-1 text-[12px] text-neutral-700">Calories and protein for today land overnight.</span>}
             </div>
           )}
-          <Button
-            size="lg"
-            block
-            onClick={() => {
-              onClose();
-              if (d.isMe) void navigate({ to: '/', search: {} });
-              else void navigate({ to: '/team/$memberId', params: { memberId: d.person.id }, search: {} });
-            }}
-          >
-            {d.isMe ? 'Open Today' : `See ${first}’s day`}
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              size="lg"
+              variant="secondary"
+              className="flex-1"
+              onClick={() => {
+                onClose();
+                if (d.isMe) void navigate({ to: '/', search: {} });
+                else void navigate({ to: '/team/$memberId', params: { memberId: d.person.id }, search: {} });
+              }}
+            >
+              {d.isMe ? 'Today' : 'Their day'}
+            </Button>
+            <Button
+              size="lg"
+              className="flex-1"
+              onClick={() => {
+                onClose();
+                void navigate({ to: '/member/$memberId', params: { memberId: d.person.id } });
+              }}
+            >
+              {d.isMe ? 'Your profile' : `${first}’s profile`}
+            </Button>
+          </div>
         </div>
       )}
     </MemberSheet>
