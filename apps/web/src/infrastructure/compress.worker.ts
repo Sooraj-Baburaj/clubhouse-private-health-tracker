@@ -12,12 +12,18 @@ self.onmessage = async (e: MessageEvent<{ file: Blob; maxEdge: number; quality: 
     const h = Math.max(1, Math.round(bmp.height * scale));
     const canvas = new OffscreenCanvas(w, h);
     const ctx = canvas.getContext('2d')!;
+    // A 12 MP photo shrinks ~5× here; the default low-quality filter aliases badly at that ratio (and the noise costs bytes).
+    ctx.imageSmoothingQuality = 'high';
     ctx.drawImage(bmp, 0, 0, w, h);
     bmp.close();
     let q = quality;
     let type = 'image/webp';
     let blob = await canvas.convertToBlob({ type, quality: q });
-    if (blob.type !== 'image/webp') type = 'image/jpeg';
+    // Safari can't encode WebP and silently hands back a PNG: re-encode as JPEG at the starting quality.
+    if (blob.type !== 'image/webp') {
+      type = 'image/jpeg';
+      blob = await canvas.convertToBlob({ type, quality: q });
+    }
     while (blob.size > targetBytes && q > 0.3) {
       q -= 0.08;
       blob = await canvas.convertToBlob({ type, quality: q });

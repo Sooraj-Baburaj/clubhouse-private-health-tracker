@@ -32,7 +32,8 @@ export async function buildMe(c: Container, user: AuthUser): Promise<MeResponse>
       displayName: user.displayName,
       email: user.email,
       role: user.role,
-      avatarUrl: avatar.thumbUrl ?? avatar.url,
+      // Your own avatar renders at 44–72 px (header, settings), so the 256 px main rather than the list thumbnail.
+      avatarUrl: avatar.url,
       mustChangePassword: user.mustChangePassword,
       onboarded: !!u?.onboardedAt,
       totpEnabled: user.totpEnabled,

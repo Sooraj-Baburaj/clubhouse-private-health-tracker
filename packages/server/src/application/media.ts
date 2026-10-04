@@ -9,7 +9,8 @@ import { hitRateLimit, LIMITS } from './rateLimit';
 import { imageUrls } from './images';
 import { getTeam } from './team';
 
-export const IMAGE_KINDS = ['food', 'activity', 'chat', 'meme', 'avatar', 'logo'] as const;
+/** `diet` (diet-plan option photos) and `logo` are admin uploads; neither expires. */
+export const IMAGE_KINDS = ['food', 'activity', 'chat', 'meme', 'avatar', 'logo', 'diet'] as const;
 export type ImageKind = (typeof IMAGE_KINDS)[number];
 
 /** Raw upload ceiling. Clients compress to ~120 KB (SYS-MEDIA-01); memes and logos may be larger GIFs. */

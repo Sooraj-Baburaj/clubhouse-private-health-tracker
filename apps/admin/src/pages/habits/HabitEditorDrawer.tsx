@@ -246,7 +246,7 @@ export function HabitEditorDrawer({ open, habit, onClose }: { open: boolean; hab
             </div>
             <Toggle checked={d.remind} onChange={(remind) => up({ remind })} label="Default reminder" />
           </div>
-          {d.remind && <Input type="time" aria-label="Reminder time" value={d.time} onChange={(e) => up({ time: e.target.value })} className="w-[140px] self-start" />}
+          {d.remind && <Input type="time" aria-label="Reminder time" value={d.time} onChange={(e) => up({ time: e.target.value })} className="!w-[140px] self-start" />}
         </div>
 
         <Field label="How-to note" hint={`Shown when a member taps the habit. ${d.note.length}/300`} error={errors.note} className="border-t border-hairline pt-4">

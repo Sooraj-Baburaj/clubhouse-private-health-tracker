@@ -18,7 +18,7 @@ export const mediaRoutes = new Hono<AppEnv>().post('/media', async (ctx) => {
   }
   const kind = z.enum(IMAGE_KINDS).safeParse(form.get('kind') ?? 'food');
   if (!kind.success) throw badRequest('Unknown image kind.', 'invalid_kind');
-  if (kind.data === 'logo' && ROLE_RANK[a.user.role] < ROLE_RANK.admin) throw forbidden();
+  if ((kind.data === 'logo' || kind.data === 'diet') && ROLE_RANK[a.user.role] < ROLE_RANK.admin) throw forbidden();
   const clientId = z.string().uuid().safeParse(form.get('clientId'));
   const file = await fileFromForm(form);
   const { row } = await storeImage(c, a.user, file, kind.data, clientId.success ? clientId.data : null);

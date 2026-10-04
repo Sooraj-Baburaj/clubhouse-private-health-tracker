@@ -37,7 +37,7 @@ function PhotoMealRow({ log, pending, onEdit, onOpen }: { log: FoodLogDto; pendi
   return (
     <div className="my-1 flex items-center gap-3 rounded-[24px] bg-surface p-2.5">
       <button type="button" onClick={onOpen} aria-haspopup="dialog" aria-label={`${SLOT_LABEL[log.mealSlot]} photo${pending ? ', waiting to sync' : ''}. Open actions`} className="h-[52px] w-[52px] shrink-0 overflow-hidden rounded-[18px] border-0 p-0" style={thumb ? undefined : STRIPES}>
-        {thumb && <img src={thumb} alt="" className="h-full w-full object-cover" loading="lazy" />}
+        {thumb && <img src={thumb} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />}
       </button>
       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className="flex items-center gap-1.5 text-[14px] font-bold">
@@ -65,7 +65,7 @@ function FoodRow({ log, pending, tz, onOpen, onEdit }: { log: FoodLogDto; pendin
       lead={SLOT_LABEL[log.mealSlot]}
       title={
         <>
-          {thumb && <img src={thumb} alt="" className="h-8 w-8 shrink-0 rounded-full object-cover" loading="lazy" />}
+          {thumb && <img src={thumb} alt="" className="h-8 w-8 shrink-0 rounded-full object-cover" loading="lazy" decoding="async" />}
           <span className="truncate">{names}</span>
           {log.aiGenerated && <AIBadge className="shrink-0" />}
         </>

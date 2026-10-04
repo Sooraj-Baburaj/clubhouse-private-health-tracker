@@ -16,9 +16,10 @@ import { getTeam } from './team';
 type UserRow = typeof s.users.$inferSelect;
 type ProfileRow = typeof s.profiles.$inferSelect;
 
-export function personRef(u: UserRow, avatars: Map<string, ImageUrls>): PersonRef {
+/** `full` for profile-size avatars (≥ 56 px); list rows get the 160 px thumbnail. */
+export function personRef(u: UserRow, avatars: Map<string, ImageUrls>, size: 'thumb' | 'full' = 'thumb'): PersonRef {
   const img = pick(avatars, u.avatarImageId);
-  return { id: u.id, name: u.displayName, initials: initials(u.displayName), avatarUrl: img.thumbUrl ?? img.url };
+  return { id: u.id, name: u.displayName, initials: initials(u.displayName), avatarUrl: size === 'full' ? img.url : (img.thumbUrl ?? img.url) };
 }
 
 interface MemberDayFacts {
@@ -131,7 +132,7 @@ export async function memberDay(c: Container, user: AuthUser, memberId: string, 
     full = { foodLogs: logs.foodLogs, activityLogs: logs.activityLogs };
   }
   return {
-    person: personRef(u, avatars),
+    person: personRef(u, avatars, 'full'),
     date,
     summary: {
       eaten: Math.round(f.agg?.eaten.kcal ?? 0),

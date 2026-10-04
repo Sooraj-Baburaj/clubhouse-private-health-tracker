@@ -8,7 +8,7 @@ import { fmtBytes, fmtDateTime, fmtInt, fmtRelative } from '@/lib/format';
 import { Button, ChipInput, Field, KeyValues, Modal, PersonCell, Segmented, Textarea, ToggleRow } from '@/ui';
 import { issuesAt, MemeImage, TONE_LABELS, type Issue } from './shared';
 
-const MAX_BYTES = 1024 * 1024;
+const MAX_BYTES = 2 * 1024 * 1024;
 const ACCEPT = 'image/png,image/jpeg,image/webp,image/gif';
 const TONE_OPTIONS = MEME_TONES.map((t) => ({ value: t, label: TONE_LABELS[t] }));
 
@@ -62,7 +62,7 @@ export function UploadMemeModal({ open, onClose, tagSuggestions }: { open: boole
       return;
     }
     if (f.size > MAX_BYTES) {
-      setFileError(`That file is ${fmtBytes(f.size)}. Keep memes under 1 MB.`);
+      setFileError(`That file is ${fmtBytes(f.size)}. Keep memes under 2 MB.`);
       return;
     }
     setFileError(null);
@@ -109,7 +109,7 @@ export function UploadMemeModal({ open, onClose, tagSuggestions }: { open: boole
             <label htmlFor={inputId} className="text-[13px] font-semibold">
               Image <span className="text-accent">*</span>
             </label>
-            <span className="text-[12px] leading-snug text-muted">{file ? `${file.name} · ${fmtBytes(file.size)}` : 'PNG, JPG, WebP or GIF up to 1 MB. Drop it here or choose a file.'}</span>
+            <span className="text-[12px] leading-snug text-muted">{file ? `${file.name} · ${fmtBytes(file.size)}` : 'PNG, JPG, WebP or GIF up to 2 MB. Drop it here or choose a file.'}</span>
             <input ref={fileRef} id={inputId} type="file" accept={ACCEPT} className="sr-only" onChange={(e) => pick(e.target.files?.[0])} />
             <Button variant="outline" size="sm" icon={<ImagePlus className="h-3.5 w-3.5" />} onClick={() => fileRef.current?.click()} className="self-start">
               {file ? 'Choose another' : 'Choose image'}

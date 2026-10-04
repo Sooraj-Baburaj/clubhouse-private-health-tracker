@@ -19,15 +19,17 @@ export async function imageUrlMap(c: Container, ids: (string | null | undefined)
   const out = new Map<string, ImageUrls>();
   if (!unique.length) return out;
   const rows = await c.db.select().from(s.images).where(inArray(s.images.id, unique));
-  for (const r of rows) {
-    if (r.purgedAt) {
-      out.set(r.id, { url: null, thumbUrl: null, expired: true, width: null, height: null });
-      continue;
-    }
-    const url = await c.storage.signedUrl(r.storageKey, 86400);
-    const thumbUrl = r.thumbKey ? await c.storage.signedUrl(r.thumbKey, 86400) : url;
-    out.set(r.id, { url, thumbUrl, expired: false, width: r.width, height: r.height });
-  }
+  // Signing is independent per object, so a chat page or leaderboard signs all of its images concurrently.
+  await Promise.all(
+    rows.map(async (r) => {
+      if (r.purgedAt) {
+        out.set(r.id, { url: null, thumbUrl: null, expired: true, width: null, height: null });
+        return;
+      }
+      const [url, thumbUrl] = await Promise.all([c.storage.signedUrl(r.storageKey, 86400), r.thumbKey ? c.storage.signedUrl(r.thumbKey, 86400) : null]);
+      out.set(r.id, { url, thumbUrl: thumbUrl ?? url, expired: false, width: r.width, height: r.height });
+    }),
+  );
   return out;
 }
 

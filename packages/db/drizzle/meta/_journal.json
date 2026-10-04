@@ -50,6 +50,13 @@
       "when": 1791109580902,
       "tag": "0006_board_and_meals",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1791121014609,
+      "tag": "0007_keep_diet_option_images",
+      "breakpoints": true
     }
   ]
 }

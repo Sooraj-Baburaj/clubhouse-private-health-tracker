@@ -92,7 +92,7 @@ export function MemberDayFull({ d }: { d: MemberDayResponse }) {
               key={f.id}
               title={
                 <span className="flex items-center gap-2">
-                  {f.thumbUrl && !f.imageExpired ? <img src={f.thumbUrl} alt="" className="h-9 w-9 rounded-[12px] object-cover" /> : <Utensils aria-hidden className="h-4 w-4 text-neutral-600" strokeWidth={2.75} />}
+                  {f.thumbUrl && !f.imageExpired ? <img src={f.thumbUrl} alt="" loading="lazy" decoding="async" className="h-9 w-9 rounded-[12px] object-cover" /> : <Utensils aria-hidden className="h-4 w-4 text-neutral-600" strokeWidth={2.75} />}
                   <span className="min-w-0 truncate">{SLOT_LABEL[f.mealSlot]}</span>
                 </span>
               }

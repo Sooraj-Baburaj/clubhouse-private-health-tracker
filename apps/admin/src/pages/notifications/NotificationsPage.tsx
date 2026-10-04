@@ -296,7 +296,7 @@ function TypeRow({
             value={value.time}
             disabled={off}
             onChange={(e) => onChange({ time: e.target.value })}
-            className="h-9 w-[112px] font-mono text-[13px]"
+            className="!h-9 !w-[120px] font-mono !text-[13px]"
           />
         )}
         <DayPicker

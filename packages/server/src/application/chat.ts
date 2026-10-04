@@ -158,7 +158,8 @@ export async function renderMessages(c: Container, viewer: AuthUser, rows: Messa
       replyTo: reply ? { id: reply.id, authorName: reply.userId ? (replyAuthor?.displayName ?? 'Member') : 'Clubhouse', body: reply.deletedAt ? '' : reply.body.slice(0, 140), removed: !!reply.deletedAt } : null,
       mentions: r.mentions,
       reactions: [...grouped.entries()].map(([emoji, g]) => ({ emoji, ...g })),
-      memeReactions: ((r.meta.memeReactions as { memeId: string }[] | undefined) ?? []).map((m) => ({ memeId: m.memeId, url: (() => { const mm = memes.find((x) => x.id === m.memeId); return mm ? pick(images, mm.imageId).url : null; })() })),
+      // Reactions render at 30 px: the 256 px still is a few KB where the full meme can be 150 KB of animation.
+      memeReactions: ((r.meta.memeReactions as { memeId: string }[] | undefined) ?? []).map((m) => ({ memeId: m.memeId, url: (() => { const mm = memes.find((x) => x.id === m.memeId); if (!mm) return null; const im = pick(images, mm.imageId); return im.thumbUrl ?? im.url; })() })),
       pinned: r.pinned,
       aiGenerated: r.aiGenerated,
       test: r.test,

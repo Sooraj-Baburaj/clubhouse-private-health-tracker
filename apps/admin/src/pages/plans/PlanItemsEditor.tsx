@@ -248,10 +248,10 @@ export function PlanItemsEditor({
                 </Select>
               </Field>
               <Field as="div" label="How often" error={err('perWeek')} required>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <NumberInput
                     aria-label={`Times per ${it.cadence}`}
-                    className="w-[76px] shrink-0"
+                    className="!w-[68px] shrink-0"
                     min={1}
                     max={it.cadence === 'week' ? 14 : 31}
                     step={1}
@@ -265,8 +265,8 @@ export function PlanItemsEditor({
                     value={it.cadence}
                     onChange={(cadence) => update(it.key, { cadence })}
                     options={[
-                      { value: 'week', label: 'per week' },
-                      { value: 'month', label: 'per month' },
+                      { value: 'week', label: '/ week' },
+                      { value: 'month', label: '/ month' },
                     ]}
                   />
                 </div>

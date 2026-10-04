@@ -1,4 +1,5 @@
 /** Ports: the application layer depends on these interfaces; infrastructure provides the implementations. */
+import type { ImageKind } from './media';
 
 export interface StoredObject {
   key: string;
@@ -66,6 +67,6 @@ export interface ProcessedImage {
 }
 
 export interface ImageProcessor {
-  process(input: Buffer, kind: 'food' | 'activity' | 'chat' | 'meme' | 'avatar' | 'logo'): Promise<ProcessedImage>;
+  process(input: Buffer, kind: ImageKind): Promise<ProcessedImage>;
   downscaleForAi(input: Buffer, maxEdge: number): Promise<{ data: Buffer; mediaType: 'image/webp' | 'image/jpeg' | 'image/png' }>;
 }

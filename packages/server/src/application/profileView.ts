@@ -44,7 +44,7 @@ export async function memberProfile(c: Container, viewer: AuthUser, memberId: st
   ]);
 
   return {
-    person: personRef(u, avatars),
+    person: personRef(u, avatars, 'full'),
     isMe,
     joinedOn: localDateOf(u.onboardedAt ?? u.createdAt, tz),
     onVacation,

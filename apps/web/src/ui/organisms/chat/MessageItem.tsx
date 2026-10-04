@@ -152,7 +152,7 @@ function Reactions({ m, onToggle, onShow }: { m: ChatMessageDto; onToggle: Messa
           <ReactionPill key={r.emoji} r={r} onToggle={() => onToggle(m, r.emoji, !r.mine)} onShow={() => onShow(m, r.emoji)} />
         ))}
       </AnimatePresence>
-      {m.memeReactions.map((mr, i) => (mr.url ? <img key={i} src={mr.url} alt="Meme reaction" draggable={false} className="pointer-events-none h-[30px] w-[30px] select-none rounded-full object-cover" /> : null))}
+      {m.memeReactions.map((mr, i) => (mr.url ? <img key={i} src={mr.url} alt="Meme reaction" draggable={false} loading="lazy" decoding="async" className="pointer-events-none h-[30px] w-[30px] select-none rounded-full object-cover" /> : null))}
     </div>
   );
 }

@@ -152,7 +152,8 @@ export async function planDto(c: Container, p: PlanRow): Promise<AdminDietPlan> 
         items: o.items.map((i) => ({ foodId: i.foodId, name: i.name, grams: i.grams, servings: i.servings, servingLabel: i.servingLabel, nutrition: i.nutrition, aiEstimate: !!i.aiEstimate })),
         nutrition: o.nutrition,
         prepNote: o.prepNote,
-        imageUrl: pick(images, o.imageId).url,
+        // The builder shows option photos at 44–84 px, so the thumbnail is plenty.
+        imageUrl: pick(images, o.imageId).thumbUrl,
         sortOrder: o.sortOrder,
         aiEstimateItems: o.aiEstimateItems,
         favourites: stats.fav.get(o.id) ?? 0,
@@ -337,6 +338,7 @@ export async function addOption(c: Container, a: Actor, planId: string, input: z
   const items = await buildItems(c, input.items);
   const [{ n } = { n: 0 }] = await c.db.select({ n: sql<number>`count(*)::int` }).from(s.dietMealOptions).where(and(eq(s.dietMealOptions.planId, p.id), eq(s.dietMealOptions.mealSlot, input.mealSlot)));
   if (n >= 8) throw unprocessable('A slot can have at most 8 options.', 'too_many_options');
+  await keepOptionImage(c, a.user.teamId, input.imageId);
   const [row] = await c.db
     .insert(s.dietMealOptions)
     .values({ planId: p.id, mealSlot: input.mealSlot, dayType: input.dayType, name: input.name, items, nutrition: sum(items.map((i) => i.nutrition)), prepNote: input.prepNote ?? null, imageId: input.imageId ?? null, sortOrder: input.sortOrder ?? n, aiEstimateItems: items.filter((i) => i.aiEstimate).length })
@@ -344,6 +346,12 @@ export async function addOption(c: Container, a: Actor, planId: string, input: z
   await c.db.update(s.dietPlans).set({ updatedAt: c.clock.now() }).where(eq(s.dietPlans.id, p.id));
   await logAudit(c, a, { action: 'diet.option_add', targetType: 'diet_option', targetId: row!.id, memberId: p.userId, after: { planId: p.id, slot: input.mealSlot, name: input.name, kcal: row!.nutrition.kcal } });
   return getPlan(c, a, planId);
+}
+
+/** Option photos stay for as long as a plan uses them; only member photos expire (SYS-MEDIA-06). */
+async function keepOptionImage(c: Container, teamId: string, imageId: string | null | undefined) {
+  if (!imageId) return;
+  await c.db.update(s.images).set({ kind: 'diet', expiresAt: null }).where(and(eq(s.images.id, imageId), eq(s.images.teamId, teamId), isNull(s.images.purgedAt)));
 }
 
 async function teamOption(c: Container, planId: string, optionId: string) {
@@ -357,6 +365,7 @@ export async function updateOption(c: Container, a: Actor, planId: string, optio
   editable(p);
   const o = await teamOption(c, p.id, optionId);
   const items = await buildItems(c, input.items);
+  await keepOptionImage(c, a.user.teamId, input.imageId);
   await c.db
     .update(s.dietMealOptions)
     .set({ mealSlot: input.mealSlot, dayType: input.dayType, name: input.name, items, nutrition: sum(items.map((i) => i.nutrition)), prepNote: input.prepNote ?? null, imageId: input.imageId !== undefined ? input.imageId : o.imageId, sortOrder: input.sortOrder ?? o.sortOrder, aiEstimateItems: items.filter((i) => i.aiEstimate).length })

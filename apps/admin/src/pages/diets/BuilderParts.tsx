@@ -187,7 +187,7 @@ function OptionCard({
       <div className="flex min-w-0 items-start gap-2.5">
         <span className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-[10px] bg-hairline">
           {o.imageUrl ? (
-            <img src={o.imageUrl} alt="" loading="lazy" className="h-full w-full object-cover" />
+            <img src={o.imageUrl} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
           ) : (
             <Utensils aria-hidden className="h-4 w-4 text-muted" />
           )}

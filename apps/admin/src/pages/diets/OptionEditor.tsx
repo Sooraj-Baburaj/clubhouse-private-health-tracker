@@ -24,7 +24,7 @@ import {
   useDeleteOption,
   useFoodSearch,
   useSaveOption,
-  useUploadFoodImage,
+  useUploadDietImage,
 } from '@/features/diets';
 import { cn } from '@/lib/cn';
 import { fmtInt, fmtNum, fmtPct, plural } from '@/lib/format';
@@ -253,7 +253,7 @@ function EditorBody({
   const labels = useSlotLabels();
   const thresholds = useThresholds();
   const save = useSaveOption(plan.id);
-  const upload = useUploadFoodImage();
+  const upload = useUploadDietImage();
 
   const [name, setName] = useState(option?.name ?? '');
   const [slot, setSlot] = useState<MealSlot>(initialSlot);

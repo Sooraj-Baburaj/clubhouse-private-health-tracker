@@ -87,7 +87,7 @@ export function AttachSheet({ open, onClose }: { open: boolean; onClose: () => v
                 className="flex min-h-14 items-center gap-3 border-0 bg-transparent px-4 py-2 text-left disabled:opacity-60"
               >
                 <span className={cn('grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full', l.kind === 'food' ? 'bg-accent-200 text-accent-800' : 'bg-accent-2-200 text-accent-2-800')}>
-                  {l.kind === 'food' ? l.f.thumbUrl ? <img src={l.f.thumbUrl} alt="" className="h-full w-full object-cover" /> : <Utensils aria-hidden className="h-4 w-4" strokeWidth={2.75} /> : <ActivityIcon icon={l.a.icon} className="h-4 w-4" />}
+                  {l.kind === 'food' ? l.f.thumbUrl ? <img src={l.f.thumbUrl} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" /> : <Utensils aria-hidden className="h-4 w-4" strokeWidth={2.75} /> : <ActivityIcon icon={l.a.icon} className="h-4 w-4" />}
                 </span>
                 <span className="flex min-w-0 flex-1 flex-col">
                   <span className="truncate text-[14px] font-bold">{label}</span>
@@ -125,7 +125,7 @@ export function AttachSheet({ open, onClose }: { open: boolean; onClose: () => v
                 className="flex flex-col overflow-hidden rounded-[18px] border-0 bg-surface p-0 text-left"
                 aria-label={`Meme: ${m.caption}`}
               >
-                {m.thumbUrl ?? m.url ? <img src={m.thumbUrl ?? m.url ?? ''} alt="" loading="lazy" className="aspect-square w-full object-cover" /> : <span className="aspect-square w-full bg-neutral-200" />}
+                {m.thumbUrl ?? m.url ? <img src={m.thumbUrl ?? m.url ?? ''} alt="" loading="lazy" decoding="async" className="aspect-square w-full object-cover" /> : <span className="aspect-square w-full bg-neutral-200" />}
                 <span className="truncate px-2 py-1 text-[11px] font-bold">{m.caption}</span>
               </motion.button>
             ))}

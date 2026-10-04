@@ -26,10 +26,38 @@ registerRoute(
   new NetworkFirst({ cacheName: 'api-reads', networkTimeoutSeconds: 4, plugins: [new ExpirationPlugin({ maxEntries: 200, maxAgeSeconds: 7 * 24 * 3600 })] }),
 );
 
-// Photos and memes: presigned URLs are day-stable, so cache them.
+// Photos and memes. Storage keys are unique per upload, so an object never changes; only its signature does (it is
+// re-signed every UTC day). Keying the cache on the URL without the signature keeps one entry per object across
+// days, so yesterday's photos still paint instantly and offline. Revalidation (rather than cache-first) stays because
+// cross-origin images are opaque: a bad response can't be detected, so it must be able to heal on the next view.
+const SIGNATURE_PARAMS = /^(x-amz-|exp$|sig$)/i;
+const unsigned = (u: URL) => {
+  const out = new URL(u.href);
+  for (const k of [...out.searchParams.keys()]) if (SIGNATURE_PARAMS.test(k)) out.searchParams.delete(k);
+  return out.href;
+};
+/** Never store the response to an already-expired signed URL (stale data rendered offline): it's an opaque 403. */
+const signatureExpired = (u: URL) => {
+  const exp = u.searchParams.get('exp');
+  if (exp) return Number(exp) * 1000 < Date.now();
+  const date = u.searchParams.get('X-Amz-Date');
+  const ttl = Number(u.searchParams.get('X-Amz-Expires'));
+  if (!date || !ttl) return false;
+  const signedAt = Date.parse(date.replace(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z$/, '$1-$2-$3T$4:$5:$6Z'));
+  return Number.isFinite(signedAt) && signedAt + ttl * 1000 < Date.now();
+};
 registerRoute(
   ({ request, url }) => request.destination === 'image' && !url.pathname.startsWith('/icons/'),
-  new StaleWhileRevalidate({ cacheName: 'images', plugins: [new ExpirationPlugin({ maxEntries: 250, maxAgeSeconds: 30 * 24 * 3600 })] }),
+  new StaleWhileRevalidate({
+    cacheName: 'images',
+    plugins: [
+      { cacheKeyWillBeUsed: async ({ request }) => unsigned(new URL(request.url)) },
+      // Replaces Workbox's default guard for this strategy, so it keeps that rule too: only 200s and opaque responses.
+      { cacheWillUpdate: async ({ request, response }) => ((response.status === 200 || response.status === 0) && !signatureExpired(new URL(request.url)) ? response : null) },
+      // Opaque responses are padded heavily against the origin's quota in Chrome, so drop the cache rather than fail.
+      new ExpirationPlugin({ maxEntries: 250, maxAgeSeconds: 30 * 24 * 3600, purgeOnQuotaError: true }),
+    ],
+  }),
 );
 registerRoute(({ request }) => request.destination === 'font', new CacheFirst({ cacheName: 'fonts', plugins: [new ExpirationPlugin({ maxEntries: 30, maxAgeSeconds: 365 * 24 * 3600 })] }));
 

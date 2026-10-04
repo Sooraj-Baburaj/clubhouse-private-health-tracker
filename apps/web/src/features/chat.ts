@@ -242,7 +242,8 @@ export async function uploadChatPhoto(file: File): Promise<DraftAttachment> {
   form.append('file', c.blob, c.blob.type === 'image/webp' ? 'photo.webp' : 'photo.jpg');
   form.append('kind', 'chat');
   const up = await api.media.upload(form);
-  return { key: `image:${up.id}`, input: { type: 'image', imageId: up.id }, label: 'Photo', thumbUrl: up.thumbUrl ?? c.previewUrl };
+  // The composer chip is 24 px: the local preview is already in memory, no need to fetch the 400 px tile thumbnail.
+  return { key: `image:${up.id}`, input: { type: 'image', imageId: up.id }, label: 'Photo', thumbUrl: c.previewUrl };
 }
 
 /** Presence heartbeat while Chat is open and visible (suppresses mention pushes). */

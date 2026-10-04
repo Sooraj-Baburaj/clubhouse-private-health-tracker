@@ -198,9 +198,9 @@ export function ConditionEditor({ condition: c, onChange, index, issues, event }
         <div className="flex flex-col gap-1.5">
           <Sentence>
             <Word>Logged between</Word>
-            <Input type="time" aria-label={lbl('from')} value={c.from} onChange={(e) => onChange({ ...c, from: e.target.value })} invalid={bad('from')} className="w-[120px] font-mono text-[13px]" />
+            <Input type="time" aria-label={lbl('from')} value={c.from} onChange={(e) => onChange({ ...c, from: e.target.value })} invalid={bad('from')} className="!w-[120px] font-mono !text-[13px]" />
             <Word>and</Word>
-            <Input type="time" aria-label={lbl('to')} value={c.to} onChange={(e) => onChange({ ...c, to: e.target.value })} invalid={bad('to')} className="w-[120px] font-mono text-[13px]" />
+            <Input type="time" aria-label={lbl('to')} value={c.to} onChange={(e) => onChange({ ...c, to: e.target.value })} invalid={bad('to')} className="!w-[120px] font-mono !text-[13px]" />
             <Word>member-local time</Word>
           </Sentence>
           {c.from > c.to && !all.length && <span className="text-[12px] text-muted">Wraps past midnight ({c.from} to {c.to} next day).</span>}

@@ -2,6 +2,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import { adminApi, api } from '@clubhouse/client';
 import type { AdminDietPlan, MealSlot } from '@clubhouse/contracts';
 import { toast } from '@clubhouse/ui';
+import { compressImage } from '@/lib/compressImage';
 import { errorMessage } from '@/lib/errors';
 import { qk } from './keys';
 import { useAction } from './mutations';
@@ -187,13 +188,14 @@ export function useDeletePlan() {
   });
 }
 
-/** Photo for an option (kind "food"). */
-export function useUploadFoodImage() {
+/** Photo for an option (kind "diet": kept for as long as the plan uses it, unlike member photos). */
+export function useUploadDietImage() {
   return useAction(
-    (file: File) => {
+    async (file: File) => {
+      const blob = await compressImage(file);
       const form = new FormData();
-      form.append('file', file);
-      form.append('kind', 'food');
+      form.append('file', blob, blob === file ? file.name : blob.type === 'image/webp' ? 'option.webp' : 'option.jpg');
+      form.append('kind', 'diet');
       return api.media.upload(form);
     },
     { success: false },

@@ -134,7 +134,7 @@ export function OptionDetails({ o, aiOn }: { o: DietOptionDto; aiOn: boolean }) 
   const n = o.nutrition;
   return (
     <div className="flex flex-col gap-2 rounded-[22px] bg-bg p-3.5">
-      {o.imageUrl && <img src={o.imageUrl} alt={o.name} loading="lazy" className="aspect-[16/9] w-full rounded-[18px] object-cover saturate-[0.85]" />}
+      {o.imageUrl && <img src={o.imageUrl} alt={o.name} loading="lazy" decoding="async" className="aspect-[16/9] w-full rounded-[18px] object-cover saturate-[0.85]" />}
       <ul className="m-0 flex list-none flex-col gap-1.5 p-0">
         {o.items.map((it, i) => (
           <li key={i} className="flex items-baseline gap-2 text-[13px]">

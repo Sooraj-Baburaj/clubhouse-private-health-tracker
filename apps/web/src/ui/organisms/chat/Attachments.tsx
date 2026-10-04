@@ -7,6 +7,11 @@ import { dateLabel, fmt, SLOT_LABEL } from '@/features/format';
 import { ActivityIcon } from '@/ui/molecules/ActivityIcon';
 import { cn } from '@/lib/cn';
 
+/** Warm the browser cache for an image the member is about to open. */
+const preload = (url: string | null) => {
+  if (url) new Image().src = url;
+};
+
 const slotName = (s: string | null) => (s && s in SLOT_LABEL ? SLOT_LABEL[s as MealSlot] : 'Meal');
 
 /** Renders one chat attachment. `own` = inside the member's own (accent) bubble. */
@@ -81,8 +86,10 @@ export function AttachmentView({ a, own, authorId }: { a: AttachmentDto; own: bo
         );
       return (
         <>
-          <button type="button" onClick={() => setZoom(true)} className="block overflow-hidden rounded-[18px] border-0 bg-transparent p-0" aria-label="Open photo">
-            {/* Chat thumbnails are square crops; a fixed box keeps the list from jumping as photos load. */}
+          {/* Most chat photos are scrolled past, so the tile shows the 400 px thumbnail and the full image only loads on
+              open. Touching the tile starts that download, a head start of the tap's duration. */}
+          <button type="button" onPointerDown={() => preload(a.url)} onClick={() => setZoom(true)} className="block overflow-hidden rounded-[18px] border-0 bg-transparent p-0" aria-label="Open photo">
+            {/* A fixed square box keeps the list from jumping as photos load. */}
             <img src={a.thumbUrl ?? a.url ?? ''} alt="Shared photo" draggable={false} loading="lazy" decoding="async" className="aspect-square w-[220px] max-w-full object-cover" />
           </button>
           <Dialog open={zoom} onClose={() => setZoom(false)} label="Photo" className="max-w-[min(520px,calc(100vw-24px))] overflow-hidden rounded-[28px] bg-surface" backdropClassName="bg-[rgba(10,8,6,0.8)]">

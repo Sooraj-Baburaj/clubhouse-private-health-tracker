@@ -64,7 +64,7 @@ export function RingAvatar({ person, size, ring = 'transparent', gap = 'var(--co
       className={cn('relative grid shrink-0 place-items-center overflow-hidden rounded-full font-extrabold', fill, className)}
       style={{ width: size, height: size, fontSize: Math.round(size * 0.36), boxShadow: `0 0 0 2px ${gap}, 0 0 0 4px ${ring}` }}
     >
-      {person.avatarUrl ? <img src={person.avatarUrl} alt="" className="h-full w-full object-cover" loading="lazy" /> : <span aria-hidden>{person.initials}</span>}
+      {person.avatarUrl ? <img src={person.avatarUrl} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" /> : <span aria-hidden>{person.initials}</span>}
     </span>
   );
 }

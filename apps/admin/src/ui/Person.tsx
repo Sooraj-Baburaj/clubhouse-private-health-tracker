@@ -7,7 +7,7 @@ export function Avatar({ person, size = 32, className }: { person: Pick<PersonRe
   const initials = person?.initials || initialsOf(person?.name ?? '?');
   return (
     <span aria-hidden className={cn('grid shrink-0 place-items-center overflow-hidden rounded-full bg-hairline font-semibold text-ink', className)} style={{ width: size, height: size, fontSize: Math.max(10, Math.round(size * 0.38)) }}>
-      {person?.avatarUrl ? <img src={person.avatarUrl} alt="" className="h-full w-full object-cover" loading="lazy" /> : initials}
+      {person?.avatarUrl ? <img src={person.avatarUrl} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" /> : initials}
     </span>
   );
 }

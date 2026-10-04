@@ -22,7 +22,9 @@ async function onMainThread(file: Blob): Promise<Compressed> {
     const canvas = document.createElement('canvas');
     canvas.width = w;
     canvas.height = h;
-    canvas.getContext('2d')!.drawImage(img, 0, 0, w, h);
+    const ctx = canvas.getContext('2d')!;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(img, 0, 0, w, h);
     let q = OPTS.quality;
     const encode = (type: string) => new Promise<Blob>((res) => canvas.toBlob((b) => res(b!), type, q));
     let blob = await encode('image/webp');

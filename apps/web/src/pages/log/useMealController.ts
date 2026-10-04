@@ -44,14 +44,15 @@ const baseOf = (s: Search): Search => ({ ...(s.slot ? { slot: s.slot } : {}), ..
 const store = () => useMealDraft.getState();
 
 function draftFromLog(log: FoodLogDto): Pick<MealDraft, 'key' | 'date' | 'slot'> & Partial<MealDraft> {
-  const thumb = !log.imageExpired ? (log.thumbUrl ?? log.imageUrl) : null;
+  // The meal screen shows the photo full width and full screen, so the main image, not the list thumbnail.
+  const photo = !log.imageExpired ? (log.imageUrl ?? log.thumbUrl) : null;
   const aiCount = log.items.filter((i) => i.source === 'ai').length;
   return {
     key: log.id,
     date: log.date,
     slot: log.mealSlot,
     plate: cartFromLog(log),
-    photo: thumb ? { clientId: uuid(), previewUrl: thumb, imageId: log.imageId, status: 'ready', ai: aiCount > 0, aiCount } : null,
+    photo: photo ? { clientId: uuid(), previewUrl: photo, imageId: log.imageId, status: 'ready', ai: aiCount > 0, aiCount } : null,
     aiCallId: log.aiCallId,
     loaded: true,
   };

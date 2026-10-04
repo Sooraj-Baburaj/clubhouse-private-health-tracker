@@ -53,7 +53,7 @@ export const GYM_FOCUSES = ['strength', 'cardio', 'mixed'] as const;
 export const GymFocus = z.enum(GYM_FOCUSES);
 export type GymFocus = z.infer<typeof GymFocus>;
 
-export const IMAGE_KINDS = ['food', 'activity', 'chat', 'meme', 'avatar', 'logo', 'export'] as const;
+export const IMAGE_KINDS = ['food', 'activity', 'chat', 'meme', 'avatar', 'logo', 'diet', 'export'] as const;
 export const ImageKind = z.enum(IMAGE_KINDS);
 export type ImageKind = z.infer<typeof ImageKind>;
 export const RETAINED_IMAGE_KINDS: ImageKind[] = ['food', 'activity', 'chat'];
