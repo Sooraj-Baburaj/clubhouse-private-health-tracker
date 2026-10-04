@@ -4,6 +4,7 @@ import { addDays, weekdayOf, weekStartOf } from '@clubhouse/domain';
 import { schema as s } from '@clubhouse/db';
 import type { z } from 'zod';
 import type { Container } from '../../container';
+import { refreshCurrentWeek } from '../board';
 import { badRequest, notFound } from '../../lib/errors';
 import { recomputeMemberStreaks } from '../momentum';
 import { notifyUser } from '../notify';
@@ -130,6 +131,8 @@ async function writePlan(c: Container, a: Actor, userId: string, input: PlanInpu
     if (archive.length) await tx.update(s.activityPlanItems).set({ archivedAt: now }).where(inArray(s.activityPlanItems.id, archive));
   });
   await rescheduleUser(c, userId, 'activity_reminder');
+  // The weekly plan bonus on the leaderboard follows the new plan.
+  await refreshCurrentWeek(c, userId);
   return { before, after: { note: input.note ?? before?.note ?? null, items: input.items } };
 }
 
@@ -138,7 +141,7 @@ export async function upsertPlan(c: Container, a: Actor, userId: string, input: 
   await validateTypes(c, a.user.teamId, input.items.map((i) => i.typeId));
   const { before, after } = await writePlan(c, a, userId, input);
   await logAudit(c, a, { action: 'plan.update', targetType: 'activity_plan', targetId: userId, memberId: u.id, before, after });
-  await notifyUser(c, userId, { type: 'plan_updated', title: 'Your activity plan was updated', body: `${a.user.displayName} updated your weekly activity plan.`, url: '/plan', tag: 'plan_updated' });
+  await notifyUser(c, userId, { type: 'plan_updated', title: 'Your activity plan was updated', body: `${a.user.displayName} updated your weekly activity plan.`, url: '/settings/activity-plan', tag: 'plan_updated' });
 }
 
 export async function assignPlan(c: Container, a: Actor, input: z.infer<typeof AssignPlanTemplateRequest>) {
@@ -183,7 +186,7 @@ export async function replyProposal(c: Container, a: Actor, id: string, input: z
   await c.db.update(s.activityPlanProposals).set({ status: input.status, adminReply: input.reply ?? null, handledBy: a.user.id, handledAt: c.clock.now() }).where(eq(s.activityPlanProposals.id, id));
   await logAudit(c, a, { action: 'plan.proposal_reply', targetType: 'plan_proposal', targetId: id, memberId: p.userId, before: { status: p.status }, after: { status: input.status, reply: input.reply ?? null } });
   const word = input.status === 'accepted' ? 'accepted' : input.status === 'declined' ? 'declined' : 'replied to';
-  await notifyUser(c, p.userId, { type: 'plan_updated', title: `Your plan request was ${word}`, body: input.reply || `${a.user.displayName} ${word} your activity plan request.`, url: '/plan', tag: 'plan_proposal' });
+  await notifyUser(c, p.userId, { type: 'plan_updated', title: `Your plan request was ${word}`, body: input.reply || `${a.user.displayName} ${word} your activity plan request.`, url: '/settings/activity-plan', tag: 'plan_proposal' });
 }
 
 export async function restWeeks(c: Container, a: Actor) {
@@ -201,6 +204,8 @@ async function recomputeFor(c: Container, userId: string) {
   if (!u) return;
   const team = await getTeam(c, u.teamId);
   await recomputeMemberStreaks(c, userId, memberToday(c, u.timezone || team.timezone));
+  // A rest week keeps the leaderboard's weekly plan bonus.
+  await refreshCurrentWeek(c, userId);
 }
 
 export async function decideRestWeek(c: Container, a: Actor, id: string, status: 'approved' | 'declined') {
@@ -210,7 +215,7 @@ export async function decideRestWeek(c: Container, a: Actor, id: string, status:
   await c.db.update(s.restWeeks).set({ status, decidedBy: a.user.id }).where(eq(s.restWeeks.id, id));
   await logAudit(c, a, { action: 'plan.rest_week_decide', targetType: 'rest_week', targetId: id, memberId: r.userId, before: { status: r.status }, after: { status } });
   await recomputeFor(c, r.userId);
-  await notifyUser(c, r.userId, { type: 'plan_updated', title: status === 'approved' ? 'Rest week approved' : 'Rest week not approved', body: status === 'approved' ? `Enjoy the break — the week of ${r.weekStart} won’t count against your activity streak.` : `${a.user.displayName} didn’t approve the rest week of ${r.weekStart}.`, url: '/plan', tag: 'rest_week' });
+  await notifyUser(c, r.userId, { type: 'plan_updated', title: status === 'approved' ? 'Rest week approved' : 'Rest week not approved', body: status === 'approved' ? `Enjoy the break — the week of ${r.weekStart} won’t count against your activity streak.` : `${a.user.displayName} didn’t approve the rest week of ${r.weekStart}.`, url: '/settings/activity-plan', tag: 'rest_week' });
 }
 
 export async function setRestWeek(c: Container, a: Actor, input: z.infer<typeof AdminRestWeekRequest>) {

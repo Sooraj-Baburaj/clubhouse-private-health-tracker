@@ -3,32 +3,62 @@ import { GymFocus, Intensity, MealSlot } from '../enums';
 import { IsoDateTime, LocalDateStr, Nutrients } from './common';
 import { HabitCheckinUpsert } from './habits';
 
-export const FoodLogItemInput = z.object({
+const ITEM_SOURCES = ['search', 'ai', 'recipe', 'manual', 'diet', 'quick_add'] as const;
+
+/** One ingredient of a dish: a food and its portion in the whole batch, or a quick-add with its own nutrition. */
+export const FoodLogComponentInput = z.object({
   foodId: z.string().uuid().nullable(),
   name: z.string().trim().min(1).max(120),
   grams: z.number().min(0).max(5000),
   servings: z.number().min(0).max(100),
   servingLabel: z.string().max(40).nullable().optional(),
-  /** Required for quick-add and AI-estimate items; ignored (recomputed) when foodId is set. */
+  /** Required when foodId is null; ignored (recomputed) when it is set. */
   nutrition: Nutrients.nullable().optional(),
-  source: z.enum(['search', 'ai', 'recipe', 'manual', 'diet', 'quick_add']),
+  source: z.enum(ITEM_SOURCES).optional(),
+  aiEstimate: z.boolean().optional(),
+});
+export type FoodLogComponentInput = z.infer<typeof FoodLogComponentInput>;
+
+export const FoodLogItemInput = z.object({
+  foodId: z.string().uuid().nullable(),
+  name: z.string().trim().min(1).max(120),
+  grams: z.number().min(0).max(5000),
+  /** For a dish: how many of its `batchServings` servings were eaten. */
+  servings: z.number().min(0).max(100),
+  servingLabel: z.string().max(40).nullable().optional(),
+  /** Required for quick-add and AI-estimate items; ignored (recomputed) when foodId is set or for dishes. */
+  nutrition: Nutrients.nullable().optional(),
+  source: z.enum(ITEM_SOURCES),
   dietOptionId: z.string().uuid().nullable().optional(),
   aiEstimate: z.boolean().optional(),
   confidence: z.number().min(0).max(1).nullable().optional(),
+  /** A dish: its ingredients for the whole batch. The item's nutrition is their total × servings ÷ batchServings. */
+  components: z.array(FoodLogComponentInput).min(1).max(30).optional(),
+  /** Servings the dish batch makes (default 1). */
+  batchServings: z.number().positive().max(50).optional(),
+  /** The saved recipe this dish came from. */
+  recipeId: z.string().uuid().nullable().optional(),
 });
 export type FoodLogItemInput = z.infer<typeof FoodLogItemInput>;
 
-export const FoodLogUpsert = z.object({
-  date: LocalDateStr,
-  mealSlot: MealSlot,
-  loggedAt: IsoDateTime,
-  items: z.array(FoodLogItemInput).max(30),
-  imageId: z.string().uuid().nullable().optional(),
-  aiCallId: z.string().uuid().nullable().optional(),
-  note: z.string().max(280).nullable().optional(),
-  clientUpdatedAt: IsoDateTime,
-  deleted: z.boolean().optional(),
-});
+export const FoodLogUpsert = z
+  .object({
+    date: LocalDateStr,
+    mealSlot: MealSlot,
+    loggedAt: IsoDateTime,
+    items: z.array(FoodLogItemInput).max(30),
+    imageId: z.string().uuid().nullable().optional(),
+    /** A photo still waiting in the outbox: the server finds it by the client id it was uploaded with. */
+    imageClientId: z.string().uuid().nullable().optional(),
+    aiCallId: z.string().uuid().nullable().optional(),
+    note: z.string().max(280).nullable().optional(),
+    /** A snapped meal saved with its photo only ("Finish later"); the foods come later. */
+    pendingDetails: z.boolean().optional(),
+    clientUpdatedAt: IsoDateTime,
+    deleted: z.boolean().optional(),
+  })
+  // A photo-only meal needs its photo; the server checks that (an edit keeps the saved one without resending it).
+  .refine((d) => d.deleted || d.items.length > 0 || d.pendingDetails === true, { message: 'Add at least one food.', path: ['items'] });
 export type FoodLogUpsert = z.infer<typeof FoodLogUpsert>;
 
 export const ActivityLogUpsert = z.object({
@@ -67,6 +97,16 @@ export type SyncOp = z.infer<typeof SyncOp>;
 export const SyncRequest = z.object({ ops: z.array(SyncOp).min(1).max(50) });
 export type SyncRequest = z.infer<typeof SyncRequest>;
 
+export interface FoodLogComponentDto {
+  foodId: string | null;
+  name: string;
+  grams: number;
+  servings: number;
+  servingLabel: string | null;
+  nutrition: Nutrients;
+  aiEstimate: boolean;
+}
+
 export interface FoodLogItemDto {
   foodId: string | null;
   name: string;
@@ -79,6 +119,10 @@ export interface FoodLogItemDto {
   aiEstimate: boolean;
   confidence: number | null;
   tags: string[];
+  /** A dish: its ingredients for the whole batch of `batchServings`. */
+  components: FoodLogComponentDto[] | null;
+  batchServings: number | null;
+  recipeId: string | null;
 }
 
 export interface FoodLogDto {
@@ -88,6 +132,7 @@ export interface FoodLogDto {
   loggedAt: string;
   items: FoodLogItemDto[];
   totals: Nutrients;
+  imageId: string | null;
   imageUrl: string | null;
   thumbUrl: string | null;
   imageExpired: boolean;
@@ -95,6 +140,8 @@ export interface FoodLogDto {
   aiCallId: string | null;
   confidence: number | null;
   note: string | null;
+  /** Saved with its photo only; the foods are still to add. */
+  pendingDetails: boolean;
   addedLate: boolean;
   clientUpdatedAt: string;
   deleted: boolean;
@@ -150,6 +197,8 @@ export interface LogSideEffects {
   streak: { current: number; status: string } | null;
   planProgress: { itemId: string; typeName: string; done: number; target: number } | null;
   personalRecords: string[];
+  /** Crew points this save earned this week (`gained` can be 0 or negative after an edit) and the live rank. */
+  points: { gained: number; total: number; rank: number | null; rankBefore: number | null } | null;
 }
 
 export interface UpsertResult<T> {

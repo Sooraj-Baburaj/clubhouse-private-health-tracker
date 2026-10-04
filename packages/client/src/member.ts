@@ -36,11 +36,17 @@ export const api = {
     usuals: () => get<C.UsualFood[]>('/foods/usuals'),
     catalog: (q: { since?: string; after?: string; limit?: number }, signal?: AbortSignal) => get<C.FoodCatalogPage>('/foods/catalog', q, signal),
     get: (id: string) => get<C.FoodDetail>(`/foods/${id}`),
-    create: (b: C.CreateFoodRequest) => post<C.FoodSearchResult>('/foods', b),
+    create: (b: C.FoodDraft) => post<C.FoodSearchResult>('/foods', b),
+    update: (id: string, b: C.FoodDraft) => put<C.FoodSearchResult>(`/foods/${id}`, b),
     favourite: (id: string, on: boolean) => post<Ok>(`/foods/${id}/favourite`, { on }),
     mine: () => get<{ foods: C.FoodSearchResult[]; recipes: C.RecipeDto[] }>('/foods/mine'),
     deleteMine: (id: string) => del<Ok>(`/foods/${id}`),
-    createRecipe: (b: C.CreateRecipeRequest) => post<C.RecipeDto>('/recipes', b),
+  },
+  recipes: {
+    get: (id: string) => get<C.RecipeDto>(`/recipes/${id}`),
+    create: (b: C.RecipeRequest) => post<C.RecipeDto>('/recipes', b),
+    update: (id: string, b: C.RecipeRequest) => put<C.RecipeDto>(`/recipes/${id}`, b),
+    delete: (id: string) => del<Ok>(`/recipes/${id}`),
   },
   activityTypes: () => get<C.ActivityTypeDto[]>('/activity-types'),
   logs: {
@@ -97,6 +103,8 @@ export const api = {
   team: {
     summary: (date?: string) => get<C.TeamSummaryResponse>('/team/summary', { date }),
     memberDay: (memberId: string, date?: string) => get<C.MemberDayResponse>(`/team/members/${memberId}/day`, { date }),
+    board: (week?: string) => get<C.BoardResponse>('/team/board', { week }),
+    memberPoints: (memberId: string, week?: string) => get<C.MemberPointsResponse>(`/team/members/${memberId}/points`, { week }),
   },
   chat: {
     list: (q: { after?: number; before?: number; limit?: number }) => get<C.ChatPageResponse>('/chat/messages', q),

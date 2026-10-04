@@ -9,8 +9,8 @@ import { cn } from '@/lib/cn';
 
 const MENTION = /(?:^|\s)@([\w.]{0,30})$/;
 
-/** Tab bar = 58 px + max(safe area, 14 px); pane bottom padding = 104 px + safe area. */
-export const CHAT_DOCK_OFFSET = 'calc(max(env(safe-area-inset-bottom, 0px), 14px) - env(safe-area-inset-bottom, 0px) - 46px)';
+/** The chat is a full-screen layer with no tab bar: the composer docks on the home-indicator inset. */
+const DOCK_PADDING = 'max(env(safe-area-inset-bottom, 0px), 14px)';
 
 export interface ComposerProps {
   members: ChatMemberDto[];
@@ -89,9 +89,7 @@ export function Composer({ members, myId, muted, onSend, onAttach, newCount, onJ
   };
 
   const canSend = draft.trim().length > 0 || attachments.length > 0;
-  // The pane keeps 104 px (+ safe area) of bottom padding for the tab bar, and sticky offsets are measured inside that
-  // padding; this offset parks the composer right on top of the tab bar, leaving room for the raised "+" button.
-  const pad = { bottom: CHAT_DOCK_OFFSET, paddingBottom: 30 };
+  const pad = { bottom: 0, paddingBottom: DOCK_PADDING };
 
   if (muted) {
     return (

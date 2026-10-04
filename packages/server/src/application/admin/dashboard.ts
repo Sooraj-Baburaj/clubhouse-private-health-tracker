@@ -4,6 +4,7 @@ import { monthKey } from '@clubhouse/ai-gateway';
 import { bandFor, dayCalorieClass, isDayClosed, localDateOf, localTimeOf, weekStartOf, weekdayOf } from '@clubhouse/domain';
 import { schema as s } from '@clubhouse/db';
 import type { Container } from '../../container';
+import { adminBoardCard } from '../board';
 import { teamChannel } from '../chat';
 import { weekPlanProgress } from '../plans';
 import { effectiveTargets } from '../targets';
@@ -113,6 +114,8 @@ export async function dashboard(c: Container, a: Actor): Promise<AdminDashboardR
   const storage = await storageStats(c, teamId);
   const byKind: Record<string, number> = {};
   for (const [k, v] of Object.entries(storage.byKind)) byKind[k] = v.bytes;
+  const boardOn = team.settings.featureFlags.leaderboard && team.settings.board.showOnDashboard;
+  const board = boardOn ? await adminBoardCard(c, teamId).catch(() => null) : null;
 
   return {
     date: today,
@@ -148,6 +151,7 @@ export async function dashboard(c: Container, a: Actor): Promise<AdminDashboardR
       nextRunAt: nextDailyRun(now).toISOString(),
       lastRun: lastRetention ? { at: (lastRetention.finishedAt ?? lastRetention.startedAt).toISOString(), imagesDeleted: lastRetention.imagesDeleted, bytesReclaimed: Number(lastRetention.bytesReclaimed) } : null,
     },
+    board,
   };
 }
 

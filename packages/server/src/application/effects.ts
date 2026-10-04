@@ -5,6 +5,7 @@ import { schema as s } from '@clubhouse/db';
 import type { Container } from '../container';
 import { log } from '../lib/log';
 import type { AuthUser } from '../interface/http/types';
+import { currentStanding, refreshWeeksFor } from './board';
 import { postSystemMessage } from './chat';
 import { memberClock } from './clockCtx';
 import { runTriggers, type LogEventContext } from './memeEngine';
@@ -14,7 +15,7 @@ import { weekPlanProgress } from './plans';
 import { signalTeam } from './realtime';
 import { checkActivityRecords, checkStreakRecord } from './records';
 
-export const emptyEffects = (): LogSideEffects => ({ memeMoments: [], milestones: [], streak: null, planProgress: null, personalRecords: [] });
+export const emptyEffects = (): LogSideEffects => ({ memeMoments: [], milestones: [], streak: null, planProgress: null, personalRecords: [], points: null });
 
 export interface SavedEvent {
   kind: 'food' | 'activity' | 'weight' | 'batch';
@@ -36,8 +37,16 @@ export async function afterLogSaved(c: Container, user: AuthUser, ev: SavedEvent
   const effects = emptyEffects();
   try {
     const { today } = memberClock(c, user.timezone);
+    // Crew points before the save, for the "+10 · you're #3" toast (only for this week's logs).
+    const thisWeek = weekStartOf(ev.date) === weekStartOf(today) || (!!ev.prevDate && weekStartOf(ev.prevDate) === weekStartOf(today));
+    const before = thisWeek ? await currentStanding(c, user).catch(() => null) : null;
     await computeDayFacts(c, user.id, ev.date);
     if (ev.prevDate && ev.prevDate !== ev.date) await computeDayFacts(c, user.id, ev.prevDate);
+    await refreshWeeksFor(c, user.id, [ev.date, ev.prevDate]);
+    if (thisWeek) {
+      const after = await currentStanding(c, user).catch(() => null);
+      if (after) effects.points = { gained: after.points - (before?.points ?? 0), total: after.points, rank: after.rank, rankBefore: before?.rank ?? null };
+    }
     const changes = await recomputeMemberStreaks(c, user.id, today);
     const logging = changes.find((ch) => ch.kind === 'logging');
     if (logging) effects.streak = { current: logging.after, status: logging.statusAfter };

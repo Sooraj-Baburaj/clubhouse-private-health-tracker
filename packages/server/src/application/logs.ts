@@ -1,13 +1,13 @@
 import { and, desc, eq, gt, isNull, or, sql } from 'drizzle-orm';
 import type { ActivityLogDto, ActivityLogUpsert, ActivityTypeDto, ChangesResponse, FoodLogDto, FoodLogUpsert, SyncOp, SyncResult, UpsertResult, WeightEntryDto, WeightUpsert } from '@clubhouse/contracts';
-import { addDays, computeBurn, needsRecompute, nutritionFor, roundTotals, sumTotals, type ActivityTypeDef } from '@clubhouse/domain';
+import { addDays, computeBurn, dishNutrition, needsRecompute, nutritionFor, roundTotals, sumTotals, type ActivityTypeDef } from '@clubhouse/domain';
 import { schema as s, type FoodLogItemJson } from '@clubhouse/db';
 import type { Container } from '../container';
 import { badRequest, notFound } from '../lib/errors';
 import type { AuthUser } from '../interface/http/types';
 import { memberClock } from './clockCtx';
 import { afterLogSaved, emptyEffects } from './effects';
-import { foodsByIds } from './foods';
+import { canLog, foodsByIds, resolveComponents } from './foods';
 import { upsertCheckin } from './habits';
 import { imageUrlMap } from './images';
 import { activityLogDto, foodLogDto, weightDto } from './mappers';
@@ -31,36 +31,83 @@ export async function listActivityTypes(c: Container, user: AuthUser): Promise<A
 
 /* ───────── Food ───────── */
 
+/** Resolve items as logged: foods are re-read for their nutrition and tags; a dish sums its ingredients. */
 async function resolveItems(c: Container, user: AuthUser, input: FoodLogUpsert): Promise<FoodLogItemJson[]> {
-  const foods = await foodsByIds(c, input.items.map((i) => i.foodId).filter((x): x is string => !!x));
-  return input.items.map((i) => {
-    if (i.foodId) {
-      const f = foods.get(i.foodId);
-      if (!f || (f.ownerId && f.ownerId !== user.id && !f.verified)) throw badRequest(`“${i.name}” is no longer available.`, 'unknown_food');
-      return {
-        foodId: f.id,
-        name: i.name || f.name,
-        grams: i.grams,
-        servings: i.servings,
-        servingLabel: i.servingLabel ?? null,
-        nutrition: roundTotals(nutritionFor(f.per100g, i.grams)),
-        source: i.source,
-        dietOptionId: i.dietOptionId ?? null,
-        aiEstimate: f.source === 'ai',
-        confidence: i.confidence ?? null,
-        tags: f.tags,
-      };
-    }
-    if (!i.nutrition) throw badRequest(`Add calories for “${i.name}”.`, 'nutrition_required');
-    return { foodId: null, name: i.name, grams: i.grams, servings: i.servings, servingLabel: i.servingLabel ?? null, nutrition: roundTotals(i.nutrition), source: i.source, dietOptionId: i.dietOptionId ?? null, aiEstimate: !!i.aiEstimate, confidence: i.confidence ?? null, tags: [] };
-  });
+  const ids = input.items.flatMap((i) => [i.foodId, ...(i.components ?? []).map((x) => x.foodId)]).filter((x): x is string => !!x);
+  const foods = await foodsByIds(c, ids);
+  return Promise.all(
+    input.items.map(async (i): Promise<FoodLogItemJson> => {
+      if (i.components?.length) {
+        // A dish: its ingredients are for the whole batch; this item is the share that was eaten.
+        const parts = await resolveComponents(c, user, i.components);
+        const batch = i.batchServings ?? 1;
+        const dish = dishNutrition(parts, batch, i.servings);
+        return {
+          foodId: null,
+          name: i.name,
+          grams: dish.grams,
+          servings: i.servings,
+          servingLabel: i.servingLabel ?? null,
+          nutrition: roundTotals(dish.nutrition),
+          source: i.source,
+          dietOptionId: null,
+          aiEstimate: parts.some((p) => p.aiEstimate),
+          confidence: i.confidence ?? null,
+          tags: [...new Set(parts.flatMap((p) => p.tags))],
+          components: parts.map(({ tags, ...p }) => ({ ...p, tags })),
+          batchServings: batch,
+          recipeId: i.recipeId ?? null,
+        };
+      }
+      if (i.foodId) {
+        const f = foods.get(i.foodId);
+        if (!f || !canLog(f, user)) throw badRequest(`“${i.name}” is no longer available.`, 'unknown_food');
+        return {
+          foodId: f.id,
+          name: i.name || f.name,
+          grams: i.grams,
+          servings: i.servings,
+          servingLabel: i.servingLabel ?? null,
+          nutrition: roundTotals(nutritionFor(f.per100g, i.grams)),
+          source: i.source,
+          dietOptionId: i.dietOptionId ?? null,
+          aiEstimate: f.source === 'ai',
+          confidence: i.confidence ?? null,
+          tags: f.tags,
+          ...(i.recipeId ? { recipeId: i.recipeId } : {}),
+        };
+      }
+      if (!i.nutrition) throw badRequest(`Add calories for “${i.name}”.`, 'nutrition_required');
+      return { foodId: null, name: i.name, grams: i.grams, servings: i.servings, servingLabel: i.servingLabel ?? null, nutrition: roundTotals(i.nutrition), source: i.source, dietOptionId: i.dietOptionId ?? null, aiEstimate: !!i.aiEstimate, confidence: i.confidence ?? null, tags: [] };
+    }),
+  );
+}
+
+/**
+ * The photo to keep on the log: a new `imageId` must be the member's own upload; `imageClientId` finds a photo that
+ * was queued offline and uploaded just before this log synced; omitted keeps the saved photo, null removes it.
+ */
+async function resolveImage(c: Container, user: AuthUser, input: FoodLogUpsert, existing: { imageId: string | null } | undefined): Promise<string | null> {
+  if (input.imageId === undefined && input.imageClientId) {
+    const img = await c.db.query.images.findFirst({ where: and(eq(s.images.ownerId, user.id), eq(s.images.clientId, input.imageClientId)) });
+    if (img) return img.id;
+    return existing?.imageId ?? null;
+  }
+  if (input.imageId === undefined) return existing?.imageId ?? null;
+  if (input.imageId === null || input.imageId === existing?.imageId) return input.imageId;
+  const img = await c.db.query.images.findFirst({ where: and(eq(s.images.id, input.imageId), eq(s.images.ownerId, user.id)) });
+  if (!img) throw badRequest('That photo didn’t upload. Add it again.', 'bad_image');
+  return img.id;
 }
 
 export async function upsertFoodLog(c: Container, user: AuthUser, id: string, input: FoodLogUpsert, opts: { skipEffects?: boolean } = {}): Promise<UpsertResult<FoodLogDto>> {
   checkDate(c, user, input.date);
   const existing = await c.db.query.foodLogs.findFirst({ where: eq(s.foodLogs.id, id) });
   if (existing && existing.userId !== user.id) throw notFound('Log not found.');
-  if (!input.deleted && input.items.length === 0) throw badRequest('Add at least one food.', 'empty_log');
+  const imageId = input.deleted && existing ? existing.imageId : await resolveImage(c, user, input, existing);
+  // A photo-only meal ("finish later") needs its photo; anything else needs at least one food.
+  const photoOnly = !input.deleted && input.items.length === 0;
+  if (photoOnly && !(input.pendingDetails && imageId)) throw badRequest(input.pendingDetails ? 'Add a photo, or at least one food.' : 'Add at least one food.', 'empty_log');
   const items = input.deleted && existing ? existing.items : await resolveItems(c, user, input);
   const totals = roundTotals(sumTotals(items.map((i) => i.nutrition)));
   const now = c.clock.now();
@@ -74,12 +121,12 @@ export async function upsertFoodLog(c: Container, user: AuthUser, id: string, in
     loggedAt: new Date(input.loggedAt),
     items,
     totals,
-    // Omitted imageId keeps the saved photo; null removes it (edits don't resend the photo).
-    imageId: input.imageId !== undefined ? input.imageId : (existing?.imageId ?? null),
+    imageId,
     aiCallId: input.aiCallId ?? null,
     aiGenerated: items.some((i) => i.source === 'ai'),
     confidence: items.some((i) => i.confidence != null) ? Math.min(...items.map((i) => i.confidence ?? 1)) : null,
     note: input.note ?? null,
+    pendingDetails: input.deleted && existing ? existing.pendingDetails : photoOnly,
     addedLate: existing?.addedLate ?? isAddedLate(input.date, user.timezone, now),
     clientUpdatedAt,
     serverUpdatedAt: now,

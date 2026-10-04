@@ -3,7 +3,8 @@ import type { CatalogFood, ChatMessageDto } from '@clubhouse/contracts';
 
 export interface OutboxOp {
   key: string; // `${kind}:${id}` — a later edit of the same entity replaces the pending op (last write wins)
-  kind: 'food_log' | 'activity_log' | 'weight' | 'habit_checkin' | 'chat';
+  /** `image`: a snapped photo waiting to upload; it runs before the logs that point at it (by client id). */
+  kind: 'food_log' | 'activity_log' | 'weight' | 'habit_checkin' | 'chat' | 'image';
   id: string;
   data: unknown;
   createdAt: number;

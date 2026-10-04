@@ -3,17 +3,23 @@ import type { StreakKind } from '@clubhouse/contracts';
 import {
   addDays,
   badgeFor,
+  classifyKcal,
+  classifyProtein,
   computeDailyStreak,
   computeTeamStreak,
   computeWeeklyStreak,
   dateRange,
+  dayPoints,
   isInRangeDay,
   isOnVacation,
+  isSolidDay,
+  lastSettledDate,
   milestonesCrossed,
   startOfLocalDay,
   sumTotals,
   teamDayQualifies,
   weekStartOf,
+  type BoardDayFacts,
   type NutrientTotals,
   type WeekFact,
 } from '@clubhouse/domain';
@@ -31,26 +37,73 @@ export function isAddedLate(date: string, tz: string, createdAt: Date): boolean 
   return createdAt.getTime() - dayEnd.getTime() > 48 * 3600_000;
 }
 
-/** Materialise one member-day: logged (counting logs only), totals, burn and whether calories ended in range. */
+/**
+ * Materialise one member-day: logged (counting logs only), totals, burn, whether calories ended in range, and the
+ * Crew points inputs — judged on on-time logs only, so a log added more than 48 h late never moves the board.
+ */
 export async function computeDayFacts(c: Container, userId: string, date: string) {
-  const [foods, acts, weights, profile, team] = await Promise.all([
+  const [foods, acts, weights, profile, user] = await Promise.all([
     c.db.query.foodLogs.findMany({ where: and(eq(s.foodLogs.userId, userId), eq(s.foodLogs.date, date), isNull(s.foodLogs.deletedAt)) }),
     c.db.query.activityLogs.findMany({ where: and(eq(s.activityLogs.userId, userId), eq(s.activityLogs.date, date), isNull(s.activityLogs.deletedAt)) }),
     c.db.query.weightEntries.findMany({ where: and(eq(s.weightEntries.userId, userId), eq(s.weightEntries.date, date), isNull(s.weightEntries.deletedAt)) }),
     c.db.query.profiles.findFirst({ where: eq(s.profiles.userId, userId) }),
-    c.db.select({ teamId: s.users.teamId }).from(s.users).where(eq(s.users.id, userId)).then(async (r) => (r[0] ? getTeam(c, r[0].teamId) : null)),
+    c.db.select({ teamId: s.users.teamId, timezone: s.users.timezone }).from(s.users).where(eq(s.users.id, userId)).then((r) => r[0] ?? null),
   ]);
+  const team = user ? await getTeam(c, user.teamId) : null;
   const totals: NutrientTotals = sumTotals(foods.map((f) => f.totals));
   const burned = acts.reduce((a, x) => a + x.kcalBurned, 0);
-  const countedFood = foods.some((f) => !f.addedLate);
+  const onTimeFoods = foods.filter((f) => !f.addedLate);
+  const countedFood = onTimeFoods.length > 0;
+  // A photo-only meal ("finish later") keeps the logging streak but can't put the day in range on its own.
+  const countedFoodItems = foods.some((f) => !f.addedLate && f.items.length > 0);
   const logged = countedFood || acts.some((a) => !a.addedLate) || weights.some((w) => !w.addedLate);
   const existing = await c.db.query.dayFacts.findFirst({ where: and(eq(s.dayFacts.userId, userId), eq(s.dayFacts.date, date)) });
   const eff = profile ? effectiveTargets(profile) : null;
   const targets: NutrientTotals | null = existing?.targets ?? (eff ? { kcal: eff.kcal, protein: eff.protein, carbs: eff.carbs, fat: eff.fat, fibre: eff.fibre } : null);
   const thresholds = { ...(team?.settings.thresholds ?? {}), ...(profile?.thresholdsOverride ?? {}) } as NonNullable<typeof team>['settings']['thresholds'];
   const budget = targets ? targets.kcal + (profile?.eatBackExercise ? burned : 0) : 0;
-  const inRange = !!targets && isInRangeDay(totals.kcal, budget, countedFood, thresholds);
-  const row = { userId, date, logged, foodLogged: foods.length > 0, activityLogged: acts.length > 0, inRange, kcalEaten: totals.kcal, kcalBurned: burned, kcalTarget: targets?.kcal ?? null, totals, targets, computedAt: c.clock.now() };
+  const inRange = !!targets && isInRangeDay(totals.kcal, budget, countedFoodItems, thresholds);
+
+  // Crew points inputs (domain/board.ts).
+  const fullSlots = new Set(onTimeFoods.filter((f) => f.items.length > 0).map((f) => f.mealSlot));
+  const snapSlots = new Set(onTimeFoods.filter((f) => f.items.length === 0 && f.pendingDetails && !fullSlots.has(f.mealSlot)).map((f) => f.mealSlot));
+  const boardFoods = sumTotals(onTimeFoods.filter((f) => f.items.length > 0).map((f) => f.totals));
+  const onTimeBurn = acts.filter((a) => !a.addedLate).reduce((a, x) => a + x.kcalBurned, 0);
+  const boardBudget = targets ? targets.kcal + (profile?.eatBackExercise ? onTimeBurn : 0) : 0;
+  const minMinutes = team?.settings.board.workoutMinMinutes ?? 20;
+  const tz = user?.timezone || team?.timezone || 'Asia/Kolkata';
+  const facts: BoardDayFacts = {
+    mealsOnTime: fullSlots.size,
+    snapOnly: snapSlots.size,
+    kcal: fullSlots.size && targets ? classifyKcal(boardFoods.kcal, boardBudget, thresholds) : null,
+    protein: fullSlots.size && targets ? classifyProtein(boardFoods.protein, targets.protein, thresholds) : null,
+    workouts: acts.filter((a) => !a.addedLate && (!!a.planItemId || a.durationMin >= minMinutes)).length,
+    weighedIn: weights.some((w) => !w.addedLate),
+    settled: date <= lastSettledDate(c.clock.now(), tz),
+  };
+  const row = {
+    userId,
+    date,
+    logged,
+    foodLogged: foods.length > 0,
+    activityLogged: acts.length > 0,
+    inRange,
+    kcalEaten: totals.kcal,
+    kcalBurned: burned,
+    kcalTarget: targets?.kcal ?? null,
+    totals,
+    targets,
+    mealsOnTime: facts.mealsOnTime,
+    snapOnly: facts.snapOnly,
+    kcalClass: facts.kcal,
+    proteinClass: facts.protein,
+    workouts: facts.workouts,
+    weighedIn: facts.weighedIn,
+    points: dayPoints(facts).total,
+    solid: isSolidDay(facts),
+    settled: facts.settled,
+    computedAt: c.clock.now(),
+  };
   await c.db.insert(s.dayFacts).values(row).onConflictDoUpdate({ target: [s.dayFacts.userId, s.dayFacts.date], set: row });
   return row;
 }

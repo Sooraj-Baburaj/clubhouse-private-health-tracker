@@ -8,10 +8,11 @@ import { cn } from '@/lib/cn';
 import { fieldErrors } from '@/lib/errors';
 import { fmtDateTime, fromDateTimeLocal, SLOT_LABELS } from '@/lib/format';
 import { AiChip, Button, Card, Checkbox, ErrorState, Field, FormGrid, Input, NumberInput, PageHeader, Select, SkeletonCard, Textarea, ToggleRow } from '@/ui';
+import { LeaderboardCard } from './LeaderboardCard';
 import { browserZone, DefaultHint, LogoField, MilestonesInput, SettingsCard, TimezoneSelect } from './SettingsParts';
 import { buildUpdate, dirtySections, SECTIONS, sectionOf, toForm, validate, type Errors, type SectionKey, type SettingsForm } from './settingsForm';
 
-/** Team settings (ADM team defaults): basics, member defaults, meal slots, flags, streaks, memes & chat, maintenance banner. */
+/** Team settings (ADM team defaults): basics, member defaults, meal slots, flags, streaks, leaderboard, memes & chat, maintenance banner. */
 export function TeamSettingsPage() {
   const q = useTeamSettings();
   return (
@@ -73,7 +74,7 @@ function SettingsEditor({ data }: { data: TeamSettingsData }) {
       for (const k of keys) delete n[k];
       return n;
     });
-  const patch = <K extends 'streaks' | 'memes' | 'chat' | 'featureFlags' | 'banner'>(k: K, v: Partial<SettingsForm[K]>) => {
+  const patch = <K extends 'streaks' | 'memes' | 'chat' | 'featureFlags' | 'board' | 'banner'>(k: K, v: Partial<SettingsForm[K]>) => {
     setForm((f) => ({ ...f, [k]: { ...f[k], ...v } }));
     for (const field of Object.keys(v)) clearErrors(k === 'banner' ? `maintenanceBanner.${field}` : `${k}.${field}`);
   };
@@ -300,6 +301,8 @@ function SettingsEditor({ data }: { data: TeamSettingsData }) {
             </Field>
           </FormGrid>
         </SettingsCard>
+
+        <LeaderboardCard form={form} dirty={isDirty('board')} err={err} setOn={(v) => patch('featureFlags', { leaderboard: v })} patch={(v) => patch('board', v)} />
 
         {/* Memes & chat */}
         <SettingsCard id="settings-memesChat" title="Memes & chat" description="Keep the chat lively without flooding it." dirty={isDirty('memesChat')}>

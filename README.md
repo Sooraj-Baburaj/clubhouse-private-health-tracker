@@ -67,6 +67,7 @@ those use a tunnel (for example `cloudflared tunnel --url http://localhost:5173`
 | `pnpm test:e2e` | Playwright suites (needs a migrated and seeded database) |
 | `pnpm build` | Both apps + the API bundle into `.vercel/output` |
 | `pnpm db:generate` | New migration from schema changes |
+| `pnpm board:backfill` | Rebuild the crew leaderboard from existing logs (last 35 days, `--days N` for more); safe to re-run |
 | `pnpm db:reset` | Drop and recreate the local schema |
 | `pnpm icons` | Regenerate PWA icons from the logo |
 

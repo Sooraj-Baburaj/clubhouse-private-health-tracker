@@ -1,9 +1,10 @@
 import { and, eq, gte, isNull, sql } from 'drizzle-orm';
 import { MEAL_SLOTS } from '@clubhouse/contracts';
-import { addDays, badgeFor, localDateOf, localMinutesOf, slotWindows, smartTime } from '@clubhouse/domain';
+import { addDays, badgeFor, lastSettledDate, localDateOf, localMinutesOf, slotWindows, smartTime } from '@clubhouse/domain';
 import { schema as s } from '@clubhouse/db';
 import type { Container } from '../../container';
 import { log } from '../../lib/log';
+import { refreshWeeksFor, teamMorning } from '../board';
 import { postSystemMessage } from '../chat';
 import { ensureSchedules } from '../inbox';
 import { runDayEnd } from '../memeEngine';
@@ -19,9 +20,7 @@ const MAX_REPLAY_DAYS = 7;
 const STREAK_LABEL = { logging: 'logging', in_range: 'in-range', activity: 'activity' } as const;
 
 /** The member-local date that has fully ended and settled: yesterday, once local time is past 03:00. */
-export function rolloverTargetDate(now: Date, tz: string): string {
-  return addDays(localDateOf(new Date(now.getTime() - 3 * 3600_000), tz), -1);
-}
+export const rolloverTargetDate = lastSettledDate;
 
 /** SYS-NOTIF-04 smart times: median log time per slot over 14 days minus 10 minutes (needs ≥ 5 samples). */
 async function recomputeSmartTimes(c: Container, userId: string, today: string, tz: string) {
@@ -76,11 +75,15 @@ export async function rolloverMembers(c: Container, ctx: StepCtx): Promise<Stats
       const today = localDateOf(now, u.timezone);
       let from = profile.rolledOverFor ? addDays(profile.rolledOverFor, 1) : target;
       if (from < addDays(target, -(MAX_REPLAY_DAYS - 1))) from = addDays(target, -(MAX_REPLAY_DAYS - 1));
+      const settledDays: string[] = [];
       for (let d = from; d <= target; d = addDays(d, 1)) {
         await computeDayFacts(c, id, d);
         await runDayEnd(c, u, d);
+        settledDays.push(d);
         stats.days++;
       }
+      // Calories and protein land on the board once a day settles (and a new week starts on Monday).
+      await refreshWeeksFor(c, id, [...settledDays, today]);
       // Streaks are evaluated as of the member's current local date: completed days (including the one just rolled
       // over) are final and today is pending, so this agrees with the on-log path.
       const changes = await recomputeMemberStreaks(c, id, today);
@@ -114,7 +117,7 @@ export async function rolloverMembers(c: Container, ctx: StepCtx): Promise<Stats
 export async function rolloverTeams(c: Container, ctx: StepCtx): Promise<Stats> {
   const now = c.clock.now();
   const teams = await c.db.query.teams.findMany();
-  const stats = { teams: teams.length, settled: 0, waiting: 0, milestones: 0 };
+  const stats = { teams: teams.length, settled: 0, waiting: 0, milestones: 0, weeksClosed: 0 };
   for (const t of teams) {
     if (!hasTime(ctx, 2000)) break;
     const target = rolloverTargetDate(now, t.timezone);
@@ -135,6 +138,10 @@ export async function rolloverTeams(c: Container, ctx: StepCtx): Promise<Stats> 
       stats.milestones++;
       await postSystemMessage(c, t.id, { systemKind: 'team_streak', body: `Team streak: ${m} days in a row with everyone logging 🎉`, meta: { days: m } });
     }
+    // Leaderboard: this morning's standings, the crown, and on Monday the weekly close. A failure is retried next
+    // tick (the job state below isn't written), and every step is idempotent.
+    const morning = await teamMorning(c, t.id, target);
+    if (morning.closed) stats.weeksClosed++;
     await setJobState(c, key, { date: target, current: r?.after ?? 0 });
     stats.settled++;
   }

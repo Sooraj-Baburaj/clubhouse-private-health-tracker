@@ -1,7 +1,7 @@
 import { randomBytes } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { and, eq, isNull, sql } from 'drizzle-orm';
-import { DEFAULT_TEAM_SETTINGS, NOTIFICATION_TYPES, SCHEDULED_NOTIFICATION_TYPES, STREAK_KINDS, type Role, type TeamSettings } from '@clubhouse/contracts';
+import { DEFAULT_TEAM_SETTINGS, NOTIFICATION_TYPES, SCHEDULED_NOTIFICATION_TYPES, STREAK_KINDS, withSettingDefaults, type Role, type TeamSettings } from '@clubhouse/contracts';
 import { normaliseName } from '@clubhouse/domain';
 import type { Db } from '../client';
 import * as s from '../schema';
@@ -107,7 +107,7 @@ export interface ProvisionMemberInput {
 export async function provisionMember(db: Db, input: ProvisionMemberInput) {
   const team = await db.query.teams.findFirst({ where: eq(s.teams.id, input.teamId) });
   if (!team) throw new Error('team not found');
-  const settings = team.settings;
+  const settings = withSettingDefaults(team.settings);
   return db.transaction(async (tx) => {
     const [user] = await tx
       .insert(s.users)
@@ -129,7 +129,7 @@ export async function provisionMember(db: Db, input: ProvisionMemberInput) {
       userId: u.id,
       units: team.units,
       eatBackExercise: settings.eatBackDefault,
-      privacy: { teammatesSee: settings.privacyDefault, teamPulseOptIn: false, roastMemes: settings.roastDefault, roastPromptSeen: false },
+      privacy: { teammatesSee: settings.privacyDefault, teamPulseOptIn: false, roastMemes: settings.roastDefault, roastPromptSeen: false, showOnBoard: true },
       quietHours: settings.defaultQuietHours,
       realtimeSecret: randomSecret(),
     });

@@ -12,6 +12,7 @@ export * from './api/diet';
 export * from './api/plans';
 export * from './api/habits';
 export * from './api/progress';
+export * from './api/board';
 export * from './api/notifications';
 export * from './api/ai';
 export * from './api/admin';

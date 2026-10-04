@@ -109,15 +109,19 @@ self.addEventListener('notificationclick', (event) => {
       // SYS-NOTIF-08 actions: "Done" logs the planned activity, "Snooze 1 h" re-schedules, "Log it" opens the slot.
       if (event.action === 'done' && data.notificationId) return call(`/api/notifications/${data.notificationId}/done`);
       if (event.action === 'snooze' && data.notificationId) return call(`/api/notifications/${data.notificationId}/snooze`);
-      const target = new URL(data.url ?? '/', self.location.origin).href;
+      const target = new URL(data.url ?? '/', self.location.origin);
       const all = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
       const client = all.find((c) => new URL(c.url).origin === self.location.origin);
+      // Admin links: navigating the window here would swap the installed app for the admin panel, with no way back on
+      // iOS. Hand them to the member app instead, which knows whether it's installed (see app/openLink.ts).
+      const admin = target.origin === self.location.origin && /^\/admin(?:\/|$)/.test(target.pathname);
       if (client) {
         await client.focus();
-        await (client as WindowClient).navigate(target).catch(() => client.postMessage({ type: 'NAVIGATE', url: data.url }));
+        if (admin) return client.postMessage({ type: 'NAVIGATE', url: target.pathname + target.search });
+        await (client as WindowClient).navigate(target.href).catch(() => client.postMessage({ type: 'NAVIGATE', url: data.url }));
         return;
       }
-      await self.clients.openWindow(target);
+      await self.clients.openWindow(admin ? `/inbox?open=${encodeURIComponent(target.pathname + target.search)}` : target.href);
     })(),
   );
 });

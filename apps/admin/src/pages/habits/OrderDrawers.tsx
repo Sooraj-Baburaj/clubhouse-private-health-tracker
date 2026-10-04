@@ -35,7 +35,7 @@ function SortableRow<T extends { id: string }>({ item, index, count, move, child
       value={item}
       dragListener={false}
       dragControls={controls}
-      className="flex items-center gap-2 rounded-[12px] border border-border bg-white py-2 pl-1.5 pr-2"
+      className="flex select-none items-center gap-2 rounded-[12px] border border-border bg-white py-2 pl-1.5 pr-2"
       whileDrag={{ scale: 1.02, boxShadow: '0 12px 32px rgba(23,23,28,0.12)', zIndex: 1 }}
     >
       <button

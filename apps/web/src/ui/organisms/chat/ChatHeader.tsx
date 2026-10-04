@@ -1,14 +1,20 @@
-import { ChevronDown, Pin } from 'lucide-react';
+import { ChevronDown, ChevronLeft, Pin } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { useState } from 'react';
 import type { ChatMessageDto } from '@clubhouse/contracts';
+import { IconButton } from '@/ui/atoms/IconButton';
 
-export function ChatHeader({ members, teamStreak }: { members: number | null; teamStreak: number | null }) {
+export function ChatHeader({ title, members, teamStreak, onBack }: { title: string; members: number | null; teamStreak: number | null; onBack?: () => void }) {
   const sub = [members != null ? `${members} member${members === 1 ? '' : 's'}` : null, teamStreak != null ? `team streak ${teamStreak}` : null].filter(Boolean).join(' · ');
   return (
-    <header className="sticky top-0 z-10 flex items-center gap-2.5 bg-bg px-5 pb-2 pt-1.5">
+    <header className="sticky top-0 z-10 flex items-center gap-2.5 bg-bg px-4 pb-2.5 pt-1.5">
+      {onBack && (
+        <IconButton label="Back to Team" onClick={onBack}>
+          <ChevronLeft className="h-[18px] w-[18px]" strokeWidth={2.75} />
+        </IconButton>
+      )}
       <div className="flex min-w-0 flex-1 flex-col">
-        <h1 className="font-heading text-[24px] leading-tight">The Clubhouse</h1>
+        <h1 className="truncate font-heading text-[22px] leading-tight">{title}</h1>
         <span className="text-[12px] text-neutral-700">{sub || ' '}</span>
       </div>
     </header>

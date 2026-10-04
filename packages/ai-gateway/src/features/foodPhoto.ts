@@ -41,8 +41,17 @@ const MOCK_PLATES: Recognition['items'][] = [
   ],
 ];
 
+/** A bowl of cut fruit: the items are the ingredients of one dish (exercises the "group them?" suggestion). */
+const MOCK_FRUIT_BOWL: Recognition['items'] = [
+  { name: 'Apple', matchHint: 'apple', portionGrams: 150, householdMeasure: '1 medium', quantity: 1, confidence: 0.86, estimatePer100g: { kcal: 52, protein: 0.3, carbs: 14, fat: 0.2, fibre: 2.4 }, tags: ['fruit'] },
+  { name: 'Banana', matchHint: 'banana', portionGrams: 118, householdMeasure: '1 banana', quantity: 1, confidence: 0.9, estimatePer100g: { kcal: 89, protein: 1.1, carbs: 23, fat: 0.3, fibre: 2.6 }, tags: ['fruit'] },
+  { name: 'Grapes', matchHint: 'grapes', portionGrams: 92, householdMeasure: '1 cup', quantity: 1, confidence: 0.82, estimatePer100g: { kcal: 69, protein: 0.7, carbs: 18, fat: 0.2, fibre: 0.9 }, tags: ['fruit'] },
+  { name: 'Pomegranate', matchHint: 'pomegranate', portionGrams: 87, householdMeasure: '½ cup', quantity: 0.5, confidence: 0.78, estimatePer100g: { kcal: 83, protein: 1.7, carbs: 19, fat: 1.2, fibre: 4 }, tags: ['fruit'] },
+];
+
 export function mockFoodPhoto(input: FoodPhotoInput): Recognition {
   if (input.hint?.toLowerCase().includes('not food')) return { items: [], overallConfidence: 0.1, notFood: true, note: '' };
+  if (input.hint?.toLowerCase().includes('fruit')) return sanitiseRecognition({ items: MOCK_FRUIT_BOWL, overallConfidence: 0.84, notFood: false, note: 'Colourful bowl.', dishName: 'Fruit salad' });
   if (input.hint?.toLowerCase().includes('blurry')) return sanitiseRecognition({ items: MOCK_PLATES[0]!.slice(0, 1).map((i) => ({ ...i, confidence: 0.3 })), overallConfidence: 0.35, notFood: false, note: 'Hard to see clearly.' });
   const pick = input.image.data.length % MOCK_PLATES.length;
   return sanitiseRecognition({ items: MOCK_PLATES[pick]!, overallConfidence: 0.82, notFood: false, note: 'Looks tasty.' });

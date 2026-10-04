@@ -20,7 +20,7 @@ import {
   uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core';
-import type { MemeSelection, TeamSettings, TriggerCondition } from '@clubhouse/contracts';
+import type { MemeSelection, PortionUnit, TeamSettings, TriggerCondition } from '@clubhouse/contracts';
 
 const bytea = customType<{ data: Buffer; driverData: Buffer }>({ dataType: () => 'bytea' });
 const tstz = (name: string) => timestamp(name, { withTimezone: true, mode: 'date' });
@@ -32,7 +32,19 @@ const id = () => uuid('id').primaryKey().defaultRandom();
 export const roleEnum = pgEnum('user_role', ['member', 'admin', 'super_admin']);
 
 export type NutrientJson = { kcal: number; protein: number; carbs: number; fat: number; fibre: number };
-export type ServingJson = { label: string; grams: number };
+/** A portion: `label` + `grams` for one of it; foods with portions also carry the structured unit (see ServingOptionDto). */
+export type ServingJson = { label: string; grams: number; unit?: PortionUnit; amount?: number; estimated?: boolean };
+/** One ingredient of a dish (a snapshot: later food edits don't change past logs). */
+export type FoodLogComponentJson = {
+  foodId: string | null;
+  name: string;
+  grams: number;
+  servings: number;
+  servingLabel: string | null;
+  nutrition: NutrientJson;
+  aiEstimate?: boolean;
+  tags?: string[];
+};
 export type FoodLogItemJson = {
   foodId: string | null;
   name: string;
@@ -45,7 +57,23 @@ export type FoodLogItemJson = {
   aiEstimate?: boolean;
   confidence?: number | null;
   tags?: string[];
+  /** A dish: ingredients for the whole batch of `batchServings`; `servings` of them were eaten. */
+  components?: FoodLogComponentJson[];
+  batchServings?: number;
+  recipeId?: string | null;
 };
+/** Recipe ingredients. Rows saved before dishes only had foodId, name and grams. */
+export type RecipeItemJson = { foodId: string | null; name: string; grams: number; servings?: number; servingLabel?: string | null; nutrition?: NutrientJson; aiEstimate?: boolean };
+export type BoardPartsJson = { meals: number; calories: number; protein: number; workouts: number; bonus: number; away: number };
+export type BoardDayJson = {
+  date: string;
+  state: 'full' | 'partial' | 'none' | 'away' | 'today' | 'future';
+  points: number;
+  parts: { meals: number; snap: number; kcal: number; protein: number; workouts: number; workoutCount: number; weighIn: number; plan: number; away: number; fullWeek: number };
+  /** Calories and protein are in (absent on rows written before it was stored: treat as settled). */
+  settled?: boolean;
+};
+export type BoardAwardJson = { key: 'winner' | 'consistent' | 'streak' | 'plan' | 'protein' | 'comeback'; userId: string; why: string };
 export type AttachmentJson =
   | { type: 'image'; imageId: string }
   | { type: 'food_log'; id: string }
@@ -141,7 +169,8 @@ export const adminLoginEvents = pgTable(
 
 /* ───────────────────────────── Profile and body ───────────────────────────── */
 
-export type PrivacyJson = { teammatesSee: 'summary' | 'full'; teamPulseOptIn: boolean; roastMemes: boolean; roastPromptSeen: boolean };
+/** `showOnBoard` is absent on profiles created before the leaderboard (read it as on). */
+export type PrivacyJson = { teammatesSee: 'summary' | 'full'; teamPulseOptIn: boolean; roastMemes: boolean; roastPromptSeen: boolean; showOnBoard?: boolean };
 export type AiOptOutsJson = { photo: boolean; summary: boolean; noticeSeen: boolean };
 /** `order`: the member's own habit arrangement (ids); absent = follow the admin's order. */
 export type HabitPrefsJson = { bundle: boolean; share: boolean; order?: string[] | null; orderedAt?: string | null };
@@ -268,9 +297,10 @@ export const recipes = pgTable(
     teamId: uuid('team_id').notNull(),
     ownerId: uuid('owner_id'),
     name: text('name').notNull(),
-    items: jsonb('items').$type<{ foodId: string; name: string; grams: number }[]>().notNull(),
+    items: jsonb('items').$type<RecipeItemJson[]>().notNull(),
     servings: real('servings').notNull().default(1),
     perServing: jsonb('per_serving').$type<NutrientJson>().notNull(),
+    imageId: uuid('image_id'),
     promoted: boolean('promoted').notNull().default(false),
     createdAt: created(),
     updatedAt: updated(),
@@ -295,6 +325,8 @@ export const foodLogs = pgTable(
     aiGenerated: boolean('ai_generated').notNull().default(false),
     confidence: real('confidence'),
     note: text('note'),
+    /** Saved with its photo only ("Finish later"); the foods are still to add. */
+    pendingDetails: boolean('pending_details').notNull().default(false),
     addedLate: boolean('added_late').notNull().default(false),
     clientUpdatedAt: tstz('client_updated_at').notNull(),
     serverUpdatedAt: tstz('server_updated_at').notNull().defaultNow(),
@@ -593,10 +625,85 @@ export const dayFacts = pgTable(
     kcalTarget: integer('kcal_target'),
     totals: jsonb('totals').$type<NutrientJson>(),
     targets: jsonb('targets').$type<NutrientJson>(),
+    /* Crew points inputs: on-time logs only (logs added more than 48 h late never reach the board). */
+    /** Meal slots with an on-time log that has foods. */
+    mealsOnTime: smallint('meals_on_time').notNull().default(0),
+    /** Meal slots with only an on-time photo-only log. */
+    snapOnly: smallint('snap_only').notNull().default(0),
+    /** 'on' | 'near' | 'off', null without food or a target (see domain BoardClass). */
+    kcalClass: text('kcal_class'),
+    proteinClass: text('protein_class'),
+    /** Qualifying workouts: planned, or at least the team's minimum minutes. */
+    workouts: smallint('workouts').notNull().default(0),
+    weighedIn: boolean('weighed_in').notNull().default(false),
+    /** Day points (meals, plus calories and protein once settled). */
+    points: smallint('points').notNull().default(0),
+    solid: boolean('solid').notNull().default(false),
+    /** The day has ended and settled (03:00 the next morning, member-local). */
+    settled: boolean('settled').notNull().default(false),
     computedAt: tstz('computed_at').notNull().defaultNow(),
   },
   (t) => [primaryKey({ columns: [t.userId, t.date] })],
 );
+
+/**
+ * Crew points per member and week (Mon–Sun, member-local), refreshed from day facts whenever a log is saved or a day
+ * settles. One row per member holds the live week and, once closed, the final result, so a board read is one query.
+ */
+export const boardWeeks = pgTable(
+  'board_weeks',
+  {
+    teamId: uuid('team_id').notNull(),
+    weekStart: localDate('week_start').notNull(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    points: integer('points').notNull().default(0),
+    parts: jsonb('parts').$type<BoardPartsJson>().notNull(),
+    days: jsonb('days').$type<BoardDayJson[]>().notNull(),
+    /** 'ranked' | 'away' | 'new'. */
+    status: text('status').notNull().default('ranked'),
+    workouts: smallint('workouts').notNull().default(0),
+    solidDays: smallint('solid_days').notNull().default(0),
+    proteinDays: smallint('protein_days').notNull().default(0),
+    fullDays: smallint('full_days').notNull().default(0),
+    awayDays: smallint('away_days').notNull().default(0),
+    planDone: boolean('plan_done').notNull().default(false),
+    hasPlan: boolean('has_plan').notNull().default(false),
+    /** Standings at this morning's settle, and the morning before (movement arrows compare with the latter). */
+    dawnRank: smallint('dawn_rank'),
+    prevDawnRank: smallint('prev_dawn_rank'),
+    /** Set when the week closes. */
+    finalRank: smallint('final_rank'),
+    final: boolean('final').notNull().default(false),
+    rulesVersion: smallint('rules_version').notNull(),
+    updatedAt: updated(),
+  },
+  (t) => [primaryKey({ columns: [t.teamId, t.weekStart, t.userId] }), index('board_weeks_user_idx').on(t.userId, t.weekStart)],
+);
+
+/** A closed week: who got which award (the podium is in board_weeks.final_rank). */
+export const boardWeekResults = pgTable(
+  'board_week_results',
+  {
+    teamId: uuid('team_id').notNull(),
+    weekStart: localDate('week_start').notNull(),
+    rankedCount: smallint('ranked_count').notNull(),
+    awards: jsonb('awards').$type<BoardAwardJson[]>().notNull().default([]),
+    messageId: uuid('message_id'),
+    closedAt: tstz('closed_at').notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.teamId, t.weekStart] })],
+);
+
+/** The 👑 Most consistent holder and the last morning the team's standings were taken. */
+export const teamBoardState = pgTable('team_board_state', {
+  teamId: uuid('team_id').primaryKey(),
+  crownUserId: uuid('crown_user_id'),
+  crownSince: localDate('crown_since'),
+  dawnFor: localDate('dawn_for'),
+  updatedAt: updated(),
+});
 
 export const userBadges = pgTable(
   'user_badges',

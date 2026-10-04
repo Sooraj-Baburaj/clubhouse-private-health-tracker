@@ -7,7 +7,7 @@ import { AIBadge, Tag } from '@/ui/atoms/Badges';
 import { Button } from '@/ui/atoms/Button';
 import { IconButton } from '@/ui/atoms/IconButton';
 import { cn } from '@/lib/cn';
-import { useLongPress } from '@/ui/organisms/chat/useLongPress';
+import { LONG_PRESS_CLASS, useLongPress } from '@/ui/organisms/chat/useLongPress';
 
 type Slot = DietResponse['slots'][number];
 
@@ -86,7 +86,7 @@ function OptionRow({ o, on, onPick, onActions }: { o: DietOptionDto; on: boolean
         tabIndex={on ? 0 : -1}
         {...lp.handlers}
         onClick={() => !lp.consumed() && onPick()}
-        className="flex min-h-12 min-w-0 flex-1 select-none items-center gap-2.5 border-0 bg-transparent py-2.5 pl-3.5 pr-1 text-left [-webkit-touch-callout:none]"
+        className={cn('flex min-h-12 min-w-0 flex-1 items-center gap-2.5 border-0 bg-transparent py-2.5 pl-3.5 pr-1 text-left [&_*]:pointer-events-none', LONG_PRESS_CLASS)}
       >
         <span aria-hidden className={cn('grid h-[18px] w-[18px] shrink-0 place-items-center rounded-full border-2 transition-colors', on ? 'border-accent bg-accent' : 'border-neutral-500 bg-transparent')}>
           {on && <motion.span layoutId={`dot-${o.mealSlot}`} className="h-1.5 w-1.5 rounded-full bg-on-accent-fill" />}

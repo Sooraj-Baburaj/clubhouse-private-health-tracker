@@ -30,7 +30,7 @@ import { Spinner } from '@/ui/atoms/Spinner';
 import { EmptyState } from '@/ui/molecules/EmptyState';
 import { AttachSheet } from '@/ui/organisms/chat/AttachSheet';
 import { ChatHeader, PinnedBanner } from '@/ui/organisms/chat/ChatHeader';
-import { CHAT_DOCK_OFFSET, Composer } from '@/ui/organisms/chat/Composer';
+import { Composer } from '@/ui/organisms/chat/Composer';
 import { MessageActionsSheet } from '@/ui/organisms/chat/MessageActionsSheet';
 import { ReactionsSheet } from '@/ui/organisms/chat/ReactionsSheet';
 import { DaySeparator, DividerRow, MessageItem, PendingItem, UnreadMarker, type MessageCtx } from '@/ui/organisms/chat/MessageItem';
@@ -38,8 +38,8 @@ import { ErrorCard } from '@/ui/organisms/progress/Kit';
 
 const GROUP_MS = 5 * 60_000;
 
-/** Chat tab (plan §8.12): one team channel, newest at the bottom, offline-capable sends. */
-export function ChatPage() {
+/** Team chat (plan §8.12), a layer over the Team tab: one team channel, newest at the bottom, offline-capable sends. */
+export function ChatPage({ onBack }: { onBack?: () => void }) {
   const me = useMeData();
   const location = useLocation();
   const active = location.pathname === '/chat';
@@ -410,8 +410,8 @@ export function ChatPage() {
 
   return (
     <MotionConfig reducedMotion="user">
-      <div ref={rootRef} className="flex flex-col" style={{ minHeight: 'calc(100dvh - env(safe-area-inset-top, 0px) - 58px - max(env(safe-area-inset-bottom, 0px), 14px))', marginBottom: CHAT_DOCK_OFFSET }}>
-        <ChatHeader members={members.data?.length ?? me.team.memberCount ?? null} teamStreak={team.data?.teamStreak ?? null} />
+      <div ref={rootRef} className="flex flex-col" style={{ minHeight: 'calc(100dvh - env(safe-area-inset-top, 0px))' }}>
+        <ChatHeader title={me.team.name} members={members.data?.length ?? me.team.memberCount ?? null} teamStreak={team.data?.teamStreakEnabled === false ? null : (team.data?.teamStreak ?? null)} onBack={onBack} />
         <div className="flex flex-1 flex-col justify-end gap-2 px-4 pb-3">
           {d && (
             <PinnedBanner

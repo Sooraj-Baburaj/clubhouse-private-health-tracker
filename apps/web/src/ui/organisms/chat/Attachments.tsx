@@ -83,7 +83,7 @@ export function AttachmentView({ a, own, authorId }: { a: AttachmentDto; own: bo
         <>
           <button type="button" onClick={() => setZoom(true)} className="block overflow-hidden rounded-[18px] border-0 bg-transparent p-0" aria-label="Open photo">
             {/* Chat thumbnails are square crops; a fixed box keeps the list from jumping as photos load. */}
-            <img src={a.thumbUrl ?? a.url ?? ''} alt="Shared photo" loading="lazy" decoding="async" className="aspect-square w-[220px] max-w-full object-cover" />
+            <img src={a.thumbUrl ?? a.url ?? ''} alt="Shared photo" draggable={false} loading="lazy" decoding="async" className="aspect-square w-[220px] max-w-full object-cover" />
           </button>
           <Dialog open={zoom} onClose={() => setZoom(false)} label="Photo" className="max-w-[min(520px,calc(100vw-24px))] overflow-hidden rounded-[28px] bg-surface" backdropClassName="bg-[rgba(10,8,6,0.8)]">
             <button type="button" onClick={() => setZoom(false)} className="block border-0 bg-transparent p-0" aria-label="Close photo">
@@ -95,7 +95,7 @@ export function AttachmentView({ a, own, authorId }: { a: AttachmentDto; own: bo
     case 'meme':
       return (
         <span className="flex flex-col gap-1">
-          {a.url ? <img src={a.url} alt={a.caption || 'Meme'} width={a.width ?? undefined} height={a.height ?? undefined} loading="lazy" decoding="async" className="max-h-[220px] w-[220px] max-w-full rounded-[18px] object-cover" /> : <span className="grid h-[150px] w-[220px] max-w-full place-items-center rounded-[18px] bg-neutral-200 text-[12px] font-bold text-neutral-700">Meme</span>}
+          {a.url ? <img src={a.url} alt={a.caption || 'Meme'} draggable={false} width={a.width ?? undefined} height={a.height ?? undefined} loading="lazy" decoding="async" className="max-h-[220px] w-[220px] max-w-full rounded-[18px] object-cover" /> : <span className="grid h-[150px] w-[220px] max-w-full place-items-center rounded-[18px] bg-neutral-200 text-[12px] font-bold text-neutral-700">Meme</span>}
           {a.caption && <span className="text-[13px] font-bold">{a.caption}</span>}
         </span>
       );

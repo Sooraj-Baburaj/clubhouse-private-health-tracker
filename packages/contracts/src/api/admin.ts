@@ -1,8 +1,8 @@
 import { z } from 'zod';
 import { ActivityLevel, AiModel, DayType, FoodTag, GoalType, MealSlot, MemeTone, NotificationType, Role, Sex, Units } from '../enums';
-import { NotificationDefault, QuietHours, Thresholds } from '../settings';
+import { BoardSettings, NotificationDefault, QuietHours, Thresholds } from '../settings';
 import { TriggerDefinition } from '../triggers';
-import { HHmmStr, IsoDateTime, LocalDateStr, Nutrients, ServingOptionSchema, type BandDto, type PersonRef } from './common';
+import { HHmmStr, IsoDateTime, LocalDateStr, Nutrients, ServingOptionSchema, type BandDto, type PersonRef, type ServingOptionDto } from './common';
 import type { TargetsDto } from './profile';
 import type { NotificationPrefDto } from './notifications';
 import type { PlanItemDto } from './plans';
@@ -20,6 +20,8 @@ export interface AdminDashboardResponse {
   needsAttention: { kind: string; text: string; url: string }[];
   chat: { messagesToday: number; memesToday: number; reportsPending: number };
   storage: { totalBytes: number; byKind: Record<string, number>; nextRunAt: string | null; lastRun: { at: string; imagesDeleted: number; bytesReclaimed: number } | null };
+  /** This week's top five (null when the leaderboard or its overview card is off). Hidden members are left out. */
+  board: { weekNumber: number; weekStart: string; weekEnd: string; rows: { person: PersonRef; rank: number; points: number; solidPct: number | null }[] } | null;
 }
 
 /* ───────── Members ───────── */
@@ -225,13 +227,15 @@ export interface AdminFoodRow {
   owner: PersonRef | null;
   team: boolean;
   per100g: Nutrients;
-  servingOptions: { label: string; grams: number }[];
+  servingOptions: ServingOptionDto[];
   defaultServing: string | null;
   tags: string[];
   category: string | null;
   confidence: number | null;
   uses: number;
   createdAt: string;
+  /** A member's saved recipe (category "recipe"): its ingredients, read-only for admins. */
+  recipe: { makes: number; ingredients: { name: string; portion: string; grams: number; kcal: number }[] } | null;
 }
 
 export const AdminFoodUpdate = z
@@ -413,7 +417,8 @@ export const TeamSettingsUpdate = z.object({
   privacyDefault: z.enum(['summary', 'full']).optional(),
   roastDefault: z.boolean().optional(),
   eatBackDefault: z.boolean().optional(),
-  featureFlags: z.object({ teamPulse: z.boolean(), roastMemes: z.boolean(), naturalLanguageEntry: z.boolean() }).partial().optional(),
+  featureFlags: z.object({ teamPulse: z.boolean(), roastMemes: z.boolean(), naturalLanguageEntry: z.boolean(), leaderboard: z.boolean() }).partial().optional(),
+  board: BoardSettings.partial().optional(),
   memes: z.object({ dailyChatCap: z.number().int().min(0).max(100), confidenceThreshold: z.number().min(0).max(1) }).partial().optional(),
   chat: z.object({ digestMinutes: z.number().int().min(5).max(240) }).partial().optional(),
   maintenanceBanner: z.object({ message: z.string().max(280), startsAt: IsoDateTime.nullable(), endsAt: IsoDateTime.nullable() }).nullable().optional(),

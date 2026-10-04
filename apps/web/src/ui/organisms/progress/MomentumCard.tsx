@@ -20,10 +20,7 @@ export function MomentumCard() {
             <span className="font-heading text-[46px] leading-none tabular">{s.current}</span>
             <span className="font-heading text-[20px]">day{s.current === 1 ? '' : 's'}</span>
           </span>
-          <span className="text-[13px] font-semibold text-on-accent-sub">
-            {note}
-            {d.team.enabled ? ` · team streak ${d.team.current}` : ''}
-          </span>
+          <span className="text-[13px] font-semibold text-on-accent-sub">{note}</span>
         </div>
         <span className="grid h-11 w-11 place-items-center rounded-full bg-on-accent text-accent">
           {s.current > 0 ? <Flame aria-hidden className="h-5 w-5" strokeWidth={2.75} /> : <ChevronRight aria-hidden className="h-5 w-5" strokeWidth={2.75} />}

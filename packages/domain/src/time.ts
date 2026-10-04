@@ -103,6 +103,21 @@ export function isoWeekKey(date: string): string {
   return weekStartOf(date);
 }
 
+/** Hours after local midnight when the day before counts as settled (late-night logs still land on it). */
+export const SETTLE_HOURS = 3;
+
+/** The last member-local date that has ended and settled: yesterday, once local time is past 03:00. */
+export function lastSettledDate(now: Date, tz: string): string {
+  return addDays(localDateOf(new Date(now.getTime() - SETTLE_HOURS * 3600_000), tz), -1);
+}
+
+/** ISO-8601 week number ("Week 41"): the week with the year's first Thursday is week 1. */
+export function isoWeekNumber(date: string): number {
+  const thursday = addDays(weekStartOf(date), 3);
+  const yearStart = `${thursday.slice(0, 4)}-01-01`;
+  return Math.floor(daysBetween(yearStart, thursday) / 7) + 1;
+}
+
 /** True when `minutes` falls inside [from, to), handling windows that wrap past midnight. */
 export function inWindow(minutes: number, from: string, to: string): boolean {
   const a = hhmmToMinutes(from);

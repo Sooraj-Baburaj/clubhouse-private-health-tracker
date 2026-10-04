@@ -43,6 +43,13 @@
       "when": 1790919222339,
       "tag": "0005_habit_team_order",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791109580902,
+      "tag": "0006_board_and_meals",
+      "breakpoints": true
     }
   ]
 }

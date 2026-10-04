@@ -6,7 +6,14 @@ const USER = 'arjun';
 test.describe('chat', () => {
   test('send a message and react to it', async ({ page }) => {
     await memberSignIn(page, USER);
-    await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Chat' }).click();
+    // Chat lives on the Team tab: its pill opens it (with unread messages, the tab opens it straight away).
+    await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: /^Team/ }).click();
+    await expect(page).toHaveURL(/\/(team|chat)$/);
+    if (page.url().endsWith('/team')) {
+      const pill = page.getByRole('button', { name: /^Open team chat/ });
+      // A pending unread redirect may still land first; either way the chat ends up open.
+      await pill.click({ timeout: 5_000 }).catch(() => undefined);
+    }
     await expect(page).toHaveURL(/\/chat$/);
 
     const text = `E2E hello crew ${uid()}`;

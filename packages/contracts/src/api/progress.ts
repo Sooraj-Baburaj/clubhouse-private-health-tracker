@@ -96,6 +96,9 @@ export interface TeamSummaryResponse {
   anonymisedCount: number;
   anonymisedPulse: { avgConsistency: number; sessions: number } | null;
   teamStreak: number;
+  /** Longest team streak so far (0 when the team streak is off). */
+  teamStreakBest: number;
+  teamStreakEnabled: boolean;
   myPulseOptIn: boolean;
 }
 

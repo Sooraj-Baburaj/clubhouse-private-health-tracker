@@ -14,6 +14,8 @@ export const qk = {
   progress: (part: string, arg?: string) => ['progress', part, arg ?? ''] as const,
   team: (date?: string) => ['team', date ?? 'today'] as const,
   memberDay: (id: string, date?: string) => ['team', 'member', id, date ?? 'today'] as const,
+  board: (week?: string) => ['team', 'board', week ?? 'current'] as const,
+  memberPoints: (id: string, week?: string) => ['team', 'points', id, week ?? 'current'] as const,
   chat: ['chat'] as const,
   chatMembers: ['chat-members'] as const,
   memes: ['memes'] as const,
@@ -27,4 +29,5 @@ export const qk = {
   foodLog: (id: string) => ['food-log', id] as const,
   logsForDate: (date: string) => ['logs', date] as const,
   food: (id: string) => ['food', id] as const,
+  recipe: (id: string) => ['recipe', id] as const,
 };

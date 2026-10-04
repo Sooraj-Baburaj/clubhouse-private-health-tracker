@@ -32,8 +32,12 @@ function toCatalog(f: FoodRow, scope: CatalogFood['scope']): CatalogFood {
     defaultServing: f.defaultServing,
     tags: f.tags,
     veg: f.veg,
+    recipeId: recipeIdOf(f),
   };
 }
+
+/** Recipe foods carry `recipe:<id>` as their external id. */
+export const recipeIdOf = (f: Pick<FoodRow, 'category' | 'externalId'>) => (f.category === 'recipe' && f.externalId?.startsWith('recipe:') ? f.externalId.slice(7) : null);
 
 /**
  * Snapshot or delta of the food catalogue for the browser cache (see FoodCatalogPage). Pages are ordered by id so

@@ -4,7 +4,6 @@ import type { MomentumResponse, StreakDto } from '@clubhouse/contracts';
 import { addDays, badgeFor } from '@clubhouse/domain';
 import { AnimatedNumber } from '@clubhouse/ui';
 import { cn } from '@/lib/cn';
-import { Avatar } from '@/ui/atoms/Avatar';
 import { dayMonth, shortDay } from '@/ui/organisms/today/dates';
 import { useListMotion } from '@/ui/organisms/today/motion';
 
@@ -90,7 +89,7 @@ export function DotGrid({ s, today }: { s: StreakDto; today: string }) {
   );
 }
 
-/** In-range and activity tiles plus the dark Team streak card with crew avatars. */
+/** In-range and activity streaks plus the best in-range run (the team streak lives on the Team tab). */
 export function StreakTiles({ data }: { data: MomentumResponse }) {
   const inRange = data.streaks.in_range;
   const act = data.streaks.activity;
@@ -111,22 +110,13 @@ export function StreakTiles({ data }: { data: MomentumResponse }) {
         </span>
         <span className="text-[12px] text-accent-2-800">{note(act, act.current === 1 ? 'week on plan' : 'weeks on plan')}</span>
       </div>
-      {data.team.enabled && (
-        <div className="col-span-2 flex items-center gap-4 rounded-[28px] bg-text p-4 text-bg">
-          <div className="flex flex-1 flex-col gap-0.5">
-            <span className="text-[12px] font-bold text-neutral-300">Team streak</span>
-            <span className="font-heading text-[32px] leading-tight tabular">
-              <AnimatedNumber value={data.team.current} /> <span className="font-body text-[14px]">days</span>
-            </span>
-            <span className="text-[12px] text-neutral-300">Best together: {data.team.best}</span>
-          </div>
-          <div className="flex" aria-label={`${data.crew.filter((c) => c.logged).length} of ${data.crew.length} logged today`}>
-            {data.crew.slice(0, 7).map((c) => (
-              <Avatar key={c.id} name={c.name} initials={c.initials} url={c.avatarUrl} size={28} active={c.logged} className="-mr-1.5 border-2 border-text" />
-            ))}
-          </div>
-        </div>
-      )}
+      <div className="flex flex-col gap-0.5 rounded-[28px] bg-surface p-4">
+        <span className="text-[12px] font-bold text-neutral-700">Best in range</span>
+        <span className="font-heading text-[32px] leading-tight tabular">
+          <AnimatedNumber value={inRange.best} />
+        </span>
+        <span className="text-[12px] text-neutral-700">{inRange.best === 1 ? 'day' : 'days'} in a row · your record</span>
+      </div>
     </div>
   );
 }

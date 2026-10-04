@@ -17,7 +17,8 @@ export function useSaveTeamSettings(onSaved?: (data: TeamSettingsData) => void) 
   const qc = useQueryClient();
   return useAction((body: TeamSettingsUpdate) => adminApi.settings.update(body), {
     success: 'Team settings saved',
-    invalidate: [qk.settings, ['me']],
+    // The Overview shows the leaderboard card only while it's switched on.
+    invalidate: [qk.settings, ['me'], qk.dashboard],
     onSuccess: (data) => {
       qc.setQueryData(qk.settings, data);
       onSaved?.(data);

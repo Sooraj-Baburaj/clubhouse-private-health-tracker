@@ -93,8 +93,8 @@ export function MemberDayFull({ d }: { d: MemberDayResponse }) {
                   <span className="min-w-0 truncate">{SLOT_LABEL[f.mealSlot]}</span>
                 </span>
               }
-              sub={`${f.items.map((i) => i.name).join(', ')} · ${timeOf(f.loggedAt)}`}
-              right={<span className="text-[13px] font-bold tabular">{fmt(f.totals.kcal)} kcal</span>}
+              sub={`${f.pendingDetails ? 'Photo — foods to follow' : f.items.map((i) => i.name).join(', ')} · ${timeOf(f.loggedAt)}`}
+              right={<span className="text-[13px] font-bold tabular">{f.pendingDetails ? '—' : `${fmt(f.totals.kcal)} kcal`}</span>}
             />
           ))}
         </ListGroup>

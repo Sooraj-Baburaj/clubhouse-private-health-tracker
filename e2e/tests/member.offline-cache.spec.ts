@@ -41,7 +41,8 @@ test.describe('offline caches', () => {
 
     // Offline: the chat opens from the cache.
     await page.getByRole('button', { name: 'Back' }).click();
-    await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Chat' }).click();
+    await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: /^Team/ }).click();
+    if (!page.url().endsWith('/chat')) await page.getByRole('button', { name: /^Open team chat/ }).click();
     await expect(page.getByRole('group').first()).toBeVisible();
 
     // Back online: a reaction from someone else arrives through the delta feed.

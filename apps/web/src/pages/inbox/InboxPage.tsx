@@ -1,9 +1,10 @@
-import { useNavigate, useRouter } from '@tanstack/react-router';
+import { useNavigate, useRouter, useSearch } from '@tanstack/react-router';
 import { CheckCheck, Settings } from 'lucide-react';
 import { AnimatePresence, MotionConfig, motion } from 'motion/react';
 import { useEffect, useRef } from 'react';
 import { fadeUp, stagger } from '@clubhouse/ui';
 import { useInbox, useMarkInboxRead } from '@/features/inbox';
+import { isAdminPath, openLink } from '@/app/openLink';
 import { usePaneRef } from '@/app/pane';
 import { Button } from '@/ui/atoms/Button';
 import { IconButton } from '@/ui/atoms/IconButton';
@@ -27,6 +28,15 @@ export function InboxPage() {
   const unread = items.filter((n) => !n.readAt).length;
   const back = () => (window.history.length > 1 ? router.history.back() : void navigate({ to: '/', search: {} }));
 
+  // A push tap for an admin link with no app window open lands here (sw.ts). Only /admin paths, so this can't be
+  // used as an open redirect; the param is dropped first so going back doesn't reopen it.
+  const { open: pending } = useSearch({ from: '/shell/inbox' });
+  useEffect(() => {
+    if (!pending) return;
+    void navigate({ to: '/inbox', search: {}, replace: true });
+    if (isAdminPath(pending)) openLink(router.history, pending, { gesture: false });
+  }, [pending, navigate, router]);
+
   const { hasNextPage, isFetchingNextPage, fetchNextPage } = q;
   useEffect(() => {
     const t = more.current;
@@ -38,7 +48,7 @@ export function InboxPage() {
 
   const open = (id: string, url: string, isUnread: boolean) => {
     if (isUnread) markRead.mutate([id]);
-    if (url) router.history.push(url);
+    if (url) openLink(router.history, url);
   };
 
   return (

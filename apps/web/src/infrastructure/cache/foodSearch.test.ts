@@ -15,6 +15,7 @@ const food = (id: string, name: string, aliases: string[] = [], extra: Partial<C
   defaultServing: null,
   tags: [],
   veg: true,
+  recipeId: null,
   ...extra,
 });
 

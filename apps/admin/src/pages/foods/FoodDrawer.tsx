@@ -1,4 +1,4 @@
-import { AlertTriangle, GitMerge, Plus, Trash2, Users, X } from 'lucide-react';
+import { AlertTriangle, GitMerge, Trash2, Users } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import {
   AdminFoodUpdate,
@@ -18,17 +18,16 @@ import {
   DrawerPanel,
   Field,
   FormGrid,
-  IconButton,
   Input,
   Inset,
   KeyValues,
   NumberInput,
   PersonCell,
   Pill,
-  Select,
   ToggleRow,
 } from '@/ui';
 import { zodErrors } from '../diets/shared';
+import { portionRowsOf, PortionsEditor, toServingOptions, type PortionRow } from './PortionsEditor';
 
 const NUTRIENTS = [
   { key: 'kcal', label: 'Energy (kcal)' },
@@ -40,7 +39,8 @@ const NUTRIENTS = [
 
 type NutrientDraft = Record<keyof Nutrients, number | null>;
 
-export function SourcePill({ food }: { food: Pick<AdminFoodRow, 'source' | 'confidence'> }) {
+export function SourcePill({ food }: { food: Pick<AdminFoodRow, 'source' | 'confidence'> & Partial<Pick<AdminFoodRow, 'recipe'>> }) {
+  if (food.recipe) return <Pill tone="recipe">Recipe</Pill>;
   if (food.source === 'ai')
     return (
       <span
@@ -79,7 +79,15 @@ export function FoodDrawer({
       onClose={onClose}
       size="lg"
       eyebrow={
-        food ? (food.team ? 'Team food' : food.owner ? 'Member food' : 'Database food') : 'Food'
+        food
+          ? food.recipe
+            ? 'Member recipe'
+            : food.team
+              ? 'Team food'
+              : food.owner
+                ? 'Member food'
+                : 'Database food'
+          : 'Food'
       }
       title={food?.name}
       subtitle={food?.brand ?? undefined}
@@ -142,10 +150,9 @@ function FoodForm({ food, onMerge }: { food: AdminFoodRow; onMerge: () => void }
   const [brand, setBrand] = useState(food.brand ?? '');
   const [category, setCategory] = useState(food.category ?? '');
   const [n, setN] = useState<NutrientDraft>({ ...food.per100g });
-  const [servings, setServings] = useState(() =>
-    food.servingOptions.map((s) => ({ ...s, grams: s.grams as number | null })),
-  );
-  const [defaultServing, setDefaultServing] = useState(food.defaultServing ?? '');
+  const [portions, setPortions] = useState<PortionRow[]>(() => portionRowsOf(food));
+  // A recipe's numbers come from its ingredients; the member edits it in the app.
+  const recipe = food.recipe;
   const [tags, setTags] = useState<FoodTag[]>(() =>
     food.tags.filter((t): t is FoodTag => (FOOD_TAGS as readonly string[]).includes(t)),
   );
@@ -161,30 +168,24 @@ function FoodForm({ food, onMerge }: { food: AdminFoodRow; onMerge: () => void }
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
+    const built = recipe ? null : toServingOptions(portions);
     const body = {
       name: name.trim(),
       brand: brand.trim() || null,
       category: category.trim() || null,
-      per100g: n,
-      servingOptions: servings.map((s) => ({ label: s.label.trim(), grams: s.grams })),
-      defaultServing: defaultServing || null,
+      ...(built ? { per100g: n, servingOptions: built.options, defaultServing: built.defaultServing } : {}),
       tags,
       verified,
     };
     const parsed = AdminFoodUpdate.safeParse(body);
+    const errs: Record<string, string> = { ...(built?.errors ?? {}) };
     if (!parsed.success) {
-      const errs = zodErrors(parsed.error);
+      Object.assign(errs, zodErrors(parsed.error));
       if (errs.name) errs.name = 'Enter a name.';
-      for (const k of Object.keys(errs)) {
-        if (k.startsWith('per100g.')) errs[k] = 'Enter a number, 0 or more.';
-        else if (/^servingOptions\.\d+\.label$/.test(k)) errs[k] = 'Add a label.';
-        else if (/^servingOptions\.\d+\.grams$/.test(k)) errs[k] = 'Grams above 0.';
-      }
-      setErrors(errs);
-      return;
+      for (const k of Object.keys(errs)) if (k.startsWith('per100g.')) errs[k] = 'Enter a number, 0 or more.';
     }
-    if (defaultServing && !servings.some((s) => s.label.trim() === defaultServing)) {
-      setErrors({ defaultServing: 'Pick one of the serving options.' });
+    if (!parsed.success || Object.keys(errs).length) {
+      setErrors(errs);
       return;
     }
     setErrors({});
@@ -269,6 +270,7 @@ function FoodForm({ food, onMerge }: { food: AdminFoodRow; onMerge: () => void }
       <section aria-labelledby="n100-h" className="flex flex-col gap-3">
         <h3 id="n100-h" className="h3">
           Nutrition per 100 g
+          {recipe && <span className="ml-2 text-[12px] font-normal text-muted">From the ingredients</span>}
         </h3>
         <div
           className="grid gap-2"
@@ -280,6 +282,7 @@ function FoodForm({ food, onMerge }: { food: AdminFoodRow; onMerge: () => void }
                 value={n[x.key]}
                 min={0}
                 step={0.1}
+                readOnly={!!recipe}
                 onValue={(v) => setN((s) => ({ ...s, [x.key]: v }))}
                 invalid={!!errors[`per100g.${x.key}`]}
               />
@@ -301,95 +304,21 @@ function FoodForm({ food, onMerge }: { food: AdminFoodRow; onMerge: () => void }
         )}
       </section>
 
-      <section aria-labelledby="serv-h" className="flex flex-col gap-3">
-        <div className="flex items-baseline justify-between gap-2">
-          <h3 id="serv-h" className="h3">
-            Serving options
-          </h3>
-          <span className="text-[12px] text-muted">{servings.length}/12</span>
-        </div>
-        {errors.servingOptions && (
-          <p role="alert" className="m-0 text-[12px] font-semibold text-accent-dark">
-            {servings.length === 0 ? 'Add at least one serving.' : errors.servingOptions}
-          </p>
-        )}
-        <ul className="m-0 flex list-none flex-col gap-2 p-0">
-          {servings.map((s, i) => (
-            <li
-              key={i}
-              className="grid items-end gap-2"
-              style={{ gridTemplateColumns: 'minmax(0,1fr) 110px 32px' }}
-            >
-              <Field
-                label={i === 0 ? 'Label' : <span className="sr-only">Label</span>}
-                error={errors[`servingOptions.${i}.label`]}
-              >
-                <Input
-                  value={s.label}
-                  maxLength={40}
-                  placeholder="1 katori"
-                  onChange={(e) =>
-                    setServings((l) =>
-                      l.map((x, j) => (j === i ? { ...x, label: e.target.value } : x)),
-                    )
-                  }
-                  className="h-9 text-[13px]"
-                />
-              </Field>
-              <Field
-                label={i === 0 ? 'Grams' : <span className="sr-only">Grams</span>}
-                error={errors[`servingOptions.${i}.grams`]}
-              >
-                <NumberInput
-                  value={s.grams}
-                  min={1}
-                  max={5000}
-                  onValue={(v) =>
-                    setServings((l) => l.map((x, j) => (j === i ? { ...x, grams: v } : x)))
-                  }
-                  className="h-9"
-                />
-              </Field>
-              <IconButton
-                label={`Remove serving ${s.label || i + 1}`}
-                size={32}
-                className="mb-[2px]"
-                onClick={() => setServings((l) => l.filter((_, j) => j !== i))}
-                disabled={servings.length <= 1}
-              >
-                <X className="h-4 w-4" />
-              </IconButton>
-            </li>
-          ))}
-        </ul>
-        <div className="flex flex-wrap items-end gap-3">
-          <Button
-            size="sm"
-            variant="ghost"
-            icon={<Plus className="h-3.5 w-3.5" />}
-            disabled={servings.length >= 12}
-            onClick={() => setServings((l) => [...l, { label: '', grams: null }])}
-          >
-            Add serving
-          </Button>
-          <Field
-            label="Default serving"
-            error={errors.defaultServing}
-            className="min-w-[200px] flex-1"
-          >
-            <Select value={defaultServing} onChange={(e) => setDefaultServing(e.target.value)}>
-              <option value="">None (100 g)</option>
-              {servings
-                .filter((s) => s.label.trim())
-                .map((s, i) => (
-                  <option key={`${s.label}-${i}`} value={s.label.trim()}>
-                    {s.label.trim()}
-                  </option>
-                ))}
-            </Select>
-          </Field>
-        </div>
-      </section>
+      {recipe && <RecipeIngredients recipe={recipe} />}
+
+      <PortionsEditor
+        rows={portions}
+        onChange={setPortions}
+        errors={errors}
+        readOnly={!!recipe}
+        hint={
+          recipe
+            ? 'A recipe is logged by the serving; the member changes it in the app.'
+            : food.source === 'member' && food.owner
+              ? `These are the portions ${food.owner.name.split(' ')[0]} entered. Without a weight, members log by that unit only.`
+              : 'Weight in g, or ml for volume units. ★ is the portion members see first.'
+        }
+      />
 
       <Field
         as="div"
@@ -419,5 +348,38 @@ function FoodForm({ food, onMerge }: { food: AdminFoodRow; onMerge: () => void }
       />
       {update.isPending && <span className="text-[12px] text-muted">Saving…</span>}
     </form>
+  );
+}
+
+/** A member recipe's ingredients and what the batch makes, read-only (admin design: Foods drawer). */
+function RecipeIngredients({ recipe }: { recipe: NonNullable<AdminFoodRow['recipe']> }) {
+  const total = recipe.ingredients.reduce((t, g) => t + g.kcal, 0);
+  return (
+    <section aria-labelledby="ingr-h" className="flex flex-col gap-2">
+      <div className="flex items-baseline justify-between gap-3">
+        <h3 id="ingr-h" className="h3">
+          Ingredients
+        </h3>
+        <span className="text-[12px] text-muted">Read-only · edited by the member</span>
+      </div>
+      <div className="overflow-hidden rounded-md border border-hairline bg-white">
+        <ul className="m-0 list-none p-0">
+          {recipe.ingredients.map((g, i) => (
+            <li key={`${g.name}-${i}`} className="grid gap-2.5 border-b border-hairline px-3.5 py-2 text-[13px] [grid-template-columns:minmax(0,1fr)_110px_60px_70px]">
+              <span className="truncate font-medium">{g.name}</span>
+              <span className="truncate">{g.portion}</span>
+              <span className="font-mono text-[12px] text-muted">{fmtInt(g.grams)} g</span>
+              <span className="text-right font-mono text-[12px]">{fmtInt(g.kcal)} kcal</span>
+            </li>
+          ))}
+        </ul>
+        <div className="flex justify-between bg-bg px-3.5 py-2 text-[13px] font-semibold">
+          <span>
+            {plural(recipe.ingredients.length, 'ingredient')} · makes {plural(recipe.makes, 'serving')}
+          </span>
+          <span className="font-mono text-[12px]">{fmtInt(total)} kcal total</span>
+        </div>
+      </div>
+    </section>
   );
 }

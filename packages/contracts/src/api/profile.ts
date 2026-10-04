@@ -16,6 +16,8 @@ export const PrivacyPrefs = z.object({
   teamPulseOptIn: z.boolean(),
   roastMemes: z.boolean(),
   roastPromptSeen: z.boolean(),
+  /** On the crew leaderboard (rank, points, awards). Off: left out of everyone's board, still sees it. */
+  showOnBoard: z.boolean(),
 });
 export type PrivacyPrefs = z.infer<typeof PrivacyPrefs>;
 
@@ -157,7 +159,7 @@ export interface MeResponse {
     mealSlots: MealSlotSettings;
     thresholds: Thresholds;
     streaks: StreakSettings;
-    featureFlags: { teamPulse: boolean; roastMemes: boolean; naturalLanguageEntry: boolean };
+    featureFlags: { teamPulse: boolean; roastMemes: boolean; naturalLanguageEntry: boolean; leaderboard: boolean };
     maintenanceBanner: { message: string } | null;
     memberCount: number;
   };

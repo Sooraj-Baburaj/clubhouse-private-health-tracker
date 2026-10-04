@@ -25,6 +25,7 @@
     "seed:foods": "pnpm --filter @clubhouse/db seed:foods",
     "seed:triggers": "pnpm --filter @clubhouse/db seed:triggers",
     "seed:demo": "pnpm --filter @clubhouse/server seed:demo",
+    "board:backfill": "pnpm --filter @clubhouse/server board:backfill",
     "seed:all": "pnpm seed:static && pnpm seed:foods && pnpm seed:triggers",
     "setup:super-admin": "pnpm --filter @clubhouse/db setup:super-admin",
     "icons": "pnpm --filter @clubhouse/web icons"

@@ -1,26 +1,30 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Outlet, useLocation, useRouter } from '@tanstack/react-router';
+import { Outlet, useLocation, useNavigate, useRouter, useSearch } from '@tanstack/react-router';
 import { AnimatePresence, motion, useReducedMotion, type PanInfo } from 'motion/react';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { api } from '@clubhouse/client';
 import { useDocumentVisible, useInterval, useOnline } from '@clubhouse/ui';
 import { live } from '@/infrastructure/realtime';
 import { qk } from '@/features/keys';
-import { ChatPage } from '@/pages/chat/ChatPage';
 import { DietPage } from '@/pages/diet/DietPage';
 import { LogSheet } from '@/pages/log/LogSheet';
 import { WeightSheet } from '@/pages/log/WeightSheet';
 import { ProgressPage } from '@/pages/progress/ProgressPage';
+import { TeamPage } from '@/pages/team/TeamPage';
 import { TodayPage } from '@/pages/today/TodayPage';
+import { EdgeSwipe } from '@/ui/molecules/EdgeSwipe';
 import { ConnectivityPill } from '@/ui/molecules/StatusPills';
+import { SnapPill } from '@/ui/organisms/meal/SnapPill';
+import { ChatFab } from '@/ui/organisms/team/ChatFab';
 import { useMeData } from '@/features/me';
 import { AuthGate } from './AuthGate';
-import { TAB_PATHS } from './routes';
+import { ChatLayer } from './ChatLayer';
+import { CHAT_PATH, preloadMealFlow, TAB_PATHS } from './routes';
 import { TabBar } from './TabBar';
 import { useUi, type TabKey } from './uiStore';
 import { PaneContext } from './pane';
 
-const TABS: Record<TabKey, () => ReactNode> = { today: TodayPage, diet: DietPage, progress: ProgressPage, chat: ChatPage };
+const TABS: Record<TabKey, () => ReactNode> = { today: TodayPage, diet: DietPage, progress: ProgressPage, team: TeamPage };
 
 export function AppShell() {
   return (
@@ -32,17 +36,27 @@ export function AppShell() {
 
 function Shell() {
   const location = useLocation();
+  const navigate = useNavigate();
   const tabFromPath = (TAB_PATHS as Record<string, TabKey>)[location.pathname] ?? null;
   const setTab = useUi((s) => s.setTab);
   const lastTab = useUi((s) => s.lastTab);
   const activeTab = tabFromPath ?? lastTab;
-  const isStack = tabFromPath === null;
+  // The chat is a layer over the tabs, not a stack screen: the tab it was opened from stays underneath.
+  const isChat = location.pathname === CHAT_PATH;
+  const isStack = tabFromPath === null && !isChat;
   useEffect(() => {
     if (tabFromPath) setTab(tabFromPath);
   }, [tabFromPath, setTab]);
 
-  const unread = useUnreadAndLive(activeTab === 'chat' && !isStack);
+  const unread = useUnreadAndLive(isChat);
   const me = useMeData();
+  // Fetch the meal flow's code straight after the first render, so Snap and logging work offline from the start.
+  useEffect(() => {
+    void preloadMealFlow().catch(() => undefined);
+  }, []);
+  // Snapping from a past day on Today logs to that day, like the log sheet.
+  const search = useSearch({ strict: false });
+  const snapDate = location.pathname === '/' && typeof search.date === 'string' ? search.date : undefined;
 
   return (
     <div className="relative mx-auto flex h-dvh w-full max-w-[520px] flex-col overflow-hidden bg-bg text-text shadow-lg">
@@ -54,12 +68,22 @@ function Shell() {
         )}
         <ConnectivityPill />
       </div>
-      <TabsHost active={activeTab} hidden={isStack} />
+      <TabsHost active={activeTab} hidden={isStack || isChat} />
       <StackHost isStack={isStack} pathKey={location.pathname} />
+      <ChatLayer open={isChat} />
       <AnimatePresence>
-        {!isStack && (
+        {!isStack && !isChat && (
           <motion.div key="tabbar" initial={{ y: 100 }} animate={{ y: 0 }} exit={{ y: 100 }} transition={{ type: 'spring', stiffness: 420, damping: 38 }}>
             <TabBar active={tabFromPath} chatUnread={unread.chat} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+      {/* Floating pills above the tab bar, bottom right: Chat on Team, Snap on Today. */}
+      <AnimatePresence>
+        {tabFromPath === 'team' && <ChatFab key="chat" unread={unread.chat} />}
+        {tabFromPath === 'today' && (
+          <motion.div key="snap" className="pointer-events-none absolute right-4 z-20" style={{ bottom: 'calc(max(env(safe-area-inset-bottom, 0px), 14px) + 90px)' }} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }}>
+            <SnapPill onClick={() => void navigate({ to: '/log/food', search: { view: 'snap', date: snapDate } })} />
           </motion.div>
         )}
       </AnimatePresence>
@@ -151,22 +175,6 @@ function StackHost({ isStack, pathKey }: { isStack: boolean; pathKey: string }) 
   );
 }
 
-function EdgeSwipe({ onBack }: { onBack: () => void }) {
-  const start = useRef<{ x: number; y: number } | null>(null);
-  return (
-    <div
-      aria-hidden
-      className="absolute inset-y-0 left-0 z-10 w-4"
-      style={{ touchAction: 'pan-y' }}
-      onPointerDown={(e) => (start.current = { x: e.clientX, y: e.clientY })}
-      onPointerUp={(e) => {
-        if (start.current && e.clientX - start.current.x > 70 && Math.abs(e.clientY - start.current.y) < 60) onBack();
-        start.current = null;
-      }}
-    />
-  );
-}
-
 /** Unread counts plus realtime hints; falls back to polling when the socket is down (SYS-CHAT-04). */
 function useUnreadAndLive(onChat: boolean) {
   const qc = useQueryClient();
@@ -185,7 +193,11 @@ function useUnreadAndLive(onChat: boolean) {
           void qc.invalidateQueries({ queryKey: qk.inbox });
           void qc.invalidateQueries({ queryKey: qk.unread });
         }
-        if (event === 'pulse') void qc.invalidateQueries({ queryKey: ['today'] });
+        if (event === 'pulse') {
+          // A teammate logged something: their Crew today row and the leaderboard may have moved.
+          void qc.invalidateQueries({ queryKey: ['today'] });
+          void qc.invalidateQueries({ queryKey: ['team'] });
+        }
       }),
     [qc],
   );

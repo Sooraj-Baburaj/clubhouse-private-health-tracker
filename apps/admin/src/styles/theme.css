@@ -19,12 +19,15 @@
   --color-in-fg: #1e5b2e;
   --color-under-bg: #fbefd9;
   --color-under-fg: #7a4b00;
+  --color-under-border: #f0d18f;
   --color-over-bg: #f8d9e5;
   --color-over-fg: #8c1f50;
   --color-none-bg: #eeece7;
   --color-none-fg: #4a4a55;
   --color-ai-bg: #efe9fb;
   --color-ai-fg: #5b3aa6;
+  --color-recipe-bg: #e4e6f7;
+  --color-recipe-fg: #2e3577;
 
   --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-display: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;

@@ -51,6 +51,25 @@ export function per100gFromServing(n: NutrientTotals, grams: number): Per100g {
   return { kcal: round1(n.kcal * f), protein: round1(n.protein * f), carbs: round1(n.carbs * f), fat: round1(n.fat * f), fibre: round1(n.fibre * f) };
 }
 
+/**
+ * A dish logged as one item: its ingredients are for the whole batch of `batch` servings and `eaten` of them were
+ * eaten, so the item is Σ ingredients × eaten ÷ batch (both weight and nutrition).
+ */
+export function dishNutrition(components: { nutrition: NutrientTotals; grams: number }[], batch: number, eaten: number): { nutrition: NutrientTotals; grams: number; total: NutrientTotals; totalGrams: number } {
+  const total = components.reduce(
+    (a, x) => ({ kcal: a.kcal + x.nutrition.kcal, protein: a.protein + x.nutrition.protein, carbs: a.carbs + x.nutrition.carbs, fat: a.fat + x.nutrition.fat, fibre: a.fibre + x.nutrition.fibre }),
+    { kcal: 0, protein: 0, carbs: 0, fat: 0, fibre: 0 },
+  );
+  const totalGrams = components.reduce((a, x) => a + (x.grams > 0 ? x.grams : 0), 0);
+  const share = batch > 0 ? Math.max(0, eaten) / batch : 0;
+  return {
+    nutrition: { kcal: round1(total.kcal * share), protein: round1(total.protein * share), carbs: round1(total.carbs * share), fat: round1(total.fat * share), fibre: round1(total.fibre * share) },
+    grams: Math.round(totalGrams * share * 10) / 10,
+    total: roundTotals(total),
+    totalGrams: Math.round(totalGrams * 10) / 10,
+  };
+}
+
 /** Energy check: kcal ≈ 4·protein + 4·carbs + 9·fat (+2·fibre). Returns the relative error. */
 export function energyMismatch(n: Per100g): number {
   const computed = 4 * n.protein + 4 * Math.max(0, n.carbs - n.fibre) + 2 * n.fibre + 9 * n.fat;

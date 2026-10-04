@@ -2,7 +2,7 @@ import { useNavigate, useSearch } from '@tanstack/react-router';
 import { BadgeCheck, Database, Upload } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { FOOD_SOURCES, type AdminFoodRow } from '@clubhouse/contracts';
-import { energyMismatch } from '@clubhouse/domain';
+import { energyMismatch, isWeightUnit, weightUnitFor } from '@clubhouse/domain';
 import { useDebounced } from '@clubhouse/ui';
 import { useFoodList, useVerifyFood, type FoodListQuery } from '@/features/foods';
 import { fmtDateTime, fmtInt, fmtNum, fmtRelative, humanize } from '@/lib/format';
@@ -23,6 +23,14 @@ import { ImportFoodsModal } from './ImportFoodsModal';
 import { MergeFoodModal } from './MergeFoodModal';
 
 const LIMIT = 200;
+
+/** The portion members see first, with its weight (≈ when estimated) and calories. */
+function defaultPortion(r: AdminFoodRow) {
+  const o = r.servingOptions.find((x) => x.label === r.defaultServing) ?? r.servingOptions[0];
+  if (!o) return null;
+  const weight = o.unit && isWeightUnit(o.unit) ? '' : ` · ${o.estimated ? '≈' : ''}${Math.round(o.grams)} ${weightUnitFor(o.unit)}`;
+  return { text: `${o.label}${weight}`, kcal: (r.per100g.kcal * o.grams) / 100 };
+}
 
 /** Food database curation: server-side search/filters, edit drawer, verify, promote, merge, delete, CSV import. */
 export function FoodsPage() {
@@ -77,7 +85,7 @@ export function FoodsPage() {
   ): Column<AdminFoodRow> => ({
     id,
     header,
-    width: id === 'kcal' ? '64px' : '56px',
+    width: id === 'kcal' ? '84px' : '56px',
     align: 'end',
     sortValue: (r) => r.per100g[id],
     cell: (r) => (
@@ -148,7 +156,32 @@ export function FoodsPage() {
           <Pill tone="muted">Global</Pill>
         ),
     },
-    num('kcal', 'kcal'),
+    {
+      id: 'portion',
+      header: 'Default portion',
+      width: 'minmax(150px,1fr)',
+      sortValue: (r) => defaultPortion(r)?.kcal ?? null,
+      cell: (r) => {
+        const d = defaultPortion(r);
+        return d ? (
+          <div className="flex min-w-0 flex-col leading-[1.35]">
+            <span className="truncate text-[13px]">{d.text}</span>
+            <Mono className="text-[12px] text-muted">{fmtInt(d.kcal)} kcal</Mono>
+          </div>
+        ) : (
+          <span className="text-[13px] text-muted">—</span>
+        );
+      },
+    },
+    {
+      id: 'portions',
+      header: 'Portions',
+      width: '72px',
+      align: 'end',
+      sortValue: (r) => r.servingOptions.length,
+      cell: (r) => <Mono className="text-muted">{r.servingOptions.length}</Mono>,
+    },
+    num('kcal', 'kcal/100g'),
     num('protein', 'P'),
     num('carbs', 'C'),
     num('fat', 'F'),
@@ -200,7 +233,7 @@ export function FoodsPage() {
             : 'Curation'
         }
         title="Food database"
-        description="Tidy up member-created and AI-estimated foods: check the numbers, verify, merge duplicates, and promote good ones to the whole team. Nutrition is per 100 g."
+        description="Tidy up member-created and AI-estimated foods: check the numbers and portions, verify, merge duplicates, and promote good ones to the whole team. Macros are per 100 g; recipes are read-only."
         actions={
           <Button icon={<Upload className="h-4 w-4" />} onClick={() => setImportOpen(true)}>
             Import CSV
@@ -215,7 +248,7 @@ export function FoodsPage() {
         error={q.error}
         onRetry={() => void q.refetch()}
         rowKey={(r) => r.id}
-        minWidth={1240}
+        minWidth={1480}
         pageSize={100}
         initialSort={{ id: 'created', dir: 'desc' }}
         // Search runs on the server (names, brands and aliases); the table's own text filter is a pass-through.

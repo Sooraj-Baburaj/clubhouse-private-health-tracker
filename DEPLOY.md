@@ -114,6 +114,16 @@ Create a `production` environment with these secrets:
 Deploys and migrations are not atomic, so schema changes follow expand → deploy → contract: add columns/tables first,
 ship code that uses them, and remove old ones in a later release.
 
+### Leaderboard and meal logging release (migration `0006_board_and_meals`)
+
+1. Let `migrate.yml` apply `0006_board_and_meals` **before** the new build goes live (it only adds tables, columns and
+   settings defaults, so the running version keeps working).
+2. Deploy.
+3. Once, from a machine with `DATABASE_URL_MIGRATE`: `DATABASE_URL=$DATABASE_URL_MIGRATE pnpm board:backfill`. It fills
+   the leaderboard from the last 35 days of logs, closes finished weeks quietly (no chat posts or pushes) and sets the
+   👑. Without it the board starts empty and fills from the next nightly rollover. Safe to re-run.
+4. Members' phones pick up the new food catalogue format and query cache on their next open (one re-download).
+
 ## 8. Backups and restore drill
 
 Supabase Free has no automated backups and pauses projects after 7 idle days (the minute pinger keeps it awake).

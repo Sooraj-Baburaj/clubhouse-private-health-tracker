@@ -129,6 +129,7 @@ export const NOTIFICATION_TYPES = [
   'ai_budget_alert',
   'weigh_in_reminder',
   'habit_reminder',
+  'board_results',
   'system',
 ] as const;
 export const NotificationType = z.enum(NOTIFICATION_TYPES);

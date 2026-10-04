@@ -1,12 +1,12 @@
 import { eq } from 'drizzle-orm';
-import type { MealSlot, RecognisedItemDto, RecognitionResponse } from '@clubhouse/contracts';
+import type { FoodAlternativeDto, MealSlot, RecognisedItemDto, RecognitionResponse } from '@clubhouse/contracts';
 import type { Recognition } from '@clubhouse/ai-gateway';
-import { nutritionFor, roundTotals } from '@clubhouse/domain';
+import { householdPortion, nutritionFor, round1, roundTotals } from '@clubhouse/domain';
 import { schema as s } from '@clubhouse/db';
 import type { Container } from '../container';
 import type { AuthUser } from '../interface/http/types';
 import { memberClock } from './clockCtx';
-import { matchFood } from './foods';
+import { MATCH_MIN, matchFoods } from './foods';
 import { storeImage } from './media';
 import { getTeam } from './team';
 
@@ -23,47 +23,70 @@ const MESSAGES: Record<string, string> = {
 };
 
 function failure(reason: string, callId: string | null, imageId: string | null): RecognitionResponse {
-  return { ok: false, reason, message: MESSAGES[reason] ?? MESSAGES.error!, callId, imageId, items: [], overallConfidence: 0, lowConfidence: true, note: '' };
+  return { ok: false, reason, message: MESSAGES[reason] ?? MESSAGES.error!, callId, imageId, items: [], overallConfidence: 0, lowConfidence: true, note: '', dishName: null };
 }
 
-/** Map model items to foods in our database (SYS-AI-16); unmatched items keep the model's estimate, flagged. */
+type FoodRow = Awaited<ReturnType<typeof matchFoods>>[number]['food'];
+const scopeOf = (f: FoodRow, user: AuthUser): FoodAlternativeDto['scope'] => (f.ownerId === user.id ? 'mine' : f.teamId ? 'team' : 'global');
+const alternative = (f: FoodRow, user: AuthUser): FoodAlternativeDto => ({ foodId: f.id, name: f.name, per100g: f.per100g, servingOptions: f.servingOptions, verified: f.verified, scope: scopeOf(f, user) });
+
+/**
+ * Map model items to foods in our database (SYS-AI-16): the best match supplies the nutrition, near matches become
+ * "Did you mean" chips, and unmatched items keep the model's estimate, flagged.
+ */
 async function toItems(c: Container, user: AuthUser, r: Recognition): Promise<RecognisedItemDto[]> {
-  const out: RecognisedItemDto[] = [];
-  for (const it of r.items) {
-    const m = await matchFood(c, user, it.matchHint || it.name);
-    const household = { label: it.householdMeasure, grams: Math.round(it.portionGrams / Math.max(it.quantity, 0.25)) };
-    if (m) {
-      const opts = [household, ...m.food.servingOptions.filter((o) => o.label !== household.label)];
-      out.push({
-        name: m.food.name,
-        foodId: m.food.id,
-        matched: true,
-        grams: Math.round(it.portionGrams),
-        servingLabel: it.householdMeasure,
-        quantity: it.quantity,
-        confidence: it.confidence,
-        nutrition: roundTotals(nutritionFor(m.food.per100g, it.portionGrams)),
-        per100g: m.food.per100g,
-        servingOptions: opts.slice(0, 8),
-        aiEstimate: false,
-      });
-    } else {
-      out.push({
+  return Promise.all(
+    r.items.map(async (it): Promise<RecognisedItemDto> => {
+      const candidates = await matchFoods(c, user, it.matchHint || it.name);
+      const best = candidates[0] && candidates[0].similarity >= MATCH_MIN ? candidates[0] : null;
+      // "2 rotis" is two of "1 roti": the member changes the count, not the label.
+      const hp = householdPortion(it.householdMeasure, it.quantity, it.portionGrams);
+      const household = { label: hp.label, grams: round1(hp.grams), estimated: true };
+      const alternatives = candidates.filter((x) => x !== best).slice(0, 3).map((x) => alternative(x.food, user));
+      if (best) {
+        const m = best.food;
+        // The food's own unit weighs what our database says; the AI only counts how many.
+        const own = m.servingOptions.find((o) => o.label.toLowerCase() === hp.label.toLowerCase());
+        const unit = own ?? household;
+        const grams = unit.grams * hp.qty;
+        const opts = [unit, ...m.servingOptions.filter((o) => o !== own)];
+        return {
+          name: m.name,
+          foodId: m.id,
+          matched: true,
+          grams: Math.round(grams),
+          servingLabel: unit.label,
+          quantity: hp.qty,
+          confidence: it.confidence,
+          nutrition: roundTotals(nutritionFor(m.per100g, grams)),
+          per100g: m.per100g,
+          servingOptions: opts.slice(0, 8),
+          aiEstimate: false,
+          scope: scopeOf(m, user),
+          verified: m.verified,
+          alternatives,
+          tags: m.tags,
+        };
+      }
+      return {
         name: it.name,
         foodId: null,
         matched: false,
         grams: Math.round(it.portionGrams),
-        servingLabel: it.householdMeasure,
-        quantity: it.quantity,
+        servingLabel: hp.label,
+        quantity: hp.qty,
         confidence: it.confidence,
         nutrition: roundTotals(nutritionFor(it.estimatePer100g, it.portionGrams)),
         per100g: it.estimatePer100g,
-        servingOptions: [household, { label: '100 g', grams: 100 }],
+        servingOptions: [household, { label: '100 g', grams: 100, unit: 'g', amount: 100 }],
         aiEstimate: true,
-      });
-    }
-  }
-  return out;
+        scope: null,
+        verified: false,
+        alternatives,
+        tags: it.tags,
+      };
+    }),
+  );
 }
 
 async function finish(c: Container, user: AuthUser, r: Recognition, callId: string, imageId: string | null): Promise<RecognitionResponse> {
@@ -71,7 +94,7 @@ async function finish(c: Container, user: AuthUser, r: Recognition, callId: stri
   const team = await getTeam(c, user.teamId);
   const threshold = team.settings.memes.confidenceThreshold;
   const items = await toItems(c, user, r);
-  return { ok: true, reason: null, message: null, callId, imageId, items, overallConfidence: r.overallConfidence, lowConfidence: r.overallConfidence < threshold, note: r.note };
+  return { ok: true, reason: null, message: null, callId, imageId, items, overallConfidence: r.overallConfidence, lowConfidence: r.overallConfidence < threshold, note: r.note, dishName: r.dishName ?? null };
 }
 
 async function optedOut(c: Container, userId: string, key: 'photo' | 'summary') {

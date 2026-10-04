@@ -5,6 +5,7 @@ import { schema as s } from '@clubhouse/db';
 import type { z } from 'zod';
 import type { Container } from '../../container';
 import { badRequest, notFound } from '../../lib/errors';
+import { recipeIdOf } from '../foodCatalog';
 import { logAudit, parseCsv, personMap, personOf, type Actor } from './shared';
 
 type FoodRow = typeof s.foodItems.$inferSelect;
@@ -20,10 +21,20 @@ async function teamFood(c: Container, teamId: string, id: string): Promise<FoodR
 
 async function toRows(c: Container, foods: FoodRow[]): Promise<AdminFoodRow[]> {
   if (!foods.length) return [];
-  const [people, uses] = await Promise.all([
+  const recipeIds = foods.map(recipeIdOf).filter((x): x is string => !!x);
+  const [people, uses, recipes] = await Promise.all([
     personMap(c, foods.map((f) => f.ownerId)),
     c.db.select({ foodId: s.foodUsage.foodId, n: sql<number>`coalesce(sum(${s.foodUsage.uses}), 0)::int` }).from(s.foodUsage).where(inArray(s.foodUsage.foodId, foods.map((f) => f.id))).groupBy(s.foodUsage.foodId),
+    recipeIds.length ? c.db.query.recipes.findMany({ where: inArray(s.recipes.id, recipeIds) }) : Promise.resolve([] as (typeof s.recipes.$inferSelect)[]),
   ]);
+  const recipeFor = (f: FoodRow): AdminFoodRow['recipe'] => {
+    const r = recipes.find((x) => x.id === recipeIdOf(f));
+    if (!r) return null;
+    return {
+      makes: r.servings,
+      ingredients: r.items.map((i) => ({ name: i.name, portion: i.servingLabel ?? `${Math.round(i.grams)} g`, grams: Math.round(i.grams), kcal: Math.round(i.nutrition?.kcal ?? 0) })),
+    };
+  };
   return foods.map((f) => ({
     id: f.id,
     name: f.name,
@@ -40,6 +51,7 @@ async function toRows(c: Container, foods: FoodRow[]): Promise<AdminFoodRow[]> {
     confidence: f.confidence,
     uses: uses.find((u) => u.foodId === f.id)?.n ?? 0,
     createdAt: f.createdAt.toISOString(),
+    recipe: recipeFor(f),
   }));
 }
 
@@ -63,6 +75,9 @@ export async function listFoods(c: Container, a: Actor, q: { q?: string; source?
 
 export async function updateFood(c: Container, a: Actor, id: string, input: z.infer<typeof AdminFoodUpdate>) {
   const f = await teamFood(c, a.user.teamId, id);
+  // A recipe's numbers come from its ingredients; overwriting them here would drift from the member's recipe.
+  if (recipeIdOf(f) && (input.per100g !== undefined || input.servingOptions !== undefined || input.defaultServing !== undefined))
+    throw badRequest('A recipe’s nutrition and portions come from its ingredients. The member edits it in the app.', 'recipe_readonly');
   const patch: Partial<typeof s.foodItems.$inferInsert> = { updatedAt: c.clock.now(), adminEdited: true };
   if (input.name !== undefined) {
     patch.name = input.name;

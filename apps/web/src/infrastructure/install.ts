@@ -30,7 +30,7 @@ function detectPlatform(): InstallPlatform {
   return 'other';
 }
 
-const standalone = () =>
+export const standalone = () =>
   window.matchMedia?.('(display-mode: standalone)').matches || (navigator as Navigator & { standalone?: boolean }).standalone === true;
 
 let deferred: InstallPromptEvent | null = null;

@@ -102,6 +102,7 @@ export function toSearchResult(
     name: f.name,
     brand: f.brand,
     group: group ?? f.scope,
+    scope: f.scope,
     verified: f.verified,
     aiEstimate: f.aiEstimate,
     servingLabel: serving.label,
@@ -111,5 +112,6 @@ export function toSearchResult(
     servingOptions: f.servingOptions,
     tags: f.tags,
     favourite: false,
+    recipeId: f.recipeId ?? null,
   };
 }

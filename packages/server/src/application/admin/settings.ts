@@ -5,6 +5,7 @@ import { schema as s } from '@clubhouse/db';
 import type { Container } from '../../container';
 import { badRequest, unprocessable } from '../../lib/errors';
 import { imageUrls } from '../images';
+import { refreshTeamCurrentWeek } from '../board';
 import { rescheduleUser } from '../scheduler';
 import { getTeam, invalidateTeam } from '../team';
 import { logAudit, type Actor } from './shared';
@@ -45,6 +46,7 @@ export async function updateSettings(c: Container, a: Actor, input: TeamSettings
     ...(input.roastDefault !== undefined ? { roastDefault: input.roastDefault } : {}),
     ...(input.eatBackDefault !== undefined ? { eatBackDefault: input.eatBackDefault } : {}),
     ...(input.featureFlags ? { featureFlags: { ...cur.featureFlags, ...input.featureFlags } } : {}),
+    ...(input.board ? { board: { ...cur.board, ...input.board } } : {}),
     ...(input.memes ? { memes: { ...cur.memes, ...input.memes } } : {}),
     ...(input.chat ? { chat: { ...cur.chat, ...input.chat } } : {}),
     ...(input.maintenanceBanner !== undefined ? { maintenanceBanner: input.maintenanceBanner } : {}),
@@ -66,5 +68,9 @@ export async function updateSettings(c: Container, a: Actor, input: TeamSettings
     const users = await c.db.query.users.findMany({ where: and(eq(s.users.teamId, team.id), isNull(s.users.timezone), eq(s.users.status, 'active')) });
     for (const u of users) await rescheduleUser(c, u.id);
   }
+  // Leaderboard rule changes apply to the current week: workouts may count differently, so day facts are redone too.
+  const saved = parsed.data;
+  const boardChanged = JSON.stringify(cur.board) !== JSON.stringify(saved.board) || (!cur.featureFlags.leaderboard && saved.featureFlags.leaderboard);
+  if (saved.featureFlags.leaderboard && boardChanged) await refreshTeamCurrentWeek(c, team.id, cur.board.workoutMinMinutes !== saved.board.workoutMinMinutes);
   return getSettings(c, a);
 }

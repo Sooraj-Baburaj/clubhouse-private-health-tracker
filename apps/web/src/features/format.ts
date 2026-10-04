@@ -47,4 +47,10 @@ export function timeOf(iso: string, tz?: string) {
   return new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: tz });
 }
 
+/** "13:20" → "1:20 pm". */
+export function clockLabel(hhmm: string) {
+  const [h = 0, m = 0] = hhmm.split(':').map(Number);
+  return `${((h + 11) % 12) + 1}:${String(m).padStart(2, '0')} ${h < 12 ? 'am' : 'pm'}`;
+}
+
 export const GOAL_WORD = { lose: 'Cutting', maintain: 'Holding steady', gain: 'Building' } as const;

@@ -57,9 +57,60 @@ export function DashboardPage() {
               </div>
             </Grid>
           )}
+          {/* Full width under the grid, like the design: names and solid days need the room. */}
+          {d?.board && <BoardCard board={d.board} />}
         </>
       )}
     </>
+  );
+}
+
+const dayMonth = (iso: string) => new Date(`${iso}T12:00:00Z`).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+
+/** This week's top five on the crew leaderboard (admin design: Overview), when it and its Overview card are on. */
+function BoardCard({ board }: { board: NonNullable<AdminDashboardResponse['board']> }) {
+  return (
+    <Card className="mt-3">
+      <CardHeader title="This week’s leaderboard" aside={`Week ${board.weekNumber} · ${dayMonth(board.weekStart)} – ${dayMonth(board.weekEnd)} · closes Mon 3 am`} />
+      {board.rows.length === 0 ? (
+        <EmptyState compact title="No points yet this week" body="The board fills in as members log." />
+      ) : (
+        <div role="table" aria-label="Top five this week" className="flex flex-col">
+          <div role="row" className="grid grid-cols-[32px_minmax(0,1fr)_96px_130px] gap-3 pb-1">
+            <span role="columnheader" className="th">
+              #
+            </span>
+            <span role="columnheader" className="th">
+              Member
+            </span>
+            <span role="columnheader" className="th">
+              Points
+            </span>
+            <span role="columnheader" className="th">
+              Solid days 28d
+            </span>
+          </div>
+          {board.rows.map((r) => (
+            <div role="row" key={r.person.id} className="grid grid-cols-[32px_minmax(0,1fr)_96px_130px] items-center gap-3 border-t border-hairline py-2 text-[14px]">
+              <span role="cell" className="font-display text-[16px] font-extrabold">
+                {r.rank}
+              </span>
+              <span role="cell" className="min-w-0">
+                <Link to="/members/$id" params={{ id: r.person.id }} className="min-w-0 text-ink hover:text-accent">
+                  <PersonCell person={r.person} size={26} />
+                </Link>
+              </span>
+              <span role="cell" className="font-mono text-[13px]">
+                {fmtInt(r.points)} pts
+              </span>
+              <span role="cell" className="font-mono text-[13px] text-muted">
+                {r.solidPct != null ? `${Math.round(r.solidPct)}%` : 'warming up'}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </Card>
   );
 }
 

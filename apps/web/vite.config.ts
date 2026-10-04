@@ -44,7 +44,7 @@ export default defineConfig({
           params: { title: 'title', text: 'text', files: [{ name: 'photo', accept: ['image/*'] }] },
         },
         shortcuts: [
-          { name: 'Snap a meal', url: '/log/food?mode=camera', icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }] },
+          { name: 'Snap a meal', url: '/log/food?view=snap', icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }] },
           { name: 'Log activity', url: '/log/activity', icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }] },
         ],
       },

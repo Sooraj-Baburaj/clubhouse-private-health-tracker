@@ -47,7 +47,7 @@ async function memberDayFacts(c: Container, u: UserRow, p: ProfileRow, date: str
   return { agg, logged: (agg?.foodLogs ?? 0) > 0 || (agg?.sessions ?? 0) > 0 || (weight[0]?.n ?? 0) > 0, target, band, streak: streak?.current ?? 0 };
 }
 
-/** Team tab (APP-PROG-07/08): per-member day rows; the consistency pulse only for members who opted in. */
+/** Crew today on the Team tab: per-member day rows; the consistency pulse only for members who opted in. */
 export async function teamSummary(c: Container, user: AuthUser, dateParam?: string): Promise<TeamSummaryResponse> {
   const team = await getTeam(c, user.teamId);
   const { today } = memberClock(c, user.timezone);
@@ -60,7 +60,8 @@ export async function teamSummary(c: Container, user: AuthUser, dateParam?: stri
     .orderBy(asc(s.users.displayName));
   const visible = rows.filter((r) => r.user.onboardedAt || r.user.id === user.id);
   const avatars = await imageUrlMap(c, visible.map((r) => r.user.avatarImageId));
-  const pulseOn = team.settings.featureFlags.teamPulse;
+  // The leaderboard supersedes the opt-in pulse comparison while it is on.
+  const pulseOn = team.settings.featureFlags.teamPulse && !team.settings.featureFlags.leaderboard;
   const me = visible.find((r) => r.user.id === user.id);
   const myPulseOptIn = !!me?.profile.privacy.teamPulseOptIn;
   const weekStart = weekStartOf(date);
@@ -91,13 +92,15 @@ export async function teamSummary(c: Container, user: AuthUser, dateParam?: stri
     });
   }
   members.sort((a, b) => (a.isMe === b.isMe ? 0 : a.isMe ? -1 : 1));
-  const teamStreak = team.settings.streaks.teamStreakEnabled ? ((await c.db.query.teamStreaks.findFirst({ where: eq(s.teamStreaks.teamId, user.teamId) }))?.current ?? 0) : 0;
+  const streakOn = team.settings.streaks.teamStreakEnabled;
+  const streakRow = streakOn ? await c.db.query.teamStreaks.findFirst({ where: eq(s.teamStreaks.teamId, user.teamId) }) : undefined;
+  const teamStreak = streakRow?.current ?? 0;
   // Averages over fewer than two people would identify them, so they are withheld.
   const anonymisedPulse =
     anonymous.length >= 2
       ? { avgConsistency: Math.round(anonymous.reduce((a, x) => a + x.score, 0) / anonymous.length), sessions: Math.round((anonymous.reduce((a, x) => a + x.sessions, 0) / anonymous.length) * 10) / 10 }
       : null;
-  return { date, members, anonymisedCount: pulseOn ? anonymous.length : 0, anonymisedPulse, teamStreak, myPulseOptIn };
+  return { date, members, anonymisedCount: pulseOn ? anonymous.length : 0, anonymisedPulse, teamStreak, teamStreakBest: streakRow?.best ?? 0, teamStreakEnabled: streakOn, myPulseOptIn };
 }
 
 /** Member sheet (APP-PROG-08): the summary always; the full timeline only when that member shares full logs. */

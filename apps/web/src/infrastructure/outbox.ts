@@ -2,6 +2,12 @@ import type { ActivityLogUpsert, FoodLogUpsert, HabitCheckinUpsert, SendMessageR
 import { api, ApiError, NetworkError } from '@clubhouse/client';
 import { db, type OutboxOp } from './idb';
 
+/** A compressed photo queued while offline (stored as a Blob in IndexedDB). */
+export interface ImageUpload {
+  blob: Blob;
+  kind: 'food';
+}
+
 /**
  * Offline outbox (SYS-PWA-03, NFR-REL-03). Writes that fail for network reasons are queued in IndexedDB and
  * replayed in order on reconnect. Ids are client-generated and the server upserts with last-write-wins, so a replay
@@ -33,7 +39,15 @@ export const outbox = {
   },
   get: () => snapshot,
   isPending: (id: string) => snapshot.pending.some((op) => op.id === id),
-  async enqueue(op: { kind: 'food_log'; id: string; data: FoodLogUpsert } | { kind: 'activity_log'; id: string; data: ActivityLogUpsert } | { kind: 'weight'; id: string; data: WeightUpsert } | { kind: 'habit_checkin'; id: string; data: HabitCheckinUpsert } | { kind: 'chat'; id: string; data: SendMessageRequest }) {
+  async enqueue(
+    op:
+      | { kind: 'food_log'; id: string; data: FoodLogUpsert }
+      | { kind: 'activity_log'; id: string; data: ActivityLogUpsert }
+      | { kind: 'weight'; id: string; data: WeightUpsert }
+      | { kind: 'habit_checkin'; id: string; data: HabitCheckinUpsert }
+      | { kind: 'chat'; id: string; data: SendMessageRequest }
+      | { kind: 'image'; id: string; data: ImageUpload },
+  ) {
     const d = await db();
     const key = `${op.kind}:${op.id}`;
     const existing = await d.get('outbox', key);
@@ -76,7 +90,23 @@ async function doFlush() {
   listeners.forEach((l) => l());
   const done: OutboxOp[] = [];
   try {
-    const logOps = ops.filter((o) => o.kind !== 'chat');
+    // Photos first: a meal saved offline points at its photo by client id, so the photo must land before the log.
+    for (const op of ops.filter((o) => o.kind === 'image')) {
+      const img = op.data as ImageUpload;
+      try {
+        const form = new FormData();
+        form.append('image', img.blob, img.blob.type === 'image/jpeg' ? 'photo.jpg' : 'photo.webp');
+        form.append('clientId', op.id);
+        form.append('kind', img.kind);
+        await api.media.upload(form);
+        await d.delete('outbox', op.key);
+        done.push(op);
+      } catch (e) {
+        if (e instanceof ApiError && e.status < 500 && e.status !== 429) await d.put('outbox', { ...op, failed: true, attempts: op.attempts + 1, lastError: e.message });
+        else throw e;
+      }
+    }
+    const logOps = ops.filter((o) => o.kind !== 'chat' && o.kind !== 'image');
     for (let i = 0; i < logOps.length; i += 50) {
       const chunk = logOps.slice(i, i + 50);
       const res = await api.logs.sync({ ops: chunk.map((o) => ({ kind: o.kind, id: o.id, data: o.data }) as SyncOp) });

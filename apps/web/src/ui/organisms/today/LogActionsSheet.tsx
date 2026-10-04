@@ -74,10 +74,16 @@ export function LogActionsSheet({ entry, onClose }: { entry: LogEntry | null; on
   const actions: Action[] = [];
   if (entry?.kind === 'food') {
     const e = entry;
+    const edit = () => void navigate({ to: '/log/food', search: { edit: e.log.id, date: e.log.date } });
+    // A photo-only meal is finished, not copied.
+    if (e.log.pendingDetails) actions.push({ key: 'edit', label: 'Add what’s in it', sub: 'The photo stays on the meal', icon: Pencil, run: edit });
+    else
+      actions.push(
+        { key: 'edit', label: 'Edit', sub: 'Change items, portions or meal', icon: Pencil, run: edit },
+        { key: 'dup', label: 'Duplicate', sub: `Another ${SLOT_LABEL[e.log.mealSlot].toLowerCase()} just like it`, icon: Copy, run: () => copyFood(e, false) },
+        { key: 'again', label: 'Log again now', sub: 'Same food, right now', icon: RotateCcw, run: () => copyFood(e, true) },
+      );
     actions.push(
-      { key: 'edit', label: 'Edit', sub: 'Change items, portions or meal', icon: Pencil, run: () => void navigate({ to: '/log/food', search: { edit: e.log.id, date: e.log.date } }) },
-      { key: 'dup', label: 'Duplicate', sub: `Another ${SLOT_LABEL[e.log.mealSlot].toLowerCase()} just like it`, icon: Copy, run: () => copyFood(e, false) },
-      { key: 'again', label: 'Log again now', sub: 'Same food, right now', icon: RotateCcw, run: () => copyFood(e, true) },
       { key: 'share', label: 'Share to chat', icon: MessageCircle, run: () => void share('food_log', e.log.id) },
       { key: 'delete', label: 'Delete', icon: Trash2, danger: true, run: () => setConfirm(e) },
     );

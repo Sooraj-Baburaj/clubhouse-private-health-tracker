@@ -61,7 +61,7 @@ function Row({ item, index, count, move }: { item: Item; index: number; count: n
       dragListener={false}
       dragControls={controls}
       whileDrag={reduce ? undefined : { scale: 1.03, boxShadow: '0 14px 36px rgba(10,8,6,0.22)' }}
-      className="relative flex min-h-16 items-center gap-3 rounded-[24px] bg-surface py-2.5 pl-3 pr-1.5"
+      className="relative flex min-h-16 select-none items-center gap-3 rounded-[24px] bg-surface py-2.5 pl-3 pr-1.5 [-webkit-touch-callout:none]"
     >
       <HabitChip icon={item.icon} group={item.group} size={40} />
       <span className="flex min-w-0 flex-1 flex-col">

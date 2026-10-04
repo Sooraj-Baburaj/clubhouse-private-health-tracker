@@ -71,7 +71,7 @@ export function Sheet({ open, onClose, title, label, children, className = '', b
               onDragEnd={onDragEnd}
               style={{ position: 'relative', width: '100%', maxWidth: 560, maxHeight, overflowY: 'auto', overscrollBehavior: 'contain', paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 16px)', ...style }}
             >
-              <div onPointerDown={(e) => controls.start(e)} style={{ display: 'flex', justifyContent: 'center', padding: '10px 0 4px', touchAction: 'none', cursor: 'grab' }}>
+              <div onPointerDown={(e) => controls.start(e)} style={{ display: 'flex', justifyContent: 'center', padding: '10px 0 4px', touchAction: 'none', cursor: 'grab', userSelect: 'none', WebkitUserSelect: 'none' }}>
                 <span className={handleClassName} aria-hidden />
               </div>
               {title && (

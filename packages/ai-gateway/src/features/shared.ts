@@ -28,6 +28,10 @@ export const RecognitionWire = z.object({
   overallConfidence: z.number().describe('0 to 1 for the whole result.'),
   notFood: z.boolean().describe('True when the input does not show or describe food or drink.'),
   note: z.string().describe('One short sentence for the member, or an empty string.'),
+  dishName: z
+    .string()
+    .optional()
+    .describe('When the listed items are the ingredients of one dish eaten together (a fruit salad, a smoothie, a poke bowl), its everyday name; otherwise an empty string. A thali or a plate of separate dishes is not one dish.'),
 });
 export type Recognition = z.infer<typeof RecognitionWire>;
 
@@ -57,7 +61,8 @@ export function sanitiseRecognition(r: Recognition): Recognition {
         fibre: clamp(i.estimatePer100g.fibre, 0, 60),
       },
     }));
-  return { items, overallConfidence: clamp(r.overallConfidence, 0, 1), notFood: r.notFood, note: r.note.slice(0, 200) };
+  const dishName = r.dishName?.trim().slice(0, 60);
+  return { items, overallConfidence: clamp(r.overallConfidence, 0, 1), notFood: r.notFood, note: r.note.slice(0, 200), ...(dishName && items.length > 1 ? { dishName } : {}) };
 }
 
 export const RECOGNITION_RULES = `Rules for identifying food:

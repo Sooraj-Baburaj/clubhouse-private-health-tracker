@@ -124,7 +124,14 @@ export function TodayPage() {
           </motion.div>
           <motion.div variants={m.item}>
             {entries.length || moments.length ? (
-              <LoggedList entries={entries} moments={moments} units={me.profile.units} tz={me.profile.timezone || me.team.timezone} onOpen={setActions} />
+              <LoggedList
+                entries={entries}
+                moments={moments}
+                units={me.profile.units}
+                tz={me.profile.timezone || me.team.timezone}
+                onOpen={setActions}
+                onEdit={(log) => void navigate({ to: '/log/food', search: { edit: log.id, date: log.date } })}
+              />
             ) : (
               <EmptyState
                 title={isToday ? `Nothing yet — snap ${t.slots.find((s) => s.slot === t.currentSlot)?.label.toLowerCase() ?? 'breakfast'}?` : 'Nothing logged this day'}

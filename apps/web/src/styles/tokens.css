@@ -46,6 +46,9 @@
   --color-on-accent2-fill: var(--on-accent2-fill);
   --color-on-accent: var(--on-accent);
   --color-on-accent-sub: var(--on-accent-sub);
+  /* The Snap camera: a dark viewfinder in every palette. */
+  --color-cam: var(--cam);
+  --color-cam-fg: var(--cam-fg);
 
   --font-heading: 'Caprasimo', ui-serif, Georgia, serif;
   --font-body: 'Figtree', system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -69,6 +72,8 @@
   --on-accent2-fill: var(--color-neutral-100);
   --on-accent: #201e1d;
   --on-accent-sub: #402310;
+  --cam: var(--color-text);
+  --cam-fg: var(--color-bg);
   --ring-track: var(--color-neutral-300);
   --ring-fill: var(--color-accent);
 }
@@ -273,6 +278,8 @@
   --on-accent2-fill: oklch(0.17 0.01 70);
   --on-accent: oklch(0.17 0.01 70);
   --on-accent-sub: oklch(0.28 0.03 90);
+  --cam: var(--color-bg);
+  --cam-fg: var(--color-text);
   --shadow-sm: 0 0 0 1px color-mix(in srgb, white 6%, transparent);
   --shadow-md: 0 0 0 1px color-mix(in srgb, white 7%, transparent), 0 6px 18px rgb(0 0 0 / 0.35);
   --shadow-lg: 0 0 0 1px color-mix(in srgb, white 8%, transparent), 0 14px 36px rgb(0 0 0 / 0.5);

@@ -103,6 +103,7 @@ export const NOTIFICATION_META: Record<NotificationType, TypeMeta> = {
   meme_fired: { label: 'Meme moments', hint: 'When a meme is posted about you.', group: 'team', supportsTime: false, supportsDays: false, supportsSmartTime: false },
   plan_updated: { label: 'Plan updates', hint: 'When your admin changes your diet or activity plan.', group: 'team', supportsTime: false, supportsDays: false, supportsSmartTime: false },
   announcement: { label: 'Announcements', hint: 'From your admin. Always on; held until quiet hours end.', group: 'team', supportsTime: false, supportsDays: false, supportsSmartTime: false },
+  board_results: { label: 'Weekly results', hint: 'Monday morning: the podium, the awards and where you finished.', group: 'team', supportsTime: false, supportsDays: false, supportsSmartTime: false },
   ai_budget_alert: { label: 'AI budget alerts', hint: 'When the team’s AI spend crosses a threshold.', group: 'system', supportsTime: false, supportsDays: false, supportsSmartTime: false, adminOnly: true },
   system: { label: 'Account and security', hint: 'Sign-ins and account changes. Always on.', group: 'system', supportsTime: false, supportsDays: false, supportsSmartTime: false },
 };

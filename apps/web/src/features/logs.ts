@@ -71,6 +71,8 @@ export function useSaveFoodLog() {
         void qc.invalidateQueries({ queryKey: qk.momentum });
         void qc.invalidateQueries({ queryKey: qk.usuals });
         void qc.invalidateQueries({ queryKey: ['progress'] });
+        // Crew today and the leaderboard move with every log.
+        void qc.invalidateQueries({ queryKey: ['team'] });
       }
     },
   });
@@ -109,6 +111,7 @@ export function useSaveActivityLog() {
         void qc.invalidateQueries({ queryKey: qk.plan });
         void qc.invalidateQueries({ queryKey: qk.momentum });
         void qc.invalidateQueries({ queryKey: ['progress'] });
+        void qc.invalidateQueries({ queryKey: ['team'] });
       }
     },
   });
@@ -131,6 +134,7 @@ export function useSaveWeight() {
       void qc.invalidateQueries({ queryKey: ['today'] });
       void qc.invalidateQueries({ queryKey: ['progress'] });
       void qc.invalidateQueries({ queryKey: qk.me });
+      void qc.invalidateQueries({ queryKey: ['team'] });
     },
   });
 }

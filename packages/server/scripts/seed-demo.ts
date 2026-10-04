@@ -25,6 +25,8 @@ const { computeDayFacts, recomputeMemberStreaks, recomputeTeamStreak } = await i
 const { sendMessage } = await import('../src/application/chat');
 const { getTeam, invalidateTeam } = await import('../src/application/team');
 const { storeImage } = await import('../src/application/media');
+const { createFood, createRecipe } = await import('../src/application/foods');
+const { backfillBoard } = await import('../src/application/board');
 import type { AuthUser } from '../src/interface/http/types';
 
 const env = loadEnv();
@@ -84,6 +86,8 @@ const MENU: Record<MealSlot, string[][]> = {
   dinner: [['Paneer butter masala', 'Roti'], ['Dal fry', 'Roti'], ['Chicken biryani'], ['Egg bhurji', 'Roti'], ['Dal tadka', 'Jeera rice', 'Green salad'], ['Chicken curry', 'Jeera rice']],
 };
 const SLOT_TIME: Record<MealSlot, string> = { breakfast: '08:45', morning_snack: '11:15', lunch: '13:40', evening_snack: '17:30', dinner: '20:45' };
+
+const byName0 = (users: { m: DemoMember; user: AuthUser }[], username: string) => users.find((u) => u.m.username === username)!.user;
 
 async function main() {
   const team = (await c.db.query.teams.findFirst()) ?? (await seed.ensureTeam(c.db, { name: 'Clubhouse', timezone: 'Asia/Kolkata' }));
@@ -240,6 +244,47 @@ async function main() {
     await recomputeMemberStreaks(c, user.id, today);
   }
   await recomputeTeamStreak(c, team.id, today);
+
+  // A food with portions (scoop, tbsp) and a saved dish with its ingredients, both logged today.
+  const rahul = byName0(users, 'rahul');
+  const priya = byName0(users, 'priya');
+  clock.set(now);
+  const whey = await createFood(c, rahul, {
+    name: 'Whey protein',
+    brand: 'MuscleBlaze Biozyme',
+    basis: { unit: 'scoop', amount: 1, grams: 32 },
+    nutrients: { kcal: 120, protein: 24, carbs: 3, fat: 1.6, fibre: 0 },
+    portions: [{ unit: 'tbsp', amount: 1, grams: 8 }],
+    tags: ['high_protein'],
+    veg: true,
+  });
+  const fruitNames = ['Apple', 'Banana', 'Grapes', 'Pomegranate'];
+  const fruits = await c.db.select().from(s.foodItems).where(and(isNull(s.foodItems.teamId), isNull(s.foodItems.deletedAt), inArray(s.foodItems.name, fruitNames)));
+  const fruit = new Map(fruits.map((f) => [f.name, f]));
+  const dishParts = [
+    ['Apple', 150, '1 medium'],
+    ['Banana', 118, '1 piece'],
+    ['Grapes', 92, '1 cup'],
+    ['Pomegranate', 87, '½ cup'],
+  ] as const;
+  const components = dishParts.filter(([n]) => fruit.has(n)).map(([n, grams, label]) => ({ foodId: fruit.get(n)!.id, name: n, grams, servings: 1, servingLabel: label }));
+  if (components.length >= 2) {
+    const recipe = await createRecipe(c, priya, { name: 'Fruit salad', components, makes: 2 });
+    const at = zonedToUtc(today, '11:05', tz);
+    if (at <= now) {
+      clock.set(at);
+      await upsertFoodLog(c, priya, randomUUID(), { date: today, mealSlot: 'morning_snack', loggedAt: at.toISOString(), clientUpdatedAt: at.toISOString(), items: [{ foodId: null, name: 'Fruit salad', grams: 0, servings: 1, servingLabel: '1 of 2 servings', source: 'recipe', components, batchServings: 2, recipeId: recipe.id }] }, { skipEffects: true });
+    }
+  }
+  const wheyAt = zonedToUtc(today, '07:40', tz);
+  if (wheyAt <= now) {
+    clock.set(wheyAt);
+    await upsertFoodLog(c, rahul, randomUUID(), { date: today, mealSlot: 'breakfast', loggedAt: wheyAt.toISOString(), clientUpdatedAt: wheyAt.toISOString(), items: [{ foodId: whey.id, name: whey.name, grams: 64, servings: 2, servingLabel: '1 scoop', source: 'search' }] }, { skipEffects: true });
+  }
+  clock.set(now);
+
+  // The leaderboard, rebuilt from those logs exactly as the deploy backfill does (closed weeks get awards, quietly).
+  await backfillBoard(c, team.id, DAYS);
 
   // A little chat so the Chat tab is not empty.
   const lines: [string, string][] = [

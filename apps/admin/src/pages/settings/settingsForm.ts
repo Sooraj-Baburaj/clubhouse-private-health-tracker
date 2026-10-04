@@ -1,4 +1,4 @@
-import { DEFAULT_MEAL_SLOTS, DEFAULT_STREAK_SETTINGS, DEFAULT_TEAM_SETTINGS, MEAL_SLOTS, TeamSettingsUpdate, type MealSlot } from '@clubhouse/contracts';
+import { DEFAULT_BOARD_SETTINGS, DEFAULT_MEAL_SLOTS, DEFAULT_STREAK_SETTINGS, DEFAULT_TEAM_SETTINGS, MEAL_SLOTS, TeamSettingsUpdate, type MealSlot } from '@clubhouse/contracts';
 import type { TeamSettingsData } from '@/features/settings';
 import { fromDateTimeLocal, toDateTimeLocal } from '@/lib/format';
 
@@ -15,7 +15,8 @@ export interface SettingsForm {
   roastDefault: boolean;
   eatBackDefault: boolean;
   mealSlots: Record<MealSlot, { label: string; until: string | null }>;
-  featureFlags: { teamPulse: boolean; roastMemes: boolean; naturalLanguageEntry: boolean };
+  featureFlags: { teamPulse: boolean; roastMemes: boolean; naturalLanguageEntry: boolean; leaderboard: boolean };
+  board: { workoutMinMinutes: Num; workoutCap: Num; noPlanTarget: Num; postResults: boolean; showOnDashboard: boolean };
   streaks: {
     graceEarnedPer7: Num;
     graceBankMax: Num;
@@ -32,7 +33,7 @@ export interface SettingsForm {
   banner: { on: boolean; message: string; startsAt: string; endsAt: string };
 }
 
-export type SectionKey = 'team' | 'defaults' | 'mealSlots' | 'flags' | 'streaks' | 'memesChat' | 'banner';
+export type SectionKey = 'team' | 'defaults' | 'mealSlots' | 'flags' | 'streaks' | 'board' | 'memesChat' | 'banner';
 
 export const SECTIONS: { key: SectionKey; label: string }[] = [
   { key: 'team', label: 'Team' },
@@ -40,6 +41,7 @@ export const SECTIONS: { key: SectionKey; label: string }[] = [
   { key: 'mealSlots', label: 'Meal slots' },
   { key: 'flags', label: 'Feature flags' },
   { key: 'streaks', label: 'Streaks' },
+  { key: 'board', label: 'Leaderboard' },
   { key: 'memesChat', label: 'Memes & chat' },
   { key: 'banner', label: 'Maintenance banner' },
 ];
@@ -60,6 +62,7 @@ export function toForm(d: TeamSettingsData): SettingsForm {
     eatBackDefault: s.eatBackDefault ?? D.eatBackDefault,
     mealSlots,
     featureFlags: { ...D.featureFlags, ...s.featureFlags },
+    board: { ...DEFAULT_BOARD_SETTINGS, ...s.board },
     streaks: { ...streaks, milestones: sortNums(streaks.milestones), teamMilestones: sortNums(streaks.teamMilestones) },
     memes: { ...D.memes, ...s.memes },
     chat: { digestMinutes: s.chat?.digestMinutes ?? D.chat.digestMinutes },
@@ -81,8 +84,13 @@ function pick(f: SettingsForm, k: SectionKey): unknown {
       return [f.privacyDefault, f.roastDefault, f.eatBackDefault];
     case 'mealSlots':
       return f.mealSlots;
-    case 'flags':
-      return f.featureFlags;
+    case 'flags': {
+      // The leaderboard switch lives on the Leaderboard card.
+      const { leaderboard: _board, ...flags } = f.featureFlags;
+      return flags;
+    }
+    case 'board':
+      return [f.featureFlags.leaderboard, f.board];
     case 'streaks':
       return f.streaks;
     case 'memesChat':
@@ -113,6 +121,8 @@ export function buildUpdate(base: SettingsForm, cur: SettingsForm): Record<strin
   const flags = changedKeys(base.featureFlags, cur.featureFlags);
   if (flags) out.featureFlags = flags;
   if (!eq(cur.streaks, base.streaks)) out.streaks = { ...cur.streaks, milestones: sortNums(cur.streaks.milestones), teamMilestones: sortNums(cur.streaks.teamMilestones) };
+  const board = changedKeys(base.board, cur.board);
+  if (board) out.board = board;
   const memes = changedKeys(base.memes, cur.memes);
   if (memes) out.memes = memes;
   if (cur.chat.digestMinutes !== base.chat.digestMinutes) out.chat = { digestMinutes: cur.chat.digestMinutes };
@@ -192,6 +202,7 @@ export function sectionOf(key: string): SectionKey {
   if (['name', 'timezone', 'units', 'logoImageId'].includes(head)) return 'team';
   if (['privacyDefault', 'roastDefault', 'eatBackDefault'].includes(head)) return 'defaults';
   if (head === 'mealSlots') return 'mealSlots';
+  if (key === 'featureFlags.leaderboard' || head === 'board') return 'board';
   if (head === 'featureFlags') return 'flags';
   if (head === 'streaks') return 'streaks';
   if (head === 'memes' || head === 'chat') return 'memesChat';

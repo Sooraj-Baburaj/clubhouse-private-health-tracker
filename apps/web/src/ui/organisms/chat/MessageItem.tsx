@@ -8,7 +8,7 @@ import { Avatar } from '@/ui/atoms/Avatar';
 import { cn } from '@/lib/cn';
 import { AttachmentView } from './Attachments';
 import { MessageText } from './MessageText';
-import { useLongPress } from './useLongPress';
+import { LONG_PRESS_CLASS, useLongPress } from './useLongPress';
 
 export interface MessageCtx {
   usernames: Set<string>;
@@ -67,7 +67,8 @@ export const MessageItem = memo(forwardRef<HTMLDivElement, { m: ChatMessageDto; 
           title="Long-press for reactions and more"
           {...lp.handlers}
           className={cn(
-            'flex max-w-full select-none flex-col gap-2 rounded-[24px] px-3.5 py-2.5 transition-shadow [-webkit-touch-callout:none]',
+            'flex max-w-full flex-col gap-2 rounded-[24px] px-3.5 py-2.5 transition-shadow',
+            LONG_PRESS_CLASS,
             bubble,
             own ? (last ? 'rounded-br-[8px]' : '') : last ? 'rounded-bl-[8px]' : '',
             highlight && 'ring-4 ring-accent-2',
@@ -133,7 +134,7 @@ function Reactions({ m, onToggle, onShow }: { m: ChatMessageDto; onToggle: Messa
           <ReactionPill key={r.emoji} r={r} onToggle={() => onToggle(m, r.emoji, !r.mine)} onShow={() => onShow(m, r.emoji)} />
         ))}
       </AnimatePresence>
-      {m.memeReactions.map((mr, i) => (mr.url ? <img key={i} src={mr.url} alt="Meme reaction" className="h-[30px] w-[30px] rounded-full object-cover" /> : null))}
+      {m.memeReactions.map((mr, i) => (mr.url ? <img key={i} src={mr.url} alt="Meme reaction" draggable={false} className="pointer-events-none h-[30px] w-[30px] select-none rounded-full object-cover" /> : null))}
     </div>
   );
 }
@@ -158,7 +159,7 @@ const ReactionPill = forwardRef<HTMLButtonElement, { r: ChatMessageDto['reaction
       aria-pressed={r.mine}
       aria-label={`${r.emoji} ${r.count}${r.mine ? ', including you' : ''}. ${r.mine ? 'Remove' : 'Add'} your reaction`}
       title={`${r.names.join(', ')} · long-press to see who reacted`}
-      className={cn('inline-flex min-h-[30px] select-none items-center gap-1 rounded-full border px-2.5 text-[12px] font-bold [-webkit-touch-callout:none]', r.mine ? 'border-accent-400 bg-accent-200 text-accent-900' : 'border-divider bg-transparent')}
+      className={cn('inline-flex min-h-[30px] items-center gap-1 rounded-full border px-2.5 text-[12px] font-bold [&_*]:pointer-events-none', LONG_PRESS_CLASS, r.mine ? 'border-accent-400 bg-accent-200 text-accent-900' : 'border-divider bg-transparent')}
     >
       <span aria-hidden>{r.emoji}</span>
       <span className="tabular">{r.count}</span>

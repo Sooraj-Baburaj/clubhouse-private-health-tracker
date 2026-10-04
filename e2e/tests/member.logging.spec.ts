@@ -31,7 +31,8 @@ test.describe('logging', () => {
     await expect(toast(page, /[\d,]+ kcal added to /)).toBeVisible();
 
     await expect(page).toHaveURL(/localhost:4173\/$/);
-    await expect(page.getByRole('button', { name: new RegExp(`: .*${food}.*kcal.*Open actions`, 'i') }).first()).toBeVisible();
+    // Today's food rows open the meal to edit (swipe or long-press for the other actions).
+    await expect(page.getByRole('button', { name: new RegExp(`: .*${food}.*kcal.*Edit meal`, 'i') }).first()).toBeVisible();
     await expect(heroStatus(page)).not.toHaveText(before ?? '');
   });
 
@@ -66,11 +67,12 @@ test.describe('logging', () => {
     for (const [i, name] of names.entries()) {
       await openLogOption(page, 'Search food');
       await expect(page).toHaveURL(/\/log\/food/);
-      await page.getByRole('button', { name: /Quick add calories/ }).click();
+      await page.getByRole('button', { name: /^Quick add/ }).click();
       const sheet = page.getByRole('dialog', { name: 'Quick add' });
-      await sheet.getByLabel('What was it? (optional)').fill(name);
       await sheet.getByLabel('Calories').fill(String(101 + i));
-      await sheet.getByRole('button', { name: 'Add it' }).click();
+      await sheet.getByRole('button', { name: 'Add details (optional)' }).click();
+      await sheet.getByLabel('What was it?').fill(name);
+      await sheet.getByRole('button', { name: 'Add to plate' }).click();
       await expect(sheet).toBeHidden();
       await page.getByRole('button', { name: new RegExp(`^Add to .+ · ${101 + i} kcal$`) }).click();
       await expect(toast(page, 'Saved on your phone. It will sync when you’re back online.').last()).toBeVisible();

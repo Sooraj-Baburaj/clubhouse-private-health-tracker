@@ -4,6 +4,7 @@ import type { GoalUpdateRequest, OnboardingRequest, PreferencesUpdateRequest, Pr
 import { addDays, computeTargets, isValidTimeZone, vacationDaysInQuarter } from '@clubhouse/domain';
 import { schema as s } from '@clubhouse/db';
 import type { Container } from '../container';
+import { refreshCurrentWeek } from './board';
 import { badRequest, notFound } from '../lib/errors';
 import type { AuthUser } from '../interface/http/types';
 import { memberClock } from './clockCtx';
@@ -33,7 +34,7 @@ export function profileToDto(p: ProfileRow, tz: string, today: string, vacationQ
     paceKgWeek: p.paceKgWeek,
     eatBackExercise: p.eatBackExercise,
     dietPrefs: p.dietPrefs,
-    privacy: p.privacy,
+    privacy: { ...p.privacy, showOnBoard: p.privacy.showOnBoard !== false },
     aiOptOuts: p.aiOptOuts,
     momentumPrefs: { showOnToday: p.momentumPrefs.showOnToday },
     habitPrefs: { bundle: p.habitPrefs?.bundle ?? true, share: p.habitPrefs?.share ?? false },
@@ -180,6 +181,8 @@ export async function setVacation(c: Container, user: AuthUser, input: VacationR
     }
   }
   await c.db.update(s.profiles).set({ vacationRanges: ranges, updatedAt: c.clock.now() }).where(eq(s.profiles.userId, user.id));
+  // Vacation days are credited with the member's average day on the leaderboard.
+  await refreshCurrentWeek(c, user.id);
   return ranges;
 }
 
@@ -191,6 +194,7 @@ export async function endVacation(c: Container, user: AuthUser) {
     .map((r) => (r.from <= today && today <= r.to ? { ...r, to: yesterday } : r))
     .filter((r) => r.from <= r.to && !(r.from > today));
   await c.db.update(s.profiles).set({ vacationRanges: ranges, updatedAt: c.clock.now() }).where(eq(s.profiles.userId, user.id));
+  await refreshCurrentWeek(c, user.id);
   return ranges;
 }
 

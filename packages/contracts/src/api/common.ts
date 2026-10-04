@@ -14,7 +14,22 @@ export const Nutrients = z.object({
 });
 export type Nutrients = z.infer<typeof Nutrients>;
 
-export const ServingOptionSchema = z.object({ label: z.string().min(1).max(40), grams: z.number().positive().max(5000) });
+/** How a food is measured. Volume units (ml, cup, glass) count 1 ml as 1 g for nutrition. */
+export const PORTION_UNITS = ['g', 'ml', 'piece', 'scoop', 'cup', 'glass', 'katori', 'bowl', 'plate', 'tbsp', 'tsp', 'slice', 'packet', 'serving', 'custom'] as const;
+export const PortionUnit = z.enum(PORTION_UNITS);
+export type PortionUnit = z.infer<typeof PortionUnit>;
+
+/**
+ * One way to measure a food. `label` and `grams` are what logs and older clients use; foods made with portions carry
+ * the structured `amount` × `unit` too. `estimated` marks a nominal weight (the member didn't know it): shown with ≈.
+ */
+export const ServingOptionSchema = z.object({
+  label: z.string().min(1).max(40),
+  grams: z.number().positive().max(5000),
+  unit: PortionUnit.optional(),
+  amount: z.number().positive().max(1000).optional(),
+  estimated: z.boolean().optional(),
+});
 export type ServingOptionDto = z.infer<typeof ServingOptionSchema>;
 
 export interface ApiError {

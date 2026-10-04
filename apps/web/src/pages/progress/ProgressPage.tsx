@@ -11,7 +11,6 @@ import { MomentumCard } from '@/ui/organisms/progress/MomentumCard';
 import { NutrientsSection } from '@/ui/organisms/progress/NutrientsSection';
 import { ExportCard, RecapsSection } from '@/ui/organisms/progress/RecapsSection';
 import { WeightSection } from '@/ui/organisms/progress/WeightSection';
-import { TeamSection } from '@/ui/organisms/team/TeamSection';
 
 /**
  * Progress tab (plan §8.10): weight (3a) then weekly bands (3b), nutrients, activity vs plan, consistency,
@@ -53,9 +52,6 @@ export function ProgressPage() {
         </Section>
         <Section id="momentum" label="Momentum">
           <MomentumCard />
-        </Section>
-        <Section id="team" label="Team" className="mt-4">
-          <TeamSection />
         </Section>
         <Section id="recaps" label="Weekly recaps" className="mt-4">
           <RecapsSection />

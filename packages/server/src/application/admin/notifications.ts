@@ -26,6 +26,7 @@ export const NOTIFICATION_LABELS: Record<NotificationType, { label: string; hint
   milestone: { label: 'Milestones', hint: 'Streak badges and personal records', group: 'momentum' },
   plan_updated: { label: 'Plan updates', hint: 'When your admin changes your diet or activity plan', group: 'team' },
   announcement: { label: 'Announcements', hint: 'Messages from your admins', group: 'team' },
+  board_results: { label: 'Weekly results', hint: 'Monday-morning leaderboard results', group: 'team' },
   ai_budget_alert: { label: 'AI budget alerts', hint: 'Admins only: spend thresholds', group: 'system' },
   weigh_in_reminder: { label: 'Weigh-in reminder', hint: 'A weekly reminder to step on the scale', group: 'momentum' },
   habit_reminder: { label: 'Habit reminders', hint: 'At each habit’s reminder time, bundled; skipped once done', group: 'habits' },

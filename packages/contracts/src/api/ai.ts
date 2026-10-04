@@ -2,6 +2,16 @@ import { z } from 'zod';
 import { MealSlot } from '../enums';
 import type { Nutrients, ServingOptionDto } from './common';
 
+/** A food from our database that the photo might also show ("Did you mean"). */
+export interface FoodAlternativeDto {
+  foodId: string;
+  name: string;
+  per100g: Nutrients;
+  servingOptions: ServingOptionDto[];
+  verified: boolean;
+  scope: 'global' | 'team' | 'mine';
+}
+
 export interface RecognisedItemDto {
   name: string;
   foodId: string | null;
@@ -14,6 +24,13 @@ export interface RecognisedItemDto {
   per100g: Nutrients;
   servingOptions: ServingOptionDto[];
   aiEstimate: boolean;
+  /** Where a matched food lives (Verified, Team food, Mine); null for an AI estimate. */
+  scope: 'global' | 'team' | 'mine' | null;
+  verified: boolean;
+  /** Close database matches, best first (not including the matched food). */
+  alternatives: FoodAlternativeDto[];
+  /** Food tags the AI saw (used to prefill "Save as a food"). */
+  tags: string[];
 }
 
 export interface RecognitionResponse {
@@ -26,6 +43,8 @@ export interface RecognitionResponse {
   overallConfidence: number;
   lowConfidence: boolean;
   note: string;
+  /** When the items look like the ingredients of one dish (a fruit salad), its name. */
+  dishName: string | null;
 }
 
 export const FoodTextRequest = z.object({ text: z.string().trim().min(2).max(300), slot: MealSlot });

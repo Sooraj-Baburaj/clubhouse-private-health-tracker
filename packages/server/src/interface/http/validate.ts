@@ -11,19 +11,26 @@ function fieldsOf(err: z.ZodError): Record<string, string> {
   return out;
 }
 
-export async function body<T extends z.ZodType>(ctx: Context, schema: T): Promise<z.infer<T>> {
-  let raw: unknown;
+export async function jsonBody(ctx: Context): Promise<unknown> {
   try {
-    raw = await ctx.req.json();
+    return await ctx.req.json();
   } catch {
     throw badRequest('Send a JSON body.', 'invalid_json');
   }
+}
+
+/** Validate an already-read body (for endpoints that pick the schema from the payload). */
+export function parseBody<T extends z.ZodType>(raw: unknown, schema: T): z.infer<T> {
   const r = schema.safeParse(raw);
   if (!r.success) {
     const fields = fieldsOf(r.error);
     throw badRequest(Object.values(fields)[0] ?? 'Check the highlighted fields.', 'validation', fields);
   }
   return r.data;
+}
+
+export async function body<T extends z.ZodType>(ctx: Context, schema: T): Promise<z.infer<T>> {
+  return parseBody(await jsonBody(ctx), schema);
 }
 
 export function query<T extends z.ZodType>(ctx: Context, schema: T): z.infer<T> {

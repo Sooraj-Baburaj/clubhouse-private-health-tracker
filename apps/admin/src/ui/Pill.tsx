@@ -2,7 +2,7 @@ import { AlertTriangle, Check, Circle, Minus } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { cn } from '@/lib/cn';
 
-export type PillTone = 'neutral' | 'ink' | 'accent' | 'outline' | 'in' | 'under' | 'over' | 'none' | 'ai' | 'muted';
+export type PillTone = 'neutral' | 'ink' | 'accent' | 'outline' | 'in' | 'under' | 'over' | 'none' | 'ai' | 'recipe' | 'muted';
 
 const TONES: Record<PillTone, string> = {
   neutral: 'bg-hairline text-ink',
@@ -14,6 +14,7 @@ const TONES: Record<PillTone, string> = {
   over: 'bg-over-bg text-over-fg',
   none: 'bg-none-bg text-none-fg',
   ai: 'bg-ai-bg text-ai-fg',
+  recipe: 'bg-recipe-bg text-recipe-fg',
   muted: 'bg-bg text-muted border border-hairline',
 };
 

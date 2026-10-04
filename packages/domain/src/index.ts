@@ -12,3 +12,5 @@ export * from './diet';
 export * from './nutrition';
 export * from './format';
 export * from './habits';
+export * from './portions';
+export * from './board';

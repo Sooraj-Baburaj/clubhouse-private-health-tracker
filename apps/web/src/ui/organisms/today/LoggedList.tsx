@@ -6,6 +6,7 @@ import { fmt, SLOT_LABEL, timeOf } from '@/features/format';
 import { AIBadge, Tag } from '@/ui/atoms/Badges';
 import { ActivityIcon } from '@/ui/molecules/ActivityIcon';
 import { usePendingIds } from '@/ui/molecules/StatusPills';
+import { STRIPES } from '@/ui/organisms/meal/PhotoCard';
 import { LogRow } from './LogRow';
 import { MemeMomentCard } from './MemeMomentCard';
 
@@ -30,13 +31,37 @@ function PendingClock({ pending }: { pending: boolean }) {
   );
 }
 
-function FoodRow({ log, pending, tz, onOpen }: { log: FoodLogDto; pending: boolean; tz: string; onOpen: () => void }) {
+/** A meal saved as just its photo: no calories yet, it counts for the streak; "Add what's in it" finishes it. */
+function PhotoMealRow({ log, pending, onEdit, onOpen }: { log: FoodLogDto; pending: boolean; onEdit: () => void; onOpen: () => void }) {
+  const thumb = !log.imageExpired ? (log.thumbUrl ?? log.imageUrl) : null;
+  return (
+    <div className="my-1 flex items-center gap-3 rounded-[24px] bg-surface p-2.5">
+      <button type="button" onClick={onOpen} aria-haspopup="dialog" aria-label={`${SLOT_LABEL[log.mealSlot]} photo${pending ? ', waiting to sync' : ''}. Open actions`} className="h-[52px] w-[52px] shrink-0 overflow-hidden rounded-[18px] border-0 p-0" style={thumb ? undefined : STRIPES}>
+        {thumb && <img src={thumb} alt="" className="h-full w-full object-cover" loading="lazy" />}
+      </button>
+      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <span className="flex items-center gap-1.5 text-[14px] font-bold">
+          {SLOT_LABEL[log.mealSlot]} · photo
+          <PendingClock pending={pending} />
+        </span>
+        <span className="text-[12px] text-neutral-700">— kcal · counts for your streak</span>
+      </span>
+      <button type="button" onClick={onEdit} className="min-h-11 shrink-0 rounded-full border-0 bg-accent-200 px-3.5 text-[13px] font-extrabold text-accent-800">
+        Add what’s in it
+      </button>
+    </div>
+  );
+}
+
+function FoodRow({ log, pending, tz, onOpen, onEdit }: { log: FoodLogDto; pending: boolean; tz: string; onOpen: () => void; onEdit: () => void }) {
+  if (log.pendingDetails) return <PhotoMealRow log={log} pending={pending} onEdit={onEdit} onOpen={onOpen} />;
   const names = log.items.map((i) => i.name).join(', ') || 'Meal';
   const thumb = !log.imageExpired ? (log.thumbUrl ?? log.imageUrl) : null;
   return (
     <LogRow
-      label={`${SLOT_LABEL[log.mealSlot]}: ${names}, ${fmt(log.totals.kcal)} kcal${log.aiGenerated ? ', made with AI' : ''}${pending ? ', waiting to sync' : ''}. Open actions`}
+      label={`${SLOT_LABEL[log.mealSlot]}: ${names}, ${fmt(log.totals.kcal)} kcal${log.aiGenerated ? ', made with AI' : ''}${pending ? ', waiting to sync' : ''}. Edit meal`}
       onOpen={onOpen}
+      onTap={onEdit}
       lead={SLOT_LABEL[log.mealSlot]}
       title={
         <>
@@ -109,7 +134,7 @@ function WeightRow({ log, units, pending, onOpen }: { log: WeightEntryDto; units
 }
 
 /** "Logged": food, activity and weigh-in rows (newest first) with meme moments inline under their log. */
-export function LoggedList({ entries, moments, units, tz, onOpen }: { entries: LogEntry[]; moments: MemeMomentDto[]; units: 'metric' | 'imperial'; tz: string; onOpen: (e: LogEntry) => void }) {
+export function LoggedList({ entries, moments, units, tz, onOpen, onEdit }: { entries: LogEntry[]; moments: MemeMomentDto[]; units: 'metric' | 'imperial'; tz: string; onOpen: (e: LogEntry) => void; onEdit: (log: FoodLogDto) => void }) {
   const pending = usePendingIds();
   const ids = new Set(entries.map((e) => e.log.id));
   const loose = moments.filter((m) => !m.logId || !ids.has(m.logId));
@@ -127,7 +152,7 @@ export function LoggedList({ entries, moments, units, tz, onOpen }: { entries: L
         <AnimatePresence initial={false}>
           {entries.map((e) => (
             <motion.li key={`${e.kind}:${e.log.id}`} layout initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ type: 'spring', stiffness: 300, damping: 30 }}>
-              {e.kind === 'food' && <FoodRow log={e.log} pending={pending.has(e.log.id)} tz={tz} onOpen={() => onOpen(e)} />}
+              {e.kind === 'food' && <FoodRow log={e.log} pending={pending.has(e.log.id)} tz={tz} onOpen={() => onOpen(e)} onEdit={() => onEdit(e.log)} />}
               {e.kind === 'activity' && <ActivityRow log={e.log} pending={pending.has(e.log.id)} onOpen={() => onOpen(e)} />}
               {e.kind === 'weight' && <WeightRow log={e.log} units={units} pending={pending.has(e.log.id)} onOpen={() => onOpen(e)} />}
               <AnimatePresence initial={false}>

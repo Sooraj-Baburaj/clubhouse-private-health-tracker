@@ -14,7 +14,7 @@ import { VacationCard } from '@/ui/organisms/momentum/VacationCard';
 import { HabitsStreakCard } from '@/ui/organisms/habits/HabitPieces';
 import { useListMotion } from '@/ui/organisms/today/motion';
 
-/** APP-PROG-07: streaks that pause instead of breaking, grace days, team streak, badges and breaks. */
+/** APP-PROG-07: your streaks — they pause instead of breaking — grace days, badges and breaks. The team streak is on Team. */
 export function MomentumPage() {
   const me = useMeData();
   const router = useRouter();
@@ -76,6 +76,13 @@ export function MomentumPage() {
           <motion.div variants={m.item}>
             <StreakTiles data={d} />
           </motion.div>
+          {d.team.enabled && (
+            <motion.div variants={m.item}>
+              <button type="button" onClick={() => void navigate({ to: '/team' })} className="min-h-11 border-0 bg-transparent px-1.5 text-[14px] font-bold text-accent-700">
+                Team streak is on the Team tab →
+              </button>
+            </motion.div>
+          )}
           {habits.data && (habits.data.total > 0 || habits.data.streak.best > 0) && (
             <motion.div variants={m.item}>
               <HabitsStreakCard current={habits.data.streak.current} onOpen={() => void navigate({ to: '/habits' })} />

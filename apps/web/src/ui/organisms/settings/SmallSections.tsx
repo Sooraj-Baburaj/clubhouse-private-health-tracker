@@ -126,7 +126,19 @@ export function PrivacySection() {
         />
       </ListGroup>
       <ListGroup title="Team">
-        {flags.teamPulse && (
+        {flags.leaderboard && (
+          <>
+            <ToggleRow
+              title="Show me on the leaderboard"
+              sub={pr.showOnBoard ? 'Your points and rank show to the crew' : 'Off: you still see the board, but you’re left out of the ranks and awards'}
+              checked={pr.showOnBoard}
+              onChange={(v) => update.mutate({ privacy: { showOnBoard: v } })}
+            />
+            <Divider />
+          </>
+        )}
+        {/* The leaderboard replaces the pulse comparison while it's on. */}
+        {flags.teamPulse && !flags.leaderboard && (
           <>
             <ToggleRow title="Team pulse" sub="Compare consistency and sessions with others who join" checked={pr.teamPulseOptIn} onChange={(v) => update.mutate({ privacy: { teamPulseOptIn: v } })} />
             <Divider />

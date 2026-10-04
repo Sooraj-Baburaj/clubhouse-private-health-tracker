@@ -39,10 +39,10 @@ export function LogSheet() {
     close();
     fn();
   };
+  // Snap works with AI on or off: off, the photo goes on the meal and the member adds the foods.
+  const photoAi = me.ai.photoAvailable;
   const options: Option[] = [
-    ...(me.ai.photoAvailable
-      ? [{ key: 'snap', label: 'Snap a meal', sub: 'One photo, we read the plate', ai: true, tone: 'bg-accent text-on-accent', go: go(() => void navigate({ to: '/log/food', search: { mode: 'camera', date } })) }]
-      : []),
+    { key: 'snap', label: 'Snap a meal', sub: photoAi ? 'One photo, we read the plate' : 'Photo first, add the foods after', ai: photoAi, tone: 'bg-accent text-on-accent', go: go(() => void navigate({ to: '/log/food', search: { view: 'snap', date } })) },
     { key: 'search', label: 'Search food', sub: 'Roti, dosa, dal and plenty more', tone: 'bg-surface text-text', go: go(() => void navigate({ to: '/log/food', search: { mode: 'search', date } })) },
     { key: 'activity', label: 'Log activity', sub: 'Three taps: type, time, done', tone: 'bg-accent-2 text-on-accent', go: go(() => void navigate({ to: '/log/activity', search: { date } })) },
     { key: 'weight', label: 'Log weight', sub: 'Step on, type it in', tone: 'border border-divider bg-transparent text-text', go: openWeight },

@@ -1,10 +1,10 @@
-import { AtSign, Bell, CalendarCheck, ClipboardList, Dumbbell, Flame, Info, Laugh, Megaphone, MessageCircle, Scale, Trophy, UtensilsCrossed, type LucideIcon } from 'lucide-react';
+import { AtSign, Bell, CalendarCheck, ClipboardList, Dumbbell, Flame, Info, Laugh, ListChecks, Medal, Megaphone, MessageCircle, Scale, Trophy, UtensilsCrossed, type LucideIcon } from 'lucide-react';
 import { motion } from 'motion/react';
-import type { NotificationDto } from '@clubhouse/contracts';
+import type { NotificationDto, NotificationType } from '@clubhouse/contracts';
 import { relativeTime } from '@/features/format';
 import { cn } from '@/lib/cn';
 
-const ICONS: Record<string, LucideIcon> = {
+const ICONS: Record<NotificationType, LucideIcon> = {
   breakfast_reminder: UtensilsCrossed,
   morning_snack_reminder: UtensilsCrossed,
   lunch_reminder: UtensilsCrossed,
@@ -20,13 +20,15 @@ const ICONS: Record<string, LucideIcon> = {
   plan_updated: ClipboardList,
   announcement: Megaphone,
   weigh_in_reminder: Scale,
+  habit_reminder: ListChecks,
+  board_results: Medal,
   system: Info,
   ai_budget_alert: Info,
 };
 
 export function InboxRow({ n, onOpen }: { n: NotificationDto; onOpen: () => void }) {
   const unread = !n.readAt;
-  const Icon = ICONS[n.type] ?? Bell;
+  const Icon = ICONS[n.type as NotificationType] ?? Bell;
   return (
     <motion.button
       type="button"

@@ -95,6 +95,7 @@ export const DEFAULT_NOTIFICATION_PREFS: Record<NotificationType, NotificationDe
   ai_budget_alert: { enabled: true, time: null, days: ALL_DAYS, smartTime: false },
   weigh_in_reminder: { enabled: false, time: '08:00', days: [0], smartTime: false },
   habit_reminder: { enabled: true, time: null, days: ALL_DAYS, smartTime: false },
+  board_results: { enabled: true, time: null, days: ALL_DAYS, smartTime: false },
   system: { enabled: true, time: null, days: ALL_DAYS, smartTime: false },
 };
 /** Types a member cannot switch off (SRS Appendix C "Member can change: No"). */
@@ -106,6 +107,22 @@ export const DEFAULT_QUIET_HOURS = { start: '22:00', end: '07:00' };
 
 export const CopyPool = z.record(z.string(), z.array(z.string().min(1).max(160)).max(20));
 export type CopyPool = z.infer<typeof CopyPool>;
+
+/** The team's knobs for Crew points (the rest of the rules are fixed and versioned in the domain). */
+export const BoardSettings = z.object({
+  /** An unplanned activity earns workout points from this many minutes. */
+  workoutMinMinutes: z.number().int().min(5).max(90),
+  /** Workouts that earn points each week. */
+  workoutCap: z.number().int().min(1).max(7),
+  /** Workouts that count as "plan done" for members without a weekly plan. */
+  noPlanTarget: z.number().int().min(1).max(7),
+  /** Monday-morning podium and awards in the team chat. */
+  postResults: z.boolean(),
+  /** Top-five card on the admin overview. */
+  showOnDashboard: z.boolean(),
+});
+export type BoardSettings = z.infer<typeof BoardSettings>;
+export const DEFAULT_BOARD_SETTINGS: BoardSettings = { workoutMinMinutes: 20, workoutCap: 4, noPlanTarget: 3, postResults: true, showOnDashboard: true };
 
 export const TeamSettings = z.object({
   mealSlots: MealSlotSettings,
@@ -121,7 +138,9 @@ export const TeamSettings = z.object({
     teamPulse: z.boolean(),
     roastMemes: z.boolean(),
     naturalLanguageEntry: z.boolean(),
+    leaderboard: z.boolean(),
   }),
+  board: BoardSettings,
   memes: z.object({ dailyChatCap: z.number().int().min(0).max(100), confidenceThreshold: z.number().min(0).max(1) }),
   chat: z.object({ digestMinutes: z.number().int().min(5).max(240), keywords: z.array(z.string().min(1).max(40)).max(200) }),
   media: z.object({ retentionDays: z.number().int().min(7).max(365), memeLibraryCap: z.number().int().min(10).max(5000), softCapMb: z.number().int().min(50).max(100_000) }),
@@ -139,12 +158,41 @@ export const DEFAULT_TEAM_SETTINGS: TeamSettings = {
   privacyDefault: 'full',
   roastDefault: true,
   eatBackDefault: false,
-  featureFlags: { teamPulse: true, roastMemes: true, naturalLanguageEntry: true },
+  featureFlags: { teamPulse: true, roastMemes: true, naturalLanguageEntry: true, leaderboard: true },
+  board: DEFAULT_BOARD_SETTINGS,
   memes: { dailyChatCap: 10, confidenceThreshold: 0.6 },
   chat: { digestMinutes: 30, keywords: ['cheat day', 'pizza'] },
   media: { retentionDays: 30, memeLibraryCap: 500, softCapMb: 800 },
   maintenanceBanner: null,
 };
+
+const isRecord = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
+
+/**
+ * Stored settings with defaults filled in for keys added after the team was created (a new feature flag, the board
+ * settings, a new notification type). The stored JSON is never parsed on read, and the settings schema needs every key,
+ * so without this an old team would read `undefined` and fail validation on its next save.
+ */
+export function withSettingDefaults(stored: TeamSettings): TeamSettings {
+  const s = stored as Partial<TeamSettings> & Record<string, unknown>;
+  const D = DEFAULT_TEAM_SETTINGS;
+  const merge = <T extends object>(def: T, cur: unknown): T => (isRecord(cur) ? { ...def, ...(cur as Partial<T>) } : { ...def });
+  return {
+    ...D,
+    ...s,
+    mealSlots: merge(D.mealSlots, s.mealSlots),
+    thresholds: merge(D.thresholds, s.thresholds),
+    streaks: merge(D.streaks, s.streaks),
+    notificationDefaults: merge(D.notificationDefaults, s.notificationDefaults),
+    featureFlags: merge(D.featureFlags, s.featureFlags),
+    board: merge(D.board, s.board),
+    memes: merge(D.memes, s.memes),
+    chat: merge(D.chat, s.chat),
+    media: merge(D.media, s.media),
+    copyPool: isRecord(s.copyPool) ? (s.copyPool as CopyPool) : D.copyPool,
+    maintenanceBanner: s.maintenanceBanner ?? null,
+  };
+}
 
 export const TeamBasics = z.object({ name: z.string().min(1).max(60), timezone: z.string().min(1), units: Units });
 export type TeamBasics = z.infer<typeof TeamBasics>;
