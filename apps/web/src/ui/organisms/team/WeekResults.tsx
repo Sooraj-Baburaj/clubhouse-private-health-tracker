@@ -33,9 +33,16 @@ function MiniPodium({ results, dark }: { results: WeekResultsDto; dark?: boolean
 }
 
 function resultLine(r: WeekResultsDto): string {
-  const winner = r.podium.find((p) => p.rank === 1);
-  if (r.me?.rank != null) return `You finished #${r.me.rank} — ${r.me.points} pts${r.me.best ? ', your best week yet' : ''}`;
-  return winner ? `${winner.isMe ? 'You' : winner.person.name.split(' ')[0]} took the week with ${winner.points} pts` : 'The week is closed';
+  if (r.me?.rank != null) {
+    const joint = r.standings.filter((s) => s.rank === r.me!.rank).length > 1 ? 'joint ' : '';
+    return `You finished ${joint}#${r.me.rank} — ${r.me.points} pts${r.me.best ? ', your best week yet' : ''}`;
+  }
+  // Ties share the win: "Asha & Ravi shared the week".
+  const winners = r.podium.filter((p) => p.rank === 1);
+  if (!winners.length) return 'The week is closed';
+  const names = winners.map((w) => (w.isMe ? 'You' : w.person.name.split(' ')[0]));
+  const who = names.length > 1 ? `${names.slice(0, -1).join(', ')} & ${names.at(-1)}` : names[0];
+  return `${who} ${winners.length > 1 ? 'shared' : 'took'} the week with ${winners[0]!.points} pts`;
 }
 
 /** Monday's dark results card: the podium, your finish, the awards, "back to 0". Shown until dismissed (Mon–Tue). */
@@ -60,7 +67,7 @@ export function WeekResultsCard({ results, onDismiss }: { results: WeekResultsDt
       {results.awards.length > 0 && (
         <div className="scroll-hidden -mx-5 flex gap-2 overflow-x-auto px-5">
           {results.awards.map((a) => (
-            <span key={a.key} className="flex shrink-0 items-center gap-2 rounded-full bg-[color-mix(in_srgb,var(--color-bg)_14%,transparent)] py-1.5 pl-2 pr-3.5">
+            <span key={`${a.key}:${a.person.id}`} className="flex shrink-0 items-center gap-2 rounded-full bg-[color-mix(in_srgb,var(--color-bg)_14%,transparent)] py-1.5 pl-2 pr-3.5">
               <span aria-hidden className="text-[20px]">
                 {AWARD_META[a.key].emoji}
               </span>
@@ -110,7 +117,7 @@ export function AwardsStrip({ results, onOpenMember }: { results: WeekResultsDto
       {/* It scrolls sideways, so it takes keyboard focus itself too. */}
       <ul tabIndex={0} aria-labelledby="awards-title" className="scroll-hidden snap-x-chips -mx-5 m-0 flex list-none gap-2.5 overflow-x-auto rounded-[28px] px-5 pb-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
         {results.awards.map((a) => (
-          <AwardCard key={a.key} a={a} onOpen={onOpenMember && (() => onOpenMember(a.person.id))} />
+          <AwardCard key={`${a.key}:${a.person.id}`} a={a} onOpen={onOpenMember && (() => onOpenMember(a.person.id))} />
         ))}
       </ul>
     </section>
@@ -144,7 +151,7 @@ export function LastWeekSheet({ results, open, onClose, onOpenMember }: { result
             <div className="flex flex-col gap-2">
               <span className="eyebrow">Awards</span>
               {results.awards.map((a) => (
-                <div key={a.key} className="flex items-center gap-3 rounded-[22px] bg-surface px-3.5 py-2.5">
+                <div key={`${a.key}:${a.person.id}`} className="flex items-center gap-3 rounded-[22px] bg-surface px-3.5 py-2.5">
                   <span aria-hidden className="text-[24px]">
                     {AWARD_META[a.key].emoji}
                   </span>

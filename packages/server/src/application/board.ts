@@ -64,6 +64,8 @@ function personRef(u: UserRow, avatars: Map<string, ImageUrls>): PersonRef {
 }
 
 const firstName = (name: string) => name.trim().split(/\s+/)[0] ?? name;
+/** "Asha", "Asha & Ravi", "Asha, Ravi & Meera". */
+const joinNames = (names: string[]) => (names.length > 1 ? `${names.slice(0, -1).join(', ')} & ${names.at(-1)}` : (names[0] ?? ''));
 
 export function toBoardFacts(f: Pick<FactRow, 'mealsOnTime' | 'snapOnly' | 'kcalClass' | 'proteinClass' | 'workouts' | 'weighedIn' | 'settled'>): BoardDayFacts {
   const cls = (v: string | null) => (v === 'on' || v === 'near' || v === 'off' ? v : null);
@@ -442,8 +444,10 @@ function pendingOf(r: WeekRow): number {
 function awardWhy(a: Award): string {
   const d = a.detail;
   switch (a.key) {
-    case 'winner':
-      return `${d.points} pts${d.best ? ' — a personal best' : ''}`;
+    case 'winner': {
+      const notes = [d.shared && 'a shared win', d.best && 'a personal best'].filter(Boolean);
+      return `${d.points} pts${notes.length ? ` — ${notes.join(', ')}` : ''}`;
+    }
     case 'consistent':
       return `${d.solid} of ${d.eligible} solid days`;
     case 'streak':
@@ -636,17 +640,24 @@ async function closeWeek(c: Container, team: TeamRow, weekStart: string, members
   const n = isoWeekNumber(weekStart);
   const nameOf = (id: string) => byUser.get(id)?.user.displayName ?? 'Someone';
   if (team.settings.board.postResults && ranked.length >= BOARD_RULES.minRanked) {
-    const podium = ranked.filter((r) => r.rank <= 3).map((r) => `${firstName(r.name)} ${r.points}`).join(' · ');
+    // Ties share a place: "Asha & Ravi 540 · Meera 500".
+    const places = [...new Set(ranked.filter((r) => r.rank <= 3).map((r) => r.rank))];
+    const podium = places
+      .map((rank) => ranked.filter((r) => r.rank === rank))
+      .map((at) => `${joinNames(at.map((r) => firstName(r.name)))} ${at[0]!.points}`)
+      .join(' · ');
     const awardLine = awards.filter((a) => a.key !== 'winner').map((a) => `${AWARD_META[a.key].emoji} ${AWARD_META[a.key].title}: ${firstName(nameOf(a.userId))}`).join(' · ');
     const body = [`🏆 Week ${n}: ${podium}`, awardLine, 'New week — everyone’s back to 0.'].filter(Boolean).join('\n');
     const msg = await postSystemMessage(c, team.id, { systemKind: 'board_results', body, mentions: ranked.slice(0, 3).map((r) => r.userId), meta: { weekStart } });
     await c.db.update(s.boardWeekResults).set({ messageId: msg.id }).where(and(eq(s.boardWeekResults.teamId, team.id), eq(s.boardWeekResults.weekStart, weekStart)));
   }
   if (ranked.length >= 2) {
-    const winner = ranked[0]!;
+    const winners = ranked.filter((r) => r.rank === 1).map((r) => firstName(r.name));
+    const tookIt = winners.length > 1 ? `${joinNames(winners)} shared the week.` : `${winners[0]} took the week.`;
     for (const m of members) {
       const mine = ranked.find((r) => r.userId === m.user.id);
-      const body = mine ? `You finished #${mine.rank} with ${mine.points} pts. New week — everyone’s back to 0.` : `${firstName(winner.name)} took the week. New week — everyone’s back to 0.`;
+      const joint = mine && ranked.some((r) => r.userId !== mine.userId && r.rank === mine.rank) ? 'joint ' : '';
+      const body = mine ? `You finished ${joint}#${mine.rank} with ${mine.points} pts. New week — everyone’s back to 0.` : `${tookIt} New week — everyone’s back to 0.`;
       await notifyUser(c, m.user.id, { type: 'board_results', title: `Week ${n} results are in`, body, url: '/team', dedupeKey: `board:${team.id}:${weekStart}:${m.user.id}` }).catch((e: Error) =>
         log.warn('board.notify_failed', { userId: m.user.id, error: e.message }),
       );

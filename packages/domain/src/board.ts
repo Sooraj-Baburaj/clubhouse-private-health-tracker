@@ -363,12 +363,13 @@ export interface Award {
   key: AwardKind;
   id: string;
   /** What the award is for; the caller adds names. */
-  detail: { points?: number; best?: boolean; solid?: number; eligible?: number; days?: number; workouts?: number; planned?: boolean; gain?: number };
+  detail: { points?: number; best?: boolean; shared?: boolean; solid?: number; eligible?: number; days?: number; workouts?: number; planned?: boolean; gain?: number };
 }
 
 /**
  * Weekly awards from the ranked members (needs `minRanked`). `rows` come in board order, which breaks every tie the
- * same way the board does. The crown holder (with their 28-day record) gets Most consistent.
+ * same way the board does — except Week winner, which everyone level on the most points shares. The crown holder (with
+ * their 28-day record) gets Most consistent.
  */
 export function weeklyAwards(rows: AwardCandidate[], crown: { id: string; solid: number; eligible: number } | null): Award[] {
   if (rows.length < BOARD_RULES.minRanked) return [];
@@ -378,8 +379,9 @@ export function weeklyAwards(rows: AwardCandidate[], crown: { id: string; solid:
     for (const r of rows) if (score(r) >= min && (!best || score(r) > score(best))) best = r;
     return best;
   };
-  const winner = pickMax((r) => r.points, 1);
-  if (winner) out.push({ key: 'winner', id: winner.id, detail: { points: winner.points, best: winner.bestBefore != null && winner.points > winner.bestBefore } });
+  const top = pickMax((r) => r.points, 1);
+  const winners = top ? rows.filter((r) => r.points === top.points) : [];
+  for (const w of winners) out.push({ key: 'winner', id: w.id, detail: { points: w.points, best: w.bestBefore != null && w.points > w.bestBefore, shared: winners.length > 1 } });
   if (crown && rows.some((r) => r.id === crown.id)) out.push({ key: 'consistent', id: crown.id, detail: { solid: crown.solid, eligible: crown.eligible } });
   const streak = pickMax((r) => r.streak, 7);
   if (streak) out.push({ key: 'streak', id: streak.id, detail: { days: streak.streak } });

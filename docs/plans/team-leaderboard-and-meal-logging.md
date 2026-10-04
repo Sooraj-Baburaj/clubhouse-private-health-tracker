@@ -184,7 +184,7 @@ Maximum 750 a week. Definitions:
 
 | Award | Goes to |
 |---|---|
-| 🏆 Week winner | Most Crew points |
+| 🏆 Week winner | Most Crew points (shared by everyone level on the most points) |
 | 👑 Most consistent | The crown holder (28-day solid days) |
 | 🔥 Iron streak | Longest active logging streak |
 | 💪 Plan keeper | Most workouts counted, ties to plan done |
@@ -198,7 +198,8 @@ Maximum 750 a week. Definitions:
 - **Joined mid-week**: days before joining are treated like vacation days.
 - **Deactivated**: dropped from live boards; finished weeks keep their row.
 - **Small crews**: fewer than 3 ranked members → no podium and no awards.
-- **Ties** share a rank; display order is solid days, then logging streak.
+- **Ties** share a rank; display order is solid days, then logging streak. A tie at the top shares 🏆 Week winner, and
+  the chat post, push and results card say so ("Asha & Ravi 540", "You finished joint #1").
 - **Rule changes**: rows store `rulesVersion`; a change recomputes the current week only.
 - **Photo-only meals** count for the logging streak and +5, but the day's band is computed on what's logged, so the
   member is nudged to finish them.

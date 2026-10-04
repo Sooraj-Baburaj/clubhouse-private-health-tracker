@@ -215,6 +215,14 @@ describe('awards', () => {
     expect(Object.fromEntries(a.map((x) => [x.key, x.id]))).toEqual({ winner: 'a', consistent: 'b', streak: 'b', plan: 'c', protein: 'c', comeback: 'c' });
     expect(a.find((x) => x.key === 'winner')!.detail.best).toBe(true);
   });
+  it('shares Week winner between everyone level on the most points', () => {
+    const a = weeklyAwards([row('a', 540), row('b', 540), row('c', 500)], null);
+    expect(a.filter((x) => x.key === 'winner').map((x) => [x.id, x.detail.shared])).toEqual([
+      ['a', true],
+      ['b', true],
+    ]);
+    expect(weeklyAwards([row('a', 540), row('b', 500), row('c', 480)], null).find((x) => x.key === 'winner')!.detail.shared).toBe(false);
+  });
 });
 
 describe('next actions and earned items', () => {

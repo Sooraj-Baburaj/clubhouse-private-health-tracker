@@ -121,7 +121,9 @@ ship code that uses them, and remove old ones in a later release.
 2. Deploy.
 3. Once, from a machine with `DATABASE_URL_MIGRATE`: `DATABASE_URL=$DATABASE_URL_MIGRATE pnpm board:backfill`. It fills
    the leaderboard from the last 35 days of logs, closes finished weeks quietly (no chat posts or pushes) and sets the
-   👑. Without it the board starts empty and fills from the next nightly rollover. Safe to re-run.
+   👑. Safe to re-run. **Run it before the week next closes (Monday 03:00 in the team's timezone).** Without it, days
+   before the deploy keep 0 points for good: a log only recomputes its own day, the nightly rollover only recomputes
+   days it hasn't rolled over yet, and the week then closes (final, never recomputed) on those zeros.
 4. Members' phones pick up the new food catalogue format and query cache on their next open (one re-download).
 
 ## 8. Backups and restore drill
