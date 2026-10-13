@@ -6,6 +6,7 @@ import type { ActivityLogUpsert, ActivityTypeDto, GymFocus, Intensity, PlanItemD
 import { computeBurn } from '@clubhouse/domain';
 import { toast } from '@clubhouse/ui';
 import { activityLogToUpsert, FOCUS_OPTIONS, INTENSITY_OPTIONS, optimisticActivity, useActivityLogById, useActivityTypes, usePlan } from '@/features/activity';
+import { pointsSuffix } from '@/features/board';
 import { fmt } from '@/features/format';
 import { useSaveActivityLog } from '@/features/logs';
 import { useMeData } from '@/features/me';
@@ -136,7 +137,7 @@ export function LogActivityPage() {
       {
         onSuccess: (r) => {
           const pp = r.effects?.planProgress;
-          if (!r.queued) toast.success(log ? 'Changes saved' : `${type.name} logged · −${fmt(kcal)} kcal${pp ? ` · ${pp.typeName} ${pp.done} of ${pp.target} this week` : ''}`);
+          if (!r.queued) toast.success(log ? 'Changes saved' : `${type.name} logged · −${fmt(kcal)} kcal${pp ? ` · ${pp.typeName} ${pp.done} of ${pp.target} this week` : ''}${pointsSuffix(r.effects)}`);
           pushEffects(r.effects);
           done();
         },

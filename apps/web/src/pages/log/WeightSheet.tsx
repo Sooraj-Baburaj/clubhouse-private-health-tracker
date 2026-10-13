@@ -6,10 +6,12 @@ import type { TodayResponse } from '@clubhouse/contracts';
 import { displayWeight, kgToLb, lbToKg } from '@clubhouse/domain';
 import { toast } from '@clubhouse/ui';
 import { useUi } from '@/app/uiStore';
+import { pointsSuffix } from '@/features/board';
 import { fmt1 } from '@/features/format';
 import { qk } from '@/features/keys';
 import { useSaveWeight } from '@/features/logs';
 import { useMeData } from '@/features/me';
+import { useMoments } from '@/features/moments';
 import { memberNow } from '@/features/summary';
 import { nowIso, uuid } from '@/lib/ids';
 import { Button } from '@/ui/atoms/Button';
@@ -26,6 +28,7 @@ export function WeightSheet() {
   const me = useMeData();
   const qc = useQueryClient();
   const save = useSaveWeight();
+  const pushEffects = useMoments((s) => s.pushEffects);
   const imperial = me.profile.units === 'imperial';
   const unit = imperial ? 'lb' : 'kg';
   const [value, setValue] = useState('');
@@ -68,7 +71,8 @@ export function WeightSheet() {
       { id: existingId ?? uuid(), data: { date: memberNow(me).date, weightKg, note: note.trim() || null, clientUpdatedAt: nowIso() } },
       {
         onSuccess: (r) => {
-          if (!r.queued) toast.success(`Weight logged · ${displayWeight(weightKg, me.profile.units)}`);
+          if (!r.queued) toast.success(`Weight logged · ${displayWeight(weightKg, me.profile.units)}${pointsSuffix(r.effects)}`);
+          pushEffects(r.effects);
           close();
         },
       },

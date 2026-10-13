@@ -47,14 +47,38 @@ export interface NutrientGridResponse {
 }
 
 export interface ActivityProgressResponse {
+  /** Sessions count one per activity a day (a second walk the same day adds minutes, not a session). */
   weeks: { weekStart: string; sessions: number; planned: number; minutes: number; burn: number }[];
   records: { record: PersonalRecord; label: string; value: number; unit: string; date: string }[];
   hasPlan: boolean;
 }
 
+export type ConsistencyPart = 'logging' | 'calories' | 'protein' | 'activity' | 'habits';
+
+/** One week or month of consistency (SYS-CALC-33 v2). A part is null when it doesn't apply or nothing is due yet. */
+export interface ConsistencyDto {
+  period: 'week' | 'month';
+  start: string;
+  end: string;
+  /** Null while nothing is due yet. */
+  score: number | null;
+  word: 'solid' | 'building' | 'rough week' | null;
+  parts: Record<ConsistencyPart, { pct: number; done: number; due: number; weight: number } | null>;
+}
+
+/** One point of history; `viewer` is the person looking, on someone else's profile. */
+export interface ConsistencyPoint {
+  start: string;
+  score: number | null;
+  viewer?: number | null;
+}
+
 export interface ConsistencyResponse {
-  current: { weekStart: string; score: number; word: 'solid' | 'building' | 'rough week'; components: { logging: number; inBand: number; plan: number } };
-  history: { weekStart: string; score: number }[];
+  week: ConsistencyDto;
+  month: ConsistencyDto;
+  /** Oldest first, ending with the current week (12) and month (6). */
+  weeks: ConsistencyPoint[];
+  months: ConsistencyPoint[];
 }
 
 export interface StreakDto {
@@ -137,6 +161,8 @@ export interface MemberProfileResponse {
     podiums: number;
     awards: { key: AwardKey; count: number }[];
   } | null;
+  /** Their consistency; on someone else's profile the history also carries the viewer's, to compare. */
+  consistency: ConsistencyResponse;
   /** Null when they have no habits. Names of today's kept habits only when they share habits. */
   habits: { doneToday: number; totalToday: number; streak: { current: number; best: number }; keptToday: string[] | null } | null;
 }

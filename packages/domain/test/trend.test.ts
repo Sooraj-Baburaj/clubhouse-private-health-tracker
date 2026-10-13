@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { consistencyScore, forecast, weightTrend, whatIf } from '../src';
+import { forecast, weightTrend, whatIf } from '../src';
 
 describe('weight trend (SYS-CALC-30)', () => {
   it('is an EMA with smoothing 0.1', () => {
@@ -38,14 +38,5 @@ describe('forecast (SYS-CALC-31/32/34)', () => {
     const a = forecast({ ...baseInput, netKcalByDay: Array(21).fill(2300) });
     const b = whatIf({ ...baseInput, netKcalByDay: Array(21).fill(2300) }, -500);
     expect(b.avgNet).toBe(a.avgNet - 200);
-  });
-});
-
-describe('consistency (SYS-CALC-33)', () => {
-  it('weights 40/30/30 and maps to words', () => {
-    const r = consistencyScore({ days: 7, daysWithFoodLog: 7, daysInCalorieBand: 7, planDone: 5, planTarget: 5 });
-    expect(r).toMatchObject({ score: 100, word: 'solid' });
-    expect(consistencyScore({ days: 7, daysWithFoodLog: 5, daysInCalorieBand: 3, planDone: 3, planTarget: 5 }).word).toBe('building');
-    expect(consistencyScore({ days: 7, daysWithFoodLog: 1, daysInCalorieBand: 0, planDone: 0, planTarget: 5 }).word).toBe('rough week');
   });
 });

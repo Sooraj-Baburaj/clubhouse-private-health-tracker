@@ -4,6 +4,7 @@ import { AWARD_META, type MemberProfileResponse, type StreakKind } from '@clubho
 import { fadeUp, stagger } from '@clubhouse/ui';
 import { dateLabel, firstName, fmt } from '@/features/format';
 import { ListGroup, ListRow } from '@/ui/molecules/ListGroup';
+import { ConsistencyCard } from '@/ui/organisms/consistency/ConsistencyCard';
 import { RingAvatar } from './BoardPieces';
 
 type P = MemberProfileResponse;
@@ -54,6 +55,18 @@ export function ProfileWeek({ p }: { p: P }) {
       </span>
       <span className="text-[14px] font-bold text-on-accent-sub">{line}</span>
     </div>
+  );
+}
+
+/** Weekly and monthly consistency; on a teammate's profile the chart compares theirs with yours. */
+export function ProfileConsistency({ p }: { p: P }) {
+  return (
+    <section aria-labelledby="consistency-title" className="flex flex-col gap-2.5">
+      <h2 id="consistency-title" className="font-heading text-[20px]">
+        Consistency
+      </h2>
+      <ConsistencyCard data={p.consistency} name={p.isMe ? 'You' : firstName(p.person.name)} />
+    </section>
   );
 }
 
@@ -207,6 +220,7 @@ export function ProfileSections({ p, onOpenDay }: { p: P; onOpenDay: () => void 
         <ProfileHero key="hero" p={p} />,
         <ProfileWeek key="week" p={p} />,
         <ProfileDayLink key="day" p={p} onOpen={onOpenDay} />,
+        <ProfileConsistency key="consistency" p={p} />,
         <ProfileStreaks key="streaks" p={p} />,
         <ProfileBoardRecord key="board" p={p} />,
         <ProfileHabits key="habits" p={p} />,

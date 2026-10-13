@@ -2,7 +2,6 @@ import { and, asc, desc, eq, gte, isNull, lte, sql } from 'drizzle-orm';
 import type {
   ActivityProgressResponse,
   CaloriesProgressResponse,
-  ConsistencyResponse,
   ForecastDto,
   MealSlot,
   Nutrient,
@@ -16,18 +15,14 @@ import type { ProgressNarrativeInput } from '@clubhouse/ai-gateway';
 import {
   addDays,
   bandFor,
-  consistencyScore,
   dateRange,
   forecast,
   isDayClosed,
-  dayCalorieClass,
-  localDateOf,
   weekStartOf,
   weekdayOf,
   weightTrend,
   whatIf,
   ZERO_TOTALS,
-  type ConsistencyResult,
   type ForecastInput,
   type ForecastResult,
   type NutrientTotals,
@@ -39,7 +34,7 @@ import { sha256 } from '../lib/crypto';
 import { log } from '../lib/log';
 import type { AuthUser } from '../interface/http/types';
 import { memberClock, type MemberClock } from './clockCtx';
-import { activePlanItems, attributeLogs } from './plans';
+import { activePlanItems } from './plans';
 import { loadProfile } from './profile';
 import { effectiveTargets } from './targets';
 import { getTeam } from './team';
@@ -351,7 +346,7 @@ export async function activityProgress(c: Container, user: AuthUser): Promise<Ac
   const first = addDays(current, -77);
   const [logs, plan, records] = await Promise.all([
     c.db
-      .select({ date: s.activityLogs.date, minutes: s.activityLogs.durationMin, kcal: s.activityLogs.kcalBurned })
+      .select({ date: s.activityLogs.date, typeId: s.activityLogs.typeId, minutes: s.activityLogs.durationMin, kcal: s.activityLogs.kcalBurned })
       .from(s.activityLogs)
       .where(and(eq(s.activityLogs.userId, user.id), gte(s.activityLogs.date, first), lte(s.activityLogs.date, addDays(current, 6)), isNull(s.activityLogs.deletedAt))),
     activePlanItems(c, user.id),
@@ -362,7 +357,9 @@ export async function activityProgress(c: Container, user: AuthUser): Promise<Ac
   const weeks: ActivityProgressResponse['weeks'] = [];
   for (let w = first; w <= current; w = addDays(w, 7)) {
     const wl = logs.filter((l) => l.date >= w && l.date <= addDays(w, 6));
-    weeks.push({ weekStart: w, sessions: wl.length, planned, minutes: Math.round(wl.reduce((a, l) => a + l.minutes, 0)), burn: Math.round(wl.reduce((a, l) => a + l.kcal, 0)) });
+    // One session per activity a day, as the plan counts them; minutes and burn add up every log.
+    const sessions = new Set(wl.map((l) => `${l.date}|${l.typeId}`)).size;
+    weeks.push({ weekStart: w, sessions, planned, minutes: Math.round(wl.reduce((a, l) => a + l.minutes, 0)), burn: Math.round(wl.reduce((a, l) => a + l.kcal, 0)) });
   }
   return {
     weeks,
@@ -371,84 +368,6 @@ export async function activityProgress(c: Container, user: AuthUser): Promise<Ac
       .map((r) => ({ record: r.record as PersonalRecord, label: RECORD_LABELS[r.record as PersonalRecord], value: r.value, unit: r.unit, date: r.achievedOn }))
       .sort((a, b) => a.label.localeCompare(b.label)),
     hasPlan: plan.items.length > 0,
-  };
-}
-
-/* ───────── Consistency ───────── */
-
-export interface WeekConsistency extends ConsistencyResult {
-  weekStart: string;
-  sessions: number;
-}
-
-/**
- * SYS-CALC-33 per ISO week: 40 % days with a food log, 30 % days in the calorie band, 30 % plan adherence. Weeks before
- * the member joined are skipped; today only counts once something is logged for it.
- */
-export async function consistencyWeeks(c: Container, userId: string, weekStarts: string[], today: string): Promise<WeekConsistency[]> {
-  if (!weekStarts.length) return [];
-  const user = await c.db.query.users.findFirst({ where: eq(s.users.id, userId) });
-  const profile = await c.db.query.profiles.findFirst({ where: eq(s.profiles.userId, userId) });
-  if (!user || !profile) return [];
-  const team = await getTeam(c, user.teamId);
-  const tz = user.timezone || team.timezone;
-  const joined = localDateOf(user.createdAt, tz);
-  const sorted = [...weekStarts].sort();
-  const from = sorted[0]!;
-  const to = addDays(sorted.at(-1)!, 6) < today ? addDays(sorted.at(-1)!, 6) : today;
-  const [aggs, targets, plan, acts] = await Promise.all([
-    dayAggregates(c, userId, from, to),
-    dayTargets(c, userId, from, to),
-    activePlanItems(c, userId),
-    c.db
-      .select({ id: s.activityLogs.id, typeId: s.activityLogs.typeId, planItemId: s.activityLogs.planItemId, date: s.activityLogs.date })
-      .from(s.activityLogs)
-      .where(and(eq(s.activityLogs.userId, userId), gte(s.activityLogs.date, from), lte(s.activityLogs.date, to), isNull(s.activityLogs.deletedAt))),
-  ]);
-  const thresholds = thresholdsFor(team, profile);
-  const cur = currentTargets(profile);
-  const weekly = plan.items.filter((i) => (i.perWeek ?? 0) > 0);
-  const out: WeekConsistency[] = [];
-  for (const w of sorted) {
-    const end = addDays(w, 6) < today ? addDays(w, 6) : today;
-    if (end < joined || w > today) continue;
-    const start = w < joined ? joined : w;
-    let days = dateRange(start, end);
-    if (end === today && !(aggs.get(today)?.foodLogs ?? 0) && days.length > 1) days = days.slice(0, -1);
-    let food = 0;
-    let inBand = 0;
-    for (const d of days) {
-      const a = aggs.get(d);
-      if (!a || a.foodLogs === 0) continue;
-      food++;
-      const t = targets.get(d)?.kcal ?? cur?.kcal ?? 0;
-      if (t && dayCalorieClass(a.eaten.kcal, t + (profile.eatBackExercise ? a.burned : 0), thresholds) === 'in') inBand++;
-    }
-    const weekActs = acts.filter((l) => l.date >= w && l.date <= addDays(w, 6));
-    let planDone: number | null = null;
-    let planTarget: number | null = null;
-    if (weekly.length) {
-      const counts = attributeLogs(weekly, weekActs);
-      planTarget = weekly.reduce<number>((acc, i) => acc + (i.perWeek ?? 0), 0);
-      planDone = weekly.reduce<number>((acc, i) => acc + Math.min(counts.get(i.id) ?? 0, i.perWeek ?? 0), 0);
-    }
-    const r = consistencyScore({ days: days.length, daysWithFoodLog: food, daysInCalorieBand: inBand, planDone, planTarget });
-    out.push({ ...r, weekStart: w, sessions: weekActs.length });
-  }
-  return out;
-}
-
-export async function consistencyProgress(c: Container, user: AuthUser): Promise<ConsistencyResponse> {
-  const { today } = memberClock(c, user.timezone);
-  const current = weekStartOf(today);
-  const weeks = Array.from({ length: 12 }, (_, i) => addDays(current, -7 * (11 - i)));
-  const rows = await consistencyWeeks(c, user.id, weeks, today);
-  const cur = rows.find((r) => r.weekStart === current) ?? rows.at(-1);
-  return {
-    current: cur
-      ? { weekStart: cur.weekStart, score: cur.score, word: cur.word, components: cur.components }
-      : { weekStart: current, score: 0, word: 'rough week', components: { logging: 0, inBand: 0, plan: 0 } },
-    history: rows.map((r) => ({ weekStart: r.weekStart, score: r.score })),
   };
 }
 

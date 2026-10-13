@@ -9,7 +9,8 @@ import { addDays, dateRange } from './time';
  */
 
 export const BOARD_RULES = {
-  version: 1,
+  /** 2: one workout per activity a day. */
+  version: 2,
   /** Each meal slot logged on time, up to `mealCap` a day. */
   meal: 10,
   mealCap: 3,
@@ -37,6 +38,21 @@ export const BOARD_RULES = {
   minRanked: 3,
   comebackMin: 100,
 } as const;
+
+/**
+ * The workouts that earn points: planned, or at least `minMinutes` long, and only one per activity a day — a second
+ * walk the same day earns nothing, a run after a morning walk still does. Keeps input order for the first of each.
+ */
+export function boardWorkouts<T extends { date: string; typeId: string; planItemId: string | null; durationMin: number }>(acts: T[], minMinutes: number): T[] {
+  const seen = new Set<string>();
+  return acts.filter((a) => {
+    if (!a.planItemId && a.durationMin < minMinutes) return false;
+    const key = `${a.date}|${a.typeId}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
 
 /** How calories or protein landed for the board: on track, close (above the floor), or off. */
 export type BoardClass = 'on' | 'near' | 'off';
@@ -67,7 +83,7 @@ export interface BoardDayFacts {
   snapOnly: number;
   kcal: BoardClass | null;
   protein: BoardClass | null;
-  /** Qualifying workouts that day (planned, or long enough). */
+  /** Qualifying workouts that day (planned, or long enough; one per activity — see `boardWorkouts`). */
   workouts: number;
   weighedIn: boolean;
   /** The day has ended and settled (03:00 the next morning): calories and protein count from then. */
@@ -116,7 +132,7 @@ export interface WeekInput {
   today: string;
   /** Monday to Sunday. */
   days: WeekDayInput[];
-  /** Dates of qualifying on-time workouts, one per workout. */
+  /** Dates of qualifying on-time workouts (`boardWorkouts`), one per workout. */
   workoutDates: string[];
   /** `plan`: done on `doneOn` (or not yet); `rest`: an approved rest week or 3+ vacation days (the bonus is credited); `none`: no weekly plan. */
   plan: { kind: 'plan' | 'rest' | 'none'; doneOn: string | null };

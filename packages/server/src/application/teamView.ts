@@ -10,7 +10,8 @@ import { memberClock } from './clockCtx';
 import { getHabitDay } from './habits';
 import { imageUrlMap, pick, type ImageUrls } from './images';
 import { logsForDate } from './logs';
-import { consistencyWeeks, currentTargets, dayAggregates, dayKcalBand, dayTargets, thresholdsFor, type DayAgg } from './progress';
+import { consistencyWeeks } from './consistency';
+import { currentTargets, dayAggregates, dayKcalBand, dayTargets, thresholdsFor, type DayAgg } from './progress';
 import { getTeam } from './team';
 
 type UserRow = typeof s.users.$inferSelect;

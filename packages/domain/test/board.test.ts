@@ -3,6 +3,7 @@ import { DEFAULT_BOARD_SETTINGS, DEFAULT_THRESHOLDS } from '@clubhouse/contracts
 import {
   addDays,
   BOARD_RULES,
+  boardWorkouts,
   classifyKcal,
   classifyProtein,
   crownHolder,
@@ -118,6 +119,12 @@ describe('week standing', () => {
     expect(w.parts.workouts).toBe(rules.workoutCap * 40);
     expect(w.days[1]!.parts.plan).toBe(40); // third workout landed on Tuesday
     expect(w.points).toBe(7 * 70 + 50 + 160 + 40);
+  });
+  it('counts one workout per activity a day', () => {
+    const a = (date: string, typeId: string, durationMin: number, planItemId: string | null = null) => ({ date, typeId, durationMin, planItemId });
+    const tue = addDays(MON, 1);
+    const acts = [a(MON, 'walk', 10), a(MON, 'walk', 30), a(MON, 'walk', 45), a(MON, 'run', 25), a(tue, 'walk', 5, 'plan'), a(tue, 'walk', 60)];
+    expect(boardWorkouts(acts, 20)).toEqual([acts[1], acts[3], acts[4]]);
   });
   it('maxes out at 750 a week', () => {
     const w = weekStanding(week('SSSSSSS', { workoutDates: [0, 1, 2, 3].map((i) => addDays(MON, i)), days: week('SSSSSSS').days.map((d, i) => ({ ...d, facts: { ...d.facts!, weighedIn: i === 0 } })) }));

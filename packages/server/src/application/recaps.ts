@@ -5,7 +5,8 @@ import type { Container } from '../container';
 import type { AuthUser } from '../interface/http/types';
 import { postSystemMessage } from './chat';
 import { notifyUser } from './notify';
-import { consistencyWeeks, currentTargets, dayAggregates, dayTargets, thresholdsFor } from './progress';
+import { consistencyWeeks } from './consistency';
+import { currentTargets, dayAggregates, dayTargets, thresholdsFor } from './progress';
 import { getTeam } from './team';
 
 type RecapRow = typeof s.weeklyRecaps.$inferSelect;

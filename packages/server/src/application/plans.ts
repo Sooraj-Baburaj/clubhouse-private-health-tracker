@@ -30,12 +30,18 @@ export async function activePlanItems(c: Container, userId: string) {
   return { plan, items: items.map((r) => ({ ...r.item, type: r.type })) };
 }
 
-/** Attribute each activity log to at most one plan item: its explicit item, else the first item of the same type. */
-export function attributeLogs(items: { id: string; typeId: string }[], logs: { id: string; typeId: string; planItemId: string | null }[]) {
+/**
+ * Attribute each activity log to at most one plan item: its explicit item, else the first item of the same type. One
+ * session per item a day: a second walk the same day doesn't tick off another planned walk.
+ */
+export function attributeLogs(items: { id: string; typeId: string }[], logs: { id: string; typeId: string; planItemId: string | null; date: string }[]) {
   const counts = new Map<string, number>(items.map((i) => [i.id, 0]));
+  const seen = new Set<string>();
   for (const l of logs) {
     const target = (l.planItemId && counts.has(l.planItemId) ? l.planItemId : null) ?? items.find((i) => i.typeId === l.typeId)?.id;
-    if (target) counts.set(target, (counts.get(target) ?? 0) + 1);
+    if (!target || seen.has(`${target}|${l.date}`)) continue;
+    seen.add(`${target}|${l.date}`);
+    counts.set(target, (counts.get(target) ?? 0) + 1);
   }
   return counts;
 }
@@ -45,7 +51,7 @@ export async function weekPlanProgress(c: Container, userId: string, weekStart: 
   const { items } = await activePlanItems(c, userId);
   if (!items.length) return { items: [], met: false, hasWeeklyItems: false };
   const logs = await c.db
-    .select({ id: s.activityLogs.id, typeId: s.activityLogs.typeId, planItemId: s.activityLogs.planItemId })
+    .select({ id: s.activityLogs.id, typeId: s.activityLogs.typeId, planItemId: s.activityLogs.planItemId, date: s.activityLogs.date })
     .from(s.activityLogs)
     .where(and(eq(s.activityLogs.userId, userId), gte(s.activityLogs.date, weekStart), lte(s.activityLogs.date, addDays(weekStart, 6)), isNull(s.activityLogs.deletedAt)));
   const counts = attributeLogs(items, logs);

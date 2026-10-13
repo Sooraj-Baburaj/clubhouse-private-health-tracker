@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { LocalDateStr } from '@clubhouse/contracts';
+import { consistencyProgress } from '../../../application/consistency';
 import * as progress from '../../../application/progress';
 import { currentAuth } from '../middleware/session';
 import type { AppEnv } from '../types';
@@ -34,7 +35,7 @@ export const progressRoutes = new Hono<AppEnv>()
   })
   .get('/progress/consistency', async (ctx) => {
     const a = currentAuth(ctx);
-    return ctx.json(await progress.consistencyProgress(ctx.get('c'), a.user));
+    return ctx.json(await consistencyProgress(ctx.get('c'), a.user));
   })
   .get('/progress/recaps', async (ctx) => {
     const a = currentAuth(ctx);

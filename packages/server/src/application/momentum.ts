@@ -3,6 +3,7 @@ import type { StreakKind } from '@clubhouse/contracts';
 import {
   addDays,
   badgeFor,
+  boardWorkouts,
   classifyKcal,
   classifyProtein,
   computeDailyStreak,
@@ -77,7 +78,7 @@ export async function computeDayFacts(c: Container, userId: string, date: string
     snapOnly: snapSlots.size,
     kcal: fullSlots.size && targets ? classifyKcal(boardFoods.kcal, boardBudget, thresholds) : null,
     protein: fullSlots.size && targets ? classifyProtein(boardFoods.protein, targets.protein, thresholds) : null,
-    workouts: acts.filter((a) => !a.addedLate && (!!a.planItemId || a.durationMin >= minMinutes)).length,
+    workouts: boardWorkouts(acts.filter((a) => !a.addedLate), minMinutes).length,
     weighedIn: weights.some((w) => !w.addedLate),
     settled: date <= lastSettledDate(c.clock.now(), tz),
   };

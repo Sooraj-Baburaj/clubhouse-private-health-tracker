@@ -3,6 +3,7 @@ import { AWARD_META, type AdminDashboardResponse, type AwardDto, type BoardDaySt
 import {
   addDays,
   BOARD_RULES,
+  boardWorkouts,
   crownHolder,
   dateRange,
   dayItems,
@@ -124,7 +125,7 @@ async function computeStanding(c: Container, user: UserRow, profile: ProfileRow,
   const [facts, acts, plan, rest] = await Promise.all([
     c.db.query.dayFacts.findMany({ where: and(eq(s.dayFacts.userId, user.id), gte(s.dayFacts.date, weekStart), lte(s.dayFacts.date, weekEnd)) }),
     c.db
-      .select({ id: s.activityLogs.id, typeId: s.activityLogs.typeId, planItemId: s.activityLogs.planItemId, date: s.activityLogs.date, minutes: s.activityLogs.durationMin, loggedAt: s.activityLogs.loggedAt })
+      .select({ id: s.activityLogs.id, typeId: s.activityLogs.typeId, planItemId: s.activityLogs.planItemId, date: s.activityLogs.date, durationMin: s.activityLogs.durationMin, loggedAt: s.activityLogs.loggedAt })
       .from(s.activityLogs)
       .where(and(eq(s.activityLogs.userId, user.id), gte(s.activityLogs.date, weekStart), lte(s.activityLogs.date, weekEnd), isNull(s.activityLogs.deletedAt), eq(s.activityLogs.addedLate, false))),
     activePlanItems(c, user.id),
@@ -137,8 +138,8 @@ async function computeStanding(c: Container, user: UserRow, profile: ProfileRow,
     const f = byDate.get(date);
     return { date, facts: f ? toBoardFacts(f) : null, vacation: isOnVacation(vacations, date), beforeJoin: date < joined };
   });
-  // Workouts are judged with today's team settings (a rule change applies to the whole current week).
-  const qualifying = acts.filter((a) => !!a.planItemId || a.minutes >= rules.workoutMinMinutes);
+  // Workouts are judged with today's team settings (a rule change applies to the whole current week), one per activity a day.
+  const qualifying = boardWorkouts(acts, rules.workoutMinMinutes);
   for (const d of days) {
     if (d.facts) d.facts = { ...d.facts, workouts: qualifying.filter((a) => a.date === d.date).length };
   }

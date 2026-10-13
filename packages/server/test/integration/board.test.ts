@@ -84,6 +84,18 @@ describe('crew leaderboard', () => {
     expect(r.json.effects.points.rank).toBeGreaterThan(0);
   });
 
+  it('a second walk the same day earns nothing, another activity still does', async () => {
+    const cl = people[1]!.cl;
+    const types = (await cl.req('GET', '/activity-types')).json as { id: string; key: string }[];
+    const walk = types.find((t) => t.key === 'walking')!;
+    const run = types.find((t) => t.key === 'running')!;
+    const act = (typeId: string, at: string) => cl.req('PUT', `/logs/activity/${uuid()}`, { date: '2026-09-30', loggedAt: at, clientUpdatedAt: at, typeId, durationMin: 30 });
+    expect((await act(walk.id, '2026-09-30T02:00:00.000Z')).json.effects.points.gained).toBe(40);
+    expect((await act(walk.id, '2026-09-30T06:00:00.000Z')).json.effects.points.gained).toBe(0);
+    expect((await act(walk.id, '2026-09-30T08:00:00.000Z')).json.effects.points.gained).toBe(0);
+    expect((await act(run.id, '2026-09-30T09:00:00.000Z')).json.effects.points.gained).toBe(40);
+  });
+
   it('leaves a hidden member out of everyone else’s board but shows them their would-be rank', async () => {
     const hidden = people[2]!;
     await hidden.cl.req('PATCH', '/profile/preferences', { privacy: { showOnBoard: false } });
